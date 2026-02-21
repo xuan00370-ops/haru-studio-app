@@ -34,21 +34,35 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background: var(--bg);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             line-height: 1.5;
+            position: relative;
         }
 
         /* Biến thành App Layout thực thụ cho Mobile */
         .app-container {
-            width: 100vw;
-            min-height: 100vh;
+            width: 100%;
+            max-width: 500px;
+            /* Vẫn giữ form cho ai xem trên Web PC */
+            margin: 0 auto;
+            min-height: 100%;
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
             background: var(--bg);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
         }
 
         header {
@@ -226,6 +240,9 @@
             font-weight: 600;
             color: var(--text-main);
             text-align: right;
+            max-width: 65%;
+            word-break: break-word;
+            /* Chống tràn lề bởi text quá dài không chứa dấu cách */
         }
 
         .finance-box {
