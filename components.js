@@ -1633,6 +1633,7 @@ export function renderSync(state) {
   <header class="section-header">
        <h1 class="view-title">🔄 Sync Dữ liệu</h1>
        <div style="display: flex; gap: 0.5rem">
+          <button class="btn btn-warning btn-sm" onclick="window.importGoLiveData()" style="background: var(--warning); color: #fff; border:none; margin-right: 1rem;"><i class="fas fa-magic"></i> Khởi tạo Dữ liệu Go-Live</button>
           <button class="btn btn-secondary btn-sm" onclick="window.exportCSV()"><i class="fas fa-file-export"></i> Xuất CSV</button>
           <button class="btn btn-primary btn-sm" onclick="window.runSync()"><i class="fas fa-cloud-download-alt"></i> Sync toàn bộ</button>
        </div>

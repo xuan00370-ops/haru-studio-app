@@ -860,6 +860,31 @@ window.removeClient = (id) => {
 };
 
 // ============================================================
-// BOOT
+// BOOT & GO-LIVE IMPORT
 // ============================================================
+window.importGoLiveData = async () => {
+  if (!confirm("BẠN CÓ CHẮC CHẮN MUỐN NẠP DỮ LIỆU GO-LIVE?\\n\\nHành động này sẽ XÓA SẠCH dữ liệu Demo hiện tại và thay thế bằng 73 Dự án thật (Tháng 3 -> 7) từ Google Sheets của bạn.")) return;
+
+  try {
+    const res = await fetch('/new_state.json');
+    const data = await res.json();
+
+    // Ghi đè State
+    state.jobs = data.jobs || [];
+    state.clients = data.clients || [];
+    state.history = [{ time: new Date().toISOString(), action: 'Khởi tạo hệ thống Go-Live', user: 'Admin' }];
+    state.financeMetadata = {};
+    state.manualTransactions = [];
+
+    // Lưu và Đồng bộ
+    saveState();
+    updateUI();
+
+    alert("🎉 NẠP DỮ LIỆU THÀNH CÔNG!\\n\\n73 Dự án và thông tin Khách hàng đã được đồng bộ lên Firebase của bạn.");
+  } catch (err) {
+    console.error(err);
+    alert("Lỗi khi nạp dữ liệu: " + err.message);
+  }
+};
+
 updateUI();
