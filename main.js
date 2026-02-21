@@ -863,23 +863,24 @@ window.removeClient = (id) => {
 // BOOT & GO-LIVE IMPORT
 // ============================================================
 window.importGoLiveData = async () => {
-  if (!confirm("BẠN CÓ CHẮC CHẮN MUỐN NẠP DỮ LIỆU GO-LIVE?\n\nHành động này sẽ xóa các dự án Demo từ Tháng 3 trở đi và thay thế bằng 13 Dự án thật.\n\n(Dữ liệu của Tháng 1 và Tháng 2 sẽ được GIỮ LẠI nguyên vẹn)")) return;
+  if (!confirm("BẠN CÓ CHẮC CHẮN MUỐN NẠP DỮ LIỆU GO-LIVE?\n\nHành động này sẽ tải 13 Dự án thật từ Google Sheets.\n\nĐặc biệt: Hệ thống tự động PHỤC HỒI Dữ liệu Tháng 1 và Tháng 2 mặc định của bạn.")) return;
 
   try {
     const res = await fetch('/new_state.json');
     const data = await res.json();
 
-    // Giữ lại các job của Tháng 1 và Tháng 2
-    const keptJobs = state.jobs.filter(j => {
+    // KIẾN TRÚC MỚI: Luôn cào Dữ liệu T1, T2 từ file gốc data.js 
+    // Tránh việc người dùng bấm nhầm xóa mất trong Cache cũ
+    const recoveredJanFebJobs = mockData.jobs.filter(j => {
       if (!j.date) return false;
       const m = new Date(j.date).getMonth() + 1;
       return m === 1 || m === 2;
     });
 
-    // Ghi đè State
-    state.jobs = [...keptJobs, ...(data.jobs || [])];
+    // Ghi đè State: Data T1, T2 Gốc + Data Go-Live Mới (T3->T7)
+    state.jobs = [...recoveredJanFebJobs, ...(data.jobs || [])];
     state.clients = data.clients || [];
-    state.history = [{ time: new Date().toISOString(), action: 'Khởi tạo hệ thống Go-Live (Giữ lại T1, T2)', user: 'Admin' }];
+    state.history = [{ time: new Date().toISOString(), action: 'Khởi tạo hệ thống Go-Live (Đã phục hồi T1, T2)', user: 'Admin' }];
     state.financeMetadata = {};
     state.manualTransactions = [];
 
@@ -887,7 +888,7 @@ window.importGoLiveData = async () => {
     saveState();
     updateUI();
 
-    alert("🎉 NẠP DỮ LIỆU THÀNH CÔNG!\n\n13 Dự án mới đã được chép vào. Dữ liệu Tháng 1 & 2 đã được giữ lại.");
+    alert("🎉 NẠP DỮ LIỆU THÀNH CÔNG!\n\n13 Dự án mới đã được nạp. Toàn bộ dữ liệu Tháng 1 & 2 đã được phục hồi nguyên vẹn.");
   } catch (err) {
     console.error(err);
     alert("Lỗi khi nạp dữ liệu: " + err.message);

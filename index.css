@@ -906,6 +906,7 @@ tr.paid-row {
   /* Bảng Tổng Quan (Stats) - Phá vỡ Grid tĩnh trên JS thành 2 cột hoặc 1 cột */
   [style*="grid-template-columns: repeat(5, 1fr)"],
   [style*="grid-template-columns: repeat(4, 1fr)"],
+  [style*="grid-template-columns: repeat(3, 1fr)"],
   [style*="grid-template-columns: 1fr 1fr 1fr 1fr"] {
     grid-template-columns: 1fr 1fr !important;
     gap: 0.75rem !important;
@@ -920,9 +921,32 @@ tr.paid-row {
     gap: 10px;
   }
 
-  /* Hàng input dài */
+  /* Hàng input dài trong Form/Modal */
   [style*="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem"],
-  [style*="display: grid; grid-template-columns: 1fr 1.5fr 1fr 0.8fr 0.3fr"] {
+  [style*="display: grid; grid-template-columns: 1fr 1.5fr 1fr 0.8fr 0.3fr"],
+  [style*="display: flex; gap: 1rem;"] {
     grid-template-columns: 1fr !important;
+    flex-direction: column !important;
+  }
+
+  /* Ngăn tràn bảng trong Modal Chi Tiết Job & Báo Cáo Tháng */
+  .modal-body,
+  .monthly-report {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Bảng Nhân Sự / Dịch vụ / Finance bên trong Modal */
+  table {
+    min-width: 600px;
+    /* Bắt buộc bảng phải cuộn ngang chứ không ép khung gãy layout */
+  }
+
+  .table-responsive-wrapper {
+    overflow-x: auto;
+    width: 100%;
   }
 }
