@@ -12,29 +12,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #f3f4f6;
+            --bg: #f8fafc;
             --surface: #ffffff;
-            --text-main: #1f2937;
-            --text-dim: #6b7280;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
             --primary: #f97316;
             --primary-light: #ffedd5;
             --primary-dark: #ea580c;
             --secondary: #3b82f6;
-            --secondary-light: #dbeafe;
-            --border: #e5e7eb;
+            --border: #e2e8f0;
             --success: #10b981;
-            --success-light: #d1fae5;
             --warning: #f59e0b;
-            --warning-light: #fef3c7;
             --danger: #ef4444;
-            --danger-light: #fee2e2;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -42,329 +38,298 @@
             background: var(--bg);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
-            line-height: 1.6;
-            overflow-x: hidden;
-            /* Fix horizontal scroll */
-            width: 100vw;
+            line-height: 1.5;
         }
 
+        /* Biến thành App Layout thực thụ cho Mobile */
         .app-container {
-            max-width: 500px;
-            margin: 0 auto;
+            width: 100vw;
             min-height: 100vh;
-            background: var(--bg);
-            position: relative;
             display: flex;
             flex-direction: column;
-            width: 100%;
             overflow-x: hidden;
+            background: var(--bg);
         }
 
         header {
-            background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
-            padding: 2rem 1.5rem;
+            background: var(--surface);
+            padding: 24px 20px 20px;
+            padding-top: env(safe-area-inset-top, 24px);
             border-bottom: 1px solid var(--border);
-            text-align: center;
             position: sticky;
             top: 0;
-            z-index: 10;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04);
-            border-radius: 0 0 24px 24px;
+            z-index: 100;
         }
 
         .brand {
             font-weight: 900;
-            font-size: 1.5rem;
-            letter-spacing: -0.5px;
+            font-size: 1.25rem;
             color: var(--primary-dark);
-            text-transform: uppercase;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .brand::before {
             content: '✿';
             color: var(--primary);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .client-greeting {
-            margin-top: 0.75rem;
-            font-size: 1rem;
+            margin-top: 12px;
+            font-size: 0.95rem;
             color: var(--text-dim);
             font-weight: 500;
         }
 
         .client-name {
+            display: block;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--text-main);
-            display: block;
-            font-size: 1.2rem;
-            margin-top: 0.2rem;
+            line-height: 1.2;
+            margin-top: 4px;
         }
 
         .content {
-            padding: 1.5rem;
             flex: 1;
+            padding: 16px;
+            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
         }
 
         .section-title {
-            font-size: 0.9rem;
-            font-weight: 800;
+            font-size: 0.85rem;
+            font-weight: 700;
             text-transform: uppercase;
             color: var(--text-dim);
-            margin-bottom: 1rem;
+            margin-bottom: 16px;
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .job-card {
             background: var(--surface);
-            border-radius: 20px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s ease;
-        }
-
-        .job-card:active {
-            transform: scale(0.98);
-        }
-
-        .job-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), #fde047);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
         }
 
         .job-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1.25rem;
+            margin-bottom: 20px;
         }
 
         .job-type {
             font-weight: 800;
             font-size: 1.2rem;
             color: var(--text-main);
-            line-height: 1.2;
         }
 
         .job-date {
             font-size: 0.85rem;
             color: var(--text-dim);
-            font-weight: 500;
-            margin-top: 0.4rem;
+            margin-top: 6px;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 6px;
+            font-weight: 500;
         }
 
         .status-badge {
             font-size: 0.75rem;
             font-weight: 800;
-            padding: 0.35rem 0.8rem;
-            border-radius: 20px;
-            display: inline-flex;
+            padding: 6px 12px;
+            border-radius: 999px;
+            display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 4px;
         }
 
         .status-done {
-            background: var(--success-light);
-            color: var(--success);
+            background: #dcfce7;
+            color: #166534;
         }
 
         .status-progress {
-            background: var(--secondary-light);
-            color: var(--secondary);
+            background: #dbeafe;
+            color: #1e40af;
         }
 
         .status-waiting {
-            background: var(--warning-light);
-            color: var(--warning);
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        /* Deadlines Section */
-        .deadlines-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
+        /* Deadlines UI */
+        .deadlines-box {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
         }
 
         .deadline-item {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .deadline-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
         }
 
         .deadline-label {
-            font-size: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
             color: var(--text-dim);
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 0.2rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.3rem;
+            gap: 8px;
         }
 
         .deadline-date {
-            font-weight: 800;
             font-size: 1rem;
+            font-weight: 800;
             color: var(--primary-dark);
         }
 
-        /* Info Section */
+        /* Info List */
         .info-list {
-            background: #fdfdfd;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1rem;
-            margin-bottom: 1.25rem;
+            margin-bottom: 20px;
         }
 
         .info-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
+            padding: 8px 0;
             font-size: 0.95rem;
-        }
-
-        .info-row:not(:last-child) {
-            border-bottom: 1px dashed var(--border);
         }
 
         .info-label {
             color: var(--text-dim);
-            font-weight: 500;
         }
 
         .info-value {
-            font-weight: 800;
-            text-align: right;
+            font-weight: 600;
             color: var(--text-main);
+            text-align: right;
         }
 
-        .finance-outstanding {
-            background: var(--danger-light);
-            padding: 0.75rem;
-            border-radius: 12px;
-            margin-top: 0.5rem;
+        .finance-box {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-radius: 16px;
+            padding: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .finance-outstanding .label {
-            color: var(--danger);
+        .finance-box .amount {
             font-weight: 800;
-            font-size: 0.9rem;
-        }
-
-        .finance-outstanding .amount {
             color: var(--danger);
-            font-weight: 900;
             font-size: 1.1rem;
         }
 
-        .finance-cleared {
-            background: var(--success-light);
-            padding: 0.75rem;
-            border-radius: 12px;
-            margin-top: 0.5rem;
+        .finance-box .label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #be123c;
             display: flex;
-            justify-content: space-between;
+            gap: 6px;
             align-items: center;
         }
 
-        .finance-cleared .label {
-            color: var(--success);
-            font-weight: 800;
-            font-size: 0.9rem;
+        .finance-box.cleared {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
         }
 
-        .finance-cleared .amount {
+        .finance-box.cleared .amount {
             color: var(--success);
-            font-weight: 900;
-            font-size: 1.1rem;
         }
 
-        /* Buttons */
+        .finance-box.cleared .label {
+            color: #166534;
+        }
+
         .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 12px;
+            margin-top: 24px;
         }
 
         .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
             width: 100%;
-            padding: 1rem;
-            border-radius: 14px;
+            padding: 16px;
+            border-radius: 100px;
             font-weight: 800;
             font-size: 1rem;
+            text-align: center;
             text-decoration: none;
-            transition: all 0.2s ease;
             border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.1s;
             cursor: pointer;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
-            box-shadow: 0 8px 20px rgba(234, 88, 12, 0.25);
+            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
         }
 
         .btn-drive {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: #fff;
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
         }
 
         .btn-secondary {
             background: #f1f5f9;
-            color: var(--text-main);
-            border: 1px solid var(--border);
+            color: var(--text-dim);
         }
 
-        .btn:active {
-            transform: translateY(2px);
-            box-shadow: none;
+        .footer-support {
+            text-align: center;
+            padding: 30px 20px calc(env(safe-area-inset-bottom, 20px) + 30px);
+            background: var(--surface);
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
         }
 
         .loader {
             text-align: center;
-            padding: 4rem 1rem;
+            padding: 60px 20px;
             color: var(--text-dim);
-            font-size: 1rem;
-            font-weight: 500;
         }
 
         .loader i {
-            font-size: 2.5rem;
+            font-size: 32px;
             color: var(--primary);
-            margin-bottom: 1.5rem;
+            margin-bottom: 16px;
             animation: spin 1s linear infinite;
         }
 
@@ -376,26 +341,11 @@
 
         .empty-state {
             text-align: center;
-            padding: 3rem 1.5rem;
+            padding: 40px 20px;
+            color: var(--text-dim);
             background: var(--surface);
-            border-radius: 20px;
-            border: 1px dashed var(--text-dim);
-            color: var(--text-dim);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            color: var(--border);
-            margin-bottom: 1rem;
-        }
-
-        .footer-support {
-            text-align: center;
-            padding: 2rem 1rem;
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            background: #ffffff;
-            border-top: 1px solid var(--border);
+            border-radius: 24px;
+            border: 1px dashed var(--border);
         }
     </style>
 </head>
@@ -439,19 +389,30 @@
                 return;
             }
 
-            const urlData = urlParams.get('data');
+            const urlData = urlParams.get('d');
             const urlName = urlParams.get('name');
 
             // 1. NGƯỜI DÙNG TRUY CẬP QUA LINK CHỨA SẴN DATA (HOẠT ĐỘNG 100% OFF-FIREBASE)
             if (urlData && urlName) {
                 try {
-                    const clientName = decodeURIComponent(urlName);
-                    const jobsPayload = JSON.parse(decodeURIComponent(atob(urlData)));
+                    const clientName = urlName;
+                    const parsedArray = JSON.parse(urlData);
+                    const jobsPayload = parsedArray.map(arr => ({
+                        eventType: arr[0],
+                        date: arr[1],
+                        status: arr[2],
+                        package: arr[3],
+                        deposit: arr[4],
+                        venue: arr[5],
+                        services: arr[6] ? arr[6].split('|').map(s => ({ service: s })) : [],
+                        linkCustomer: arr[7],
+                        linkDrive: arr[8]
+                    }));
                     jobsPayload.sort((a, b) => new Date(b.date) - new Date(a.date));
                     renderPortal({ name: clientName }, jobsPayload, null);
                     return; // Đã render xong
                 } catch (e) {
-                    console.warn("Lỗi giải mã URL Data, chuyển sang fetch DB.");
+                    console.warn("Lỗi giải mã URL Data, chuyển sang fetch DB.", e);
                 }
             }
 
@@ -578,7 +539,7 @@
                             </div>
                         </div>
                         
-                        <div class="deadlines-grid">
+                        <div class="deadlines-box">
                             ${(hasPhoto || showBoth) ? `
                             <div class="deadline-item">
                                 <span class="deadline-label"><i class="fas fa-camera"></i> Trả Ảnh</span>
@@ -610,12 +571,12 @@
                         </div>
 
                         ${debt > 0 ? `
-                            <div class="finance-outstanding">
-                                <span class="label"><i class="fas fa-money-bill-wave"></i> Cần thanh toán thêm</span>
+                            <div class="finance-box">
+                                <span class="label"><i class="fas fa-money-bill-wave"></i> Còn nợ</span>
                                 <span class="amount">${formatCurrency(debt)}</span>
                             </div>
                         ` : `
-                            <div class="finance-cleared">
+                            <div class="finance-box cleared">
                                 <span class="label"><i class="fas fa-check-circle"></i> Đã thanh toán đủ</span>
                                 <span class="amount">0đ</span>
                             </div>

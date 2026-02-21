@@ -1876,7 +1876,23 @@ export function renderClients(state) {
           </tr>
         </thead>
         <tbody>
-          ${displayClients.map(c => `
+          ${displayClients.map(c => {
+    // Tối ưu hóa dung lượng Data truyền qua URL (Giảm 80% độ dài)
+    const miniData = c.history.map(j => [
+      j.eventType || 'Chụp Ảnh/Quay Phim',
+      j.date,
+      j.status,
+      j.package || 0,
+      j.deposit || 0,
+      j.venue || '',
+      j.services ? j.services.map(s => s.service).join('|') : '',
+      j.linkCustomer || '',
+      j.linkDrive || ''
+    ]);
+    const payload = encodeURIComponent(JSON.stringify(miniData));
+    const portalLink = window.location.origin + '/portal.html?cid=' + c.id + dbParam + '&name=' + encodeURIComponent(c.name) + '&d=' + payload;
+
+    return `
              <tr>
                <td style="font-weight: 800; font-size: 0.95rem; color: var(--text-main)">${c.name}</td>
                <td>
@@ -1892,8 +1908,8 @@ export function renderClients(state) {
                </td>
                <td style="text-align: center">
                   <div style="display: flex; justify-content: center; gap: 0.3rem">
-                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem; background: rgba(22,163,74,0.08); color: var(--success); border-color: rgba(22,163,74,0.2)" onclick="window.open('/portal.html?cid=${c.id}${dbParam}&name=${encodeURIComponent(c.name)}&data=${btoa(encodeURIComponent(JSON.stringify(c.history)))}', '_blank')"><i class="fas fa-external-link-alt"></i> Mở</button>
-                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem" onclick="navigator.clipboard.writeText(window.location.origin + '/portal.html?cid=${c.id}${dbParam}&name=${encodeURIComponent(c.name)}&data=${btoa(encodeURIComponent(JSON.stringify(c.history)))}'); alert('Đã copy link Portal của khách hàng này!')" title="Copy cho khách"><i class="fas fa-copy"></i> Copy</button>
+                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem; background: rgba(22,163,74,0.08); color: var(--success); border-color: rgba(22,163,74,0.2)" onclick="window.open('${portalLink}', '_blank')"><i class="fas fa-external-link-alt"></i> Mở</button>
+                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem" onclick="navigator.clipboard.writeText('${portalLink}'); alert('Đã copy link Portal của khách hàng này!')" title="Copy cho khách"><i class="fas fa-copy"></i> Copy</button>
                   </div>
                </td>
                <td style="text-align: right">
@@ -1901,7 +1917,8 @@ export function renderClients(state) {
                  <button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem; color: var(--danger)" onclick="if(confirm('Xóa thông tin khách hàng này?\\n\\nChú ý: Hành động này KHÔNG xóa các Dự án liên quan.')) window.removeClient('${c.id}')" title="Xóa"><i class="fas fa-trash"></i></button>
                </td>
              </tr>
-          `).join('')}
+             `;
+  }).join('')}
           ${displayClients.length === 0 ? '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-dim)">Chưa có dữ liệu khách hàng</td></tr>' : ''}
         </tbody>
       </table>
