@@ -1,7 +1,7 @@
 {
   "jobs": [
     {
-      "id": "JOB-CJTGFHLHM",
+      "id": "JOB-U9HKV3D6I",
       "client": "Bích An\nHaruwedding",
       "phone": "0906347428",
       "date": "2026-03-01",
@@ -12,7 +12,7 @@
       "notes": "",
       "services": [
         {
-          "id": "d31jr1",
+          "id": "9heo80",
           "service": "Chụp PS",
           "staff": [
             "XUÂN"
@@ -24,10 +24,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.978Z"
+      "createdAt": "2026-02-21T13:32:22.073Z"
     },
     {
-      "id": "JOB-8BXQ2POLK",
+      "id": "JOB-56FQ230O3",
       "client": "Hoàng Nhật Sinh",
       "phone": "0909109960",
       "date": "2026-03-08",
@@ -38,7 +38,7 @@
       "notes": "lên demo hình cho khách",
       "services": [
         {
-          "id": "820dzp",
+          "id": "7ew56u",
           "service": "QUAY PS",
           "staff": [
             "THỐNG"
@@ -48,7 +48,7 @@
           "isDone": false
         },
         {
-          "id": "ombm3j",
+          "id": "hu2bt6",
           "service": "CHỤP PS",
           "staff": [
             "XUÂN"
@@ -58,7 +58,7 @@
           "isDone": false
         },
         {
-          "id": "ifw6nd",
+          "id": "fsww1j",
           "service": "CHỤP TT",
           "staff": [
             "BÌNH"
@@ -70,10 +70,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
-      "id": "JOB-1EZSKI5EH",
+      "id": "JOB-4U4BJUDLQ",
       "client": "Vy Phạm",
       "phone": "0983082810",
       "date": "2026-03-14",
@@ -84,7 +84,7 @@
       "notes": "",
       "services": [
         {
-          "id": "9xinyg",
+          "id": "a8j6bd",
           "service": "QUAY PRE",
           "staff": [
             "THỐNG"
@@ -96,10 +96,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
-      "id": "JOB-GFB0Z184B",
+      "id": "JOB-D3G2YXR1P",
       "client": "Duyên",
       "phone": "",
       "date": "2026-03-14",
@@ -110,7 +110,7 @@
       "notes": "TẶNG ALBUM",
       "services": [
         {
-          "id": "khzu2r",
+          "id": "9h7rtz",
           "service": "QUAY PS",
           "staff": [
             "XUÂN"
@@ -120,7 +120,7 @@
           "isDone": false
         },
         {
-          "id": "swv2w2",
+          "id": "c7lz8x",
           "service": "QUAY TT",
           "staff": [
             "HIẾU"
@@ -130,7 +130,7 @@
           "isDone": false
         },
         {
-          "id": "yc6jak",
+          "id": "0l6ays",
           "service": "CHỤP PS",
           "staff": [
             "CAN"
@@ -140,7 +140,7 @@
           "isDone": false
         },
         {
-          "id": "hfu16e",
+          "id": "021ugo",
           "service": "CHỤP PS",
           "staff": [
             "NGỌC TUYỀN"
@@ -150,7 +150,7 @@
           "isDone": false
         },
         {
-          "id": "y1twq6",
+          "id": "gslg8t",
           "service": "CHỤP TT",
           "staff": [
             "BÌNH"
@@ -162,10 +162,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
-      "id": "JOB-1BFBTUZQZ",
+      "id": "JOB-8GZWVRLCA",
       "client": "Vân Hồ",
       "phone": "0349347261",
       "date": "2026-03-10",
@@ -176,7 +176,7 @@
       "notes": "",
       "services": [
         {
-          "id": "8j5gj0",
+          "id": "jbjwnt",
           "service": "QUAY PS",
           "staff": [
             "XUÂN"
@@ -186,7 +186,7 @@
           "isDone": false
         },
         {
-          "id": "2asz9n",
+          "id": "8302h3",
           "service": "CHỤP PS",
           "staff": [
             "HÙNG"
@@ -196,7 +196,7 @@
           "isDone": false
         },
         {
-          "id": "0ydbh0",
+          "id": "kbp3yv",
           "service": "CHỤP TT",
           "staff": [
             "BÌNH"
@@ -206,7 +206,7 @@
           "isDone": false
         },
         {
-          "id": "u610tt",
+          "id": "d1ppsb",
           "service": "QUAY PS ĐOẠN LÀM LỄ",
           "staff": [
             "TIẾN"
@@ -216,7 +216,7 @@
           "isDone": false
         },
         {
-          "id": "jwtauz",
+          "id": "ommivt",
           "service": "CHỤP PS",
           "staff": [
             "XUÂN"
@@ -226,7 +226,7 @@
           "isDone": false
         },
         {
-          "id": "oj5vxq",
+          "id": "mh6aa0",
           "service": "CHỤP TT",
           "staff": [
             "BÌNH"
@@ -238,10 +238,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
-      "id": "JOB-VPCHHOGJV",
+      "id": "JOB-W6EHMVOR2",
       "client": "Trần Thư\nlễ gia tiên 2 nhà",
       "phone": "0379900566",
       "date": "2026-03-22",
@@ -252,7 +252,7 @@
       "notes": "",
       "services": [
         {
-          "id": "ba7t7b",
+          "id": "41sbzc",
           "service": "Quay PS",
           "staff": [
             "XUÂN"
@@ -262,7 +262,7 @@
           "isDone": false
         },
         {
-          "id": "x189lo",
+          "id": "76k23k",
           "service": "Chụp PS",
           "staff": [
             "TRỐNG"
@@ -272,7 +272,7 @@
           "isDone": false
         },
         {
-          "id": "u97i7n",
+          "id": "bw554h",
           "service": "Chụp TT",
           "staff": [
             "BÌNH"
@@ -284,10 +284,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
-      "id": "JOB-8RVCX536E",
+      "id": "JOB-BC5IUOVQB",
       "client": "Ngọc Châu",
       "phone": "0797718270",
       "date": "2026-03-29",
@@ -298,7 +298,7 @@
       "notes": "",
       "services": [
         {
-          "id": "b4wzyl",
+          "id": "6pm07c",
           "service": "Quay PS",
           "staff": [
             "XUÂN"
@@ -308,7 +308,7 @@
           "isDone": false
         },
         {
-          "id": "548cd2",
+          "id": "ylncwo",
           "service": "Chụp PS",
           "staff": [
             "NGỌC TUYỀN"
@@ -318,7 +318,7 @@
           "isDone": false
         },
         {
-          "id": "qfowvm",
+          "id": "zpy0xl",
           "service": "Chụp TT",
           "staff": [
             "BÌNH"
@@ -326,25 +326,9 @@
           "cost": 0,
           "note": "",
           "isDone": false
-        }
-      ],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-I2CSO1P9W",
-      "client": "Chênh lệch",
-      "phone": "",
-      "date": "Ngân sách trong tháng",
-      "venue": "Danh mục",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "Tiền thu về",
-      "services": [
+        },
         {
-          "id": "6qjtrb",
+          "id": "dy61be",
           "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
           "staff": [
             "Chênh lệch"
@@ -354,7 +338,7 @@
           "isDone": false
         },
         {
-          "id": "z6bwwc",
+          "id": "oennlg",
           "service": "148.900.000,00₫",
           "staff": [],
           "cost": 0,
@@ -362,7 +346,7 @@
           "isDone": false
         },
         {
-          "id": "a9mzmt",
+          "id": "4t3vf5",
           "service": "80.600.000₫",
           "staff": [],
           "cost": 0,
@@ -370,7 +354,7 @@
           "isDone": false
         },
         {
-          "id": "72wwbd",
+          "id": "jfjaxp",
           "service": "16.500.000₫",
           "staff": [],
           "cost": 0,
@@ -378,7 +362,7 @@
           "isDone": false
         },
         {
-          "id": "pwl4qp",
+          "id": "r12f1h",
           "service": "11.500.000₫",
           "staff": [],
           "cost": 0,
@@ -386,7 +370,7 @@
           "isDone": false
         },
         {
-          "id": "78hf3n",
+          "id": "mwun39",
           "service": "20.000.000₫",
           "staff": [],
           "cost": 0,
@@ -394,7 +378,7 @@
           "isDone": false
         },
         {
-          "id": "iruqxc",
+          "id": "idbd1e",
           "service": "0₫",
           "staff": [],
           "cost": 0,
@@ -402,7 +386,7 @@
           "isDone": false
         },
         {
-          "id": "k271p4",
+          "id": "9htmbv",
           "service": "10.000.000₫",
           "staff": [],
           "cost": 0,
@@ -410,7 +394,7 @@
           "isDone": false
         },
         {
-          "id": "0qruch",
+          "id": "71q5gw",
           "service": "10.300.000₫",
           "staff": [],
           "cost": 0,
@@ -420,175 +404,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
-      "id": "JOB-RM733VU9E",
-      "client": "HẬU KÌ",
-      "phone": "",
-      "date": "TIỀN KÌ LỄ VÀ TIỆC",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-HO9HE3HZG",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "3.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-WU4EEK1VL",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-KG011CHIE",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-LH0YQAOQT",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-2DZ1AEQU1",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-WTI746DUZ",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-8AF6D3P6O",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-B4TL0JGFO",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-C85O7UXS7",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-0UDGMC2IX",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "JOB-D0ABX4ZW6",
+      "id": "JOB-CUQFTQ18P",
       "client": "Hoàng Nam",
       "phone": "0762722931",
       "date": "2026-04-26",
@@ -599,7 +418,7 @@
       "notes": "",
       "services": [
         {
-          "id": "e5fdai",
+          "id": "42odak",
           "service": "Quay PS",
           "staff": [
             "THỐNG"
@@ -609,7 +428,7 @@
           "isDone": false
         },
         {
-          "id": "daijxt",
+          "id": "96amlu",
           "service": "Chụp PS",
           "staff": [
             "XUÂN"
@@ -619,7 +438,7 @@
           "isDone": false
         },
         {
-          "id": "zfxc0f",
+          "id": "s0tkjk",
           "service": "Chụp TT",
           "staff": [
             "BÌNH"
@@ -627,25 +446,9 @@
           "cost": 0,
           "note": "",
           "isDone": false
-        }
-      ],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-Q0DP5KH1R",
-      "client": "Chênh lệch",
-      "phone": "",
-      "date": "Ngân sách trong tháng",
-      "venue": "Danh mục",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "Tiền thu về",
-      "services": [
+        },
         {
-          "id": "cdqxsa",
+          "id": "k3uu36",
           "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
           "staff": [
             "Chênh lệch"
@@ -655,7 +458,7 @@
           "isDone": false
         },
         {
-          "id": "4fcyxv",
+          "id": "p1lba1",
           "service": "148.900.000,00₫",
           "staff": [],
           "cost": 0,
@@ -663,7 +466,7 @@
           "isDone": false
         },
         {
-          "id": "554zwf",
+          "id": "n6ab0o",
           "service": "80.600.000₫",
           "staff": [],
           "cost": 0,
@@ -671,7 +474,7 @@
           "isDone": false
         },
         {
-          "id": "71xakr",
+          "id": "ab1fmt",
           "service": "16.500.000₫",
           "staff": [],
           "cost": 0,
@@ -679,7 +482,7 @@
           "isDone": false
         },
         {
-          "id": "hqxrmv",
+          "id": "3slf23",
           "service": "11.500.000₫",
           "staff": [],
           "cost": 0,
@@ -687,7 +490,7 @@
           "isDone": false
         },
         {
-          "id": "kmqzve",
+          "id": "8imjw3",
           "service": "20.000.000₫",
           "staff": [],
           "cost": 0,
@@ -695,7 +498,7 @@
           "isDone": false
         },
         {
-          "id": "m7u6fn",
+          "id": "b35e4o",
           "service": "0₫",
           "staff": [],
           "cost": 0,
@@ -703,7 +506,7 @@
           "isDone": false
         },
         {
-          "id": "voan6s",
+          "id": "0bh427",
           "service": "10.000.000₫",
           "staff": [],
           "cost": 0,
@@ -711,7 +514,7 @@
           "isDone": false
         },
         {
-          "id": "s8rxl9",
+          "id": "iqkq7c",
           "service": "10.300.000₫",
           "staff": [],
           "cost": 0,
@@ -721,175 +524,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
+      "createdAt": "2026-02-21T13:32:22.703Z"
     },
     {
-      "id": "JOB-KI889JG7U",
-      "client": "HẬU KÌ",
-      "phone": "",
-      "date": "TIỀN KÌ LỄ VÀ TIỆC",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-YHOKXWFQF",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "3.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-QZXKO842U",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-6IRKUCMLU",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-XPQ98OKOO",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-K173NN2SP",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-Z0VYSMIIQ",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-IXEITD825",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-3T7OG3IXQ",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-N55S3KD2X",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-3JQLNE7E5",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:32.623Z"
-    },
-    {
-      "id": "JOB-ZHGGQWGCE",
+      "id": "JOB-24EES6UKN",
       "client": "Thu Minh",
       "phone": "0335276418",
       "date": "2026-05-16",
@@ -900,7 +538,7 @@
       "notes": "",
       "services": [
         {
-          "id": "ftc6xn",
+          "id": "qyb1rm",
           "service": "QUAY PS",
           "staff": [
             "THỐNG"
@@ -910,7 +548,7 @@
           "isDone": false
         },
         {
-          "id": "bkukw7",
+          "id": "91gbpn",
           "service": "QUAY PS",
           "staff": [
             "BÌNH"
@@ -920,7 +558,7 @@
           "isDone": false
         },
         {
-          "id": "ph6n6x",
+          "id": "ubxmxy",
           "service": "CHỤP PS",
           "staff": [
             "XUÂN"
@@ -930,7 +568,7 @@
           "isDone": false
         },
         {
-          "id": "w2ujh6",
+          "id": "jtjru3",
           "service": "CHỤP TT",
           "staff": [
             "NGỌC TUYỀN"
@@ -940,7 +578,7 @@
           "isDone": false
         },
         {
-          "id": "gfru1h",
+          "id": "0s8fqt",
           "service": "ALBUM",
           "staff": [],
           "cost": 0,
@@ -950,10 +588,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
+      "createdAt": "2026-02-21T13:32:23.342Z"
     },
     {
-      "id": "JOB-VRGAI72V8",
+      "id": "JOB-D4G8K6XAD",
       "client": "Vy Pham",
       "phone": "0983082810",
       "date": "2026-05-16",
@@ -964,7 +602,7 @@
       "notes": "TT lần 2: 3600k sau ngày quay pre",
       "services": [
         {
-          "id": "cnlxqj",
+          "id": "gtrxpt",
           "service": "QUAY PS",
           "staff": [
             "Nho"
@@ -974,7 +612,7 @@
           "isDone": false
         },
         {
-          "id": "fbop6j",
+          "id": "ujzmh5",
           "service": "QUAY TT",
           "staff": [
             "TRỐNG"
@@ -984,7 +622,7 @@
           "isDone": false
         },
         {
-          "id": "ftz7t2",
+          "id": "mgsy39",
           "service": "CHỤP PS",
           "staff": [
             "BẢO"
@@ -994,7 +632,7 @@
           "isDone": false
         },
         {
-          "id": "fg0p8k",
+          "id": "a3kfmz",
           "service": "CHỤP TT",
           "staff": [
             "TRỐNG"
@@ -1004,31 +642,15 @@
           "isDone": false
         },
         {
-          "id": "3er38g",
+          "id": "f5jye4",
           "service": "ALBUM",
           "staff": [],
           "cost": 0,
           "note": "",
           "isDone": false
-        }
-      ],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-SR9DEX3ZB",
-      "client": "Chênh lệch",
-      "phone": "",
-      "date": "Ngân sách trong tháng",
-      "venue": "Danh mục",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "Tiền thu về",
-      "services": [
+        },
         {
-          "id": "x4ob7t",
+          "id": "7etimy",
           "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
           "staff": [
             "Chênh lệch"
@@ -1038,7 +660,7 @@
           "isDone": false
         },
         {
-          "id": "apu8h6",
+          "id": "1suovl",
           "service": "148.900.000,00₫",
           "staff": [],
           "cost": 0,
@@ -1046,7 +668,7 @@
           "isDone": false
         },
         {
-          "id": "81jd5d",
+          "id": "ywdiwi",
           "service": "80.600.000₫",
           "staff": [],
           "cost": 0,
@@ -1054,7 +676,7 @@
           "isDone": false
         },
         {
-          "id": "5uq2w6",
+          "id": "0ji2we",
           "service": "16.500.000₫",
           "staff": [],
           "cost": 0,
@@ -1062,7 +684,7 @@
           "isDone": false
         },
         {
-          "id": "c801f0",
+          "id": "935td8",
           "service": "11.500.000₫",
           "staff": [],
           "cost": 0,
@@ -1070,7 +692,7 @@
           "isDone": false
         },
         {
-          "id": "hgjs66",
+          "id": "f05yt3",
           "service": "20.000.000₫",
           "staff": [],
           "cost": 0,
@@ -1078,7 +700,7 @@
           "isDone": false
         },
         {
-          "id": "wwwydi",
+          "id": "u38hlg",
           "service": "0₫",
           "staff": [],
           "cost": 0,
@@ -1086,7 +708,7 @@
           "isDone": false
         },
         {
-          "id": "2exms2",
+          "id": "7cckwz",
           "service": "10.000.000₫",
           "staff": [],
           "cost": 0,
@@ -1094,7 +716,7 @@
           "isDone": false
         },
         {
-          "id": "lgre8s",
+          "id": "ggo5u9",
           "service": "10.300.000₫",
           "staff": [],
           "cost": 0,
@@ -1104,175 +726,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
+      "createdAt": "2026-02-21T13:32:23.342Z"
     },
     {
-      "id": "JOB-507KY9KKG",
-      "client": "HẬU KÌ",
-      "phone": "",
-      "date": "TIỀN KÌ LỄ VÀ TIỆC",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-4WNBQC125",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "3.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-M6W1HDJ7Q",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-0X3QC0BEQ",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-990FQS8UE",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-24EJJDQ5U",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-2D6U74NY0",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-6N6J98O7F",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-KSV3RQ5LJ",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-UCLPDEHRB",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-RZZCAQ517",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.286Z"
-    },
-    {
-      "id": "JOB-MNHORKGOD",
+      "id": "JOB-748L8P727",
       "client": "Diệu Nghi Planner",
       "phone": "0818797768",
       "date": "2026-06-06",
@@ -1283,7 +740,7 @@
       "notes": "",
       "services": [
         {
-          "id": "90m2ix",
+          "id": "fnb2u1",
           "service": "Quay PS",
           "staff": [],
           "cost": 0,
@@ -1291,7 +748,7 @@
           "isDone": false
         },
         {
-          "id": "l7cz4a",
+          "id": "zrn1b2",
           "service": "Quay PS",
           "staff": [],
           "cost": 0,
@@ -1299,7 +756,7 @@
           "isDone": false
         },
         {
-          "id": "64fn0h",
+          "id": "zfyklc",
           "service": "Chụp PS",
           "staff": [],
           "cost": 0,
@@ -1307,7 +764,7 @@
           "isDone": false
         },
         {
-          "id": "gbedz4",
+          "id": "66l0zn",
           "service": "Chụp TT",
           "staff": [],
           "cost": 0,
@@ -1317,10 +774,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
+      "createdAt": "2026-02-21T13:32:24.006Z"
     },
     {
-      "id": "JOB-XY78GNE4B",
+      "id": "JOB-UHM6MMQU3",
       "client": "Mỹ Thanh",
       "phone": "0562535455",
       "date": "2026-06-20",
@@ -1331,7 +788,7 @@
       "notes": "Tặng clip ngắn",
       "services": [
         {
-          "id": "6ozds9",
+          "id": "n0etz5",
           "service": "Quay TT",
           "staff": [],
           "cost": 0,
@@ -1339,7 +796,7 @@
           "isDone": false
         },
         {
-          "id": "ai0ivc",
+          "id": "tykib8",
           "service": "Chụp PS",
           "staff": [],
           "cost": 0,
@@ -1347,31 +804,15 @@
           "isDone": false
         },
         {
-          "id": "3l15i8",
+          "id": "9ng9pw",
           "service": "Chụp TT",
           "staff": [],
           "cost": 0,
           "note": "",
           "isDone": false
-        }
-      ],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-UFJ2H4VNF",
-      "client": "Chênh lệch",
-      "phone": "",
-      "date": "Ngân sách trong tháng",
-      "venue": "Danh mục",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "Tiền thu về",
-      "services": [
+        },
         {
-          "id": "c74v7q",
+          "id": "hzbdsb",
           "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
           "staff": [
             "Chênh lệch"
@@ -1381,7 +822,7 @@
           "isDone": false
         },
         {
-          "id": "wqdfxw",
+          "id": "t36shw",
           "service": "148.900.000,00₫",
           "staff": [],
           "cost": 0,
@@ -1389,7 +830,7 @@
           "isDone": false
         },
         {
-          "id": "5vouya",
+          "id": "ypybcj",
           "service": "80.600.000₫",
           "staff": [],
           "cost": 0,
@@ -1397,7 +838,7 @@
           "isDone": false
         },
         {
-          "id": "p24nra",
+          "id": "p8015q",
           "service": "16.500.000₫",
           "staff": [],
           "cost": 0,
@@ -1405,7 +846,7 @@
           "isDone": false
         },
         {
-          "id": "jeapxo",
+          "id": "lcj1ce",
           "service": "11.500.000₫",
           "staff": [],
           "cost": 0,
@@ -1413,7 +854,7 @@
           "isDone": false
         },
         {
-          "id": "ze2owg",
+          "id": "k988vj",
           "service": "20.000.000₫",
           "staff": [],
           "cost": 0,
@@ -1421,7 +862,7 @@
           "isDone": false
         },
         {
-          "id": "x1ltst",
+          "id": "0r4nuw",
           "service": "0₫",
           "staff": [],
           "cost": 0,
@@ -1429,7 +870,7 @@
           "isDone": false
         },
         {
-          "id": "qxye5b",
+          "id": "n0ul72",
           "service": "10.000.000₫",
           "staff": [],
           "cost": 0,
@@ -1437,7 +878,7 @@
           "isDone": false
         },
         {
-          "id": "pmywwp",
+          "id": "9izxjr",
           "service": "10.300.000₫",
           "staff": [],
           "cost": 0,
@@ -1447,175 +888,10 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
+      "createdAt": "2026-02-21T13:32:24.006Z"
     },
     {
-      "id": "JOB-354460LL5",
-      "client": "HẬU KÌ",
-      "phone": "",
-      "date": "TIỀN KÌ LỄ VÀ TIỆC",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-E1K1F1W4T",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "3.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-HRDAKH550",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-5PA6PJEGZ",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-26ONVW9OI",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-50F44MGYS",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-D35261PUP",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-Z7G1D4Y67",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-FY6S9WAL1",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-ZIBUGOKV3",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-YC5I7QMH1",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:33.937Z"
-    },
-    {
-      "id": "JOB-5HEPLDTHK",
+      "id": "JOB-VXHL1J8RT",
       "client": "Kim Ngân",
       "phone": "0944734639",
       "date": "2026-07-18",
@@ -1626,7 +902,7 @@
       "notes": "",
       "services": [
         {
-          "id": "v9tw2g",
+          "id": "4ut280",
           "service": "Chụp TT",
           "staff": [],
           "cost": 0,
@@ -1634,7 +910,7 @@
           "isDone": false
         },
         {
-          "id": "kokdfq",
+          "id": "b6rf1e",
           "service": "Quay PS",
           "staff": [],
           "cost": 0,
@@ -1642,7 +918,7 @@
           "isDone": false
         },
         {
-          "id": "mc0utv",
+          "id": "0io6dn",
           "service": "Quay TT",
           "staff": [],
           "cost": 0,
@@ -1650,7 +926,7 @@
           "isDone": false
         },
         {
-          "id": "6t24no",
+          "id": "tcp9xm",
           "service": "Chụp PS",
           "staff": [],
           "cost": 0,
@@ -1658,31 +934,15 @@
           "isDone": false
         },
         {
-          "id": "eslfny",
+          "id": "audqjz",
           "service": "Chụp TT",
           "staff": [],
           "cost": 0,
           "note": "",
           "isDone": false
-        }
-      ],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-5AM94NZ6C",
-      "client": "Chênh lệch",
-      "phone": "",
-      "date": "Ngân sách trong tháng",
-      "venue": "Danh mục",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "Tiền thu về",
-      "services": [
+        },
         {
-          "id": "ryquhv",
+          "id": "zgc1xi",
           "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
           "staff": [
             "Chênh lệch"
@@ -1692,7 +952,7 @@
           "isDone": false
         },
         {
-          "id": "fwkm25",
+          "id": "kgmerm",
           "service": "148.900.000,00₫",
           "staff": [],
           "cost": 0,
@@ -1700,7 +960,7 @@
           "isDone": false
         },
         {
-          "id": "lvacfn",
+          "id": "khasj1",
           "service": "80.600.000₫",
           "staff": [],
           "cost": 0,
@@ -1708,7 +968,7 @@
           "isDone": false
         },
         {
-          "id": "yd9bk6",
+          "id": "8z212j",
           "service": "16.500.000₫",
           "staff": [],
           "cost": 0,
@@ -1716,7 +976,7 @@
           "isDone": false
         },
         {
-          "id": "ej492a",
+          "id": "gtt23g",
           "service": "11.500.000₫",
           "staff": [],
           "cost": 0,
@@ -1724,7 +984,7 @@
           "isDone": false
         },
         {
-          "id": "yr4eog",
+          "id": "1invye",
           "service": "20.000.000₫",
           "staff": [],
           "cost": 0,
@@ -1732,7 +992,7 @@
           "isDone": false
         },
         {
-          "id": "atcxb5",
+          "id": "wqr1xj",
           "service": "0₫",
           "staff": [],
           "cost": 0,
@@ -1740,7 +1000,7 @@
           "isDone": false
         },
         {
-          "id": "3gczpj",
+          "id": "p4ufp8",
           "service": "10.000.000₫",
           "staff": [],
           "cost": 0,
@@ -1748,7 +1008,7 @@
           "isDone": false
         },
         {
-          "id": "hp2gni",
+          "id": "1skan4",
           "service": "10.300.000₫",
           "staff": [],
           "cost": 0,
@@ -1758,172 +1018,7 @@
       ],
       "status": "Chưa bắt đầu",
       "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-C4NLIF0SO",
-      "client": "HẬU KÌ",
-      "phone": "",
-      "date": "TIỀN KÌ LỄ VÀ TIỆC",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-2M78520L4",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "3.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-GQ7DWDVUD",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-8JK18EFW6",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-69HT3BJ61",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-49M95Q4IM",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-UX3X8TML1",
-      "client": "800.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-FV26H69P3",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.000.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-SMGGQ2MMZ",
-      "client": "300.000₫",
-      "phone": "",
-      "date": "1.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-AYI7NIJK7",
-      "client": "700.000₫",
-      "phone": "",
-      "date": "1.700.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
-    },
-    {
-      "id": "JOB-6VLG9DNIX",
-      "client": "500.000₫",
-      "phone": "",
-      "date": "2.500.000",
-      "venue": "",
-      "eventType": "",
-      "package": 0,
-      "deposit": 0,
-      "notes": "",
-      "services": [],
-      "status": "Chưa bắt đầu",
-      "isTrash": false,
-      "createdAt": "2026-02-21T13:22:34.593Z"
+      "createdAt": "2026-02-21T13:32:24.660Z"
     }
   ],
   "clients": [
@@ -1931,115 +1026,79 @@
       "id": "CUST-QiVDMyVBRGNo",
       "name": "Bích An\nHaruwedding",
       "phone": "0906347428",
-      "createdAt": "2026-02-21T13:22:31.978Z"
+      "createdAt": "2026-02-21T13:32:22.073Z"
     },
     {
       "id": "CUST-SG8lQzMlQTBu",
       "name": "Hoàng Nhật Sinh",
       "phone": "0909109960",
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
       "id": "CUST-VnklMjBQaCVF",
       "name": "Vy Phạm",
       "phone": "0983082810",
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
       "id": "CUST-RHV5JUMzJUFB",
       "name": "Duyên",
       "phone": "",
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
       "id": "CUST-ViVDMyVBMm4l",
       "name": "Vân Hồ",
       "phone": "0349347261",
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
       "id": "CUST-VHIlRTElQkEl",
       "name": "Trần Thư\nlễ gia tiên 2 nhà",
       "phone": "0379900566",
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
       "id": "CUST-TmclRTElQkIl",
       "name": "Ngọc Châu",
       "phone": "0797718270",
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "CUST-Q2glQzMlQUFu",
-      "name": "Chênh lệch",
-      "phone": "",
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "CUST-SCVFMSVCQSVB",
-      "name": "HẬU KÌ",
-      "phone": "",
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "CUST-ODAwLjAwMCVF",
-      "name": "800.000₫",
-      "phone": "",
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "CUST-NTAwLjAwMCVF",
-      "name": "500.000₫",
-      "phone": "",
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "CUST-MzAwLjAwMCVF",
-      "name": "300.000₫",
-      "phone": "",
-      "createdAt": "2026-02-21T13:22:31.979Z"
-    },
-    {
-      "id": "CUST-NzAwLjAwMCVF",
-      "name": "700.000₫",
-      "phone": "",
-      "createdAt": "2026-02-21T13:22:31.979Z"
+      "createdAt": "2026-02-21T13:32:22.074Z"
     },
     {
       "id": "CUST-SG8lQzMlQTBu",
       "name": "Hoàng Nam",
       "phone": "0762722931",
-      "createdAt": "2026-02-21T13:22:32.623Z"
+      "createdAt": "2026-02-21T13:32:22.703Z"
     },
     {
       "id": "CUST-VGh1JTIwTWlu",
       "name": "Thu Minh",
       "phone": "0335276418",
-      "createdAt": "2026-02-21T13:22:33.286Z"
+      "createdAt": "2026-02-21T13:32:23.342Z"
     },
     {
       "id": "CUST-VnklMjBQaGFt",
       "name": "Vy Pham",
       "phone": "0983082810",
-      "createdAt": "2026-02-21T13:22:33.286Z"
+      "createdAt": "2026-02-21T13:32:23.342Z"
     },
     {
       "id": "CUST-RGklRTElQkIl",
       "name": "Diệu Nghi Planner",
       "phone": "0818797768",
-      "createdAt": "2026-02-21T13:22:33.937Z"
+      "createdAt": "2026-02-21T13:32:24.006Z"
     },
     {
       "id": "CUST-TSVFMSVCQiVC",
       "name": "Mỹ Thanh",
       "phone": "0562535455",
-      "createdAt": "2026-02-21T13:22:33.937Z"
+      "createdAt": "2026-02-21T13:32:24.006Z"
     },
     {
       "id": "CUST-S2ltJTIwTmcl",
       "name": "Kim Ngân",
       "phone": "0944734639",
-      "createdAt": "2026-02-21T13:22:34.593Z"
+      "createdAt": "2026-02-21T13:32:24.660Z"
     }
   ],
   "history": [],

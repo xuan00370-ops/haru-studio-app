@@ -27,14 +27,15 @@ function extractPhone(str) {
 }
 
 function parseDate(str) {
-    if (!str || !str.trim()) return '';
+    if (!str || !str.trim()) return null;
     // Thường có dạng "08/03/2026\nchụp thôi nôi"
     const firstLine = str.split('\n')[0].trim();
     const parts = firstLine.split('/');
     if (parts.length === 3) {
         return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
-    return firstLine;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(firstLine)) return firstLine;
+    return null;
 }
 
 function generateClientId(clientName) {
@@ -66,14 +67,15 @@ async function run() {
         for (const row of dataRows) {
             // Cột 2 là CD-CR (Tên Khách)
             const clientName = (row[2] || '').trim();
+            const parsedDate = parseDate(row[1]);
 
-            // Nếu có tên khách -> Dòng bắt đầu của 1 Job mới (Do Google Sheet gộp ô)
-            if (clientName && clientName !== '' && clientName !== 'CD - CR') {
+            // Nếu có tên khách VÀ CÓ NGÀY HỢP LỆ -> Dòng bắt đầu của 1 Job mới
+            if (clientName && clientName !== '' && clientName !== 'CD - CR' && parsedDate) {
                 currentJob = {
                     id: generateJobId(),
                     client: clientName,
                     phone: extractPhone(row[3]),
-                    date: parseDate(row[1]),
+                    date: parsedDate,
                     venue: (row[4] || '').trim(),
                     eventType: row[1] ? row[1].split('\n').length > 1 ? row[1].split('\n').slice(1).join(' ').trim() : '' : '',
                     package: parseCurrency(row[10]),
