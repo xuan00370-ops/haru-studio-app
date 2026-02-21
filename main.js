@@ -1,9 +1,9 @@
+
 import { mockData } from './data.js';
 import {
-  renderDashboard, renderJobs, renderSidebar, renderStaff, renderClients,
-  renderFinance, renderCalendar, renderSettings, renderTrash,
-  renderMonthPicker, renderModalOverlay, renderTax, renderDeadlineEdit,
-  renderHistory, renderSync, renderNAS
+  renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
+  renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS,
+  renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderHistory
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
@@ -128,7 +128,7 @@ window.addHistory = (action) => {
 function showValidationError(errors) {
   const errDiv = document.getElementById('form-validation-errors');
   if (errDiv) {
-    errDiv.innerHTML = errors.map(e => `<div>• ${e}</div>`).join('');
+    errDiv.innerHTML = errors.map(e => `< div >• ${e}</div > `).join('');
     errDiv.style.display = 'block';
     setTimeout(() => { errDiv.style.display = 'none'; }, 6000);
   } else {
@@ -205,7 +205,7 @@ window.updateJob = (jobId, updatedData) => {
   const index = state.jobs.findIndex(j => j.id === jobId);
   if (index !== -1) {
     state.jobs[index] = { ...state.jobs[index], ...updatedData };
-    window.addHistory(`Cập nhật dự án: ${state.jobs[index].client}`);
+    window.addHistory(`Cập nhật dự án: ${state.jobs[index].client} `);
     saveState();
     updateUI();
   }
@@ -276,7 +276,7 @@ window.toggleTrash = (jobId) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (job) {
     job.isTrash = !job.isTrash;
-    window.addHistory(`${job.isTrash ? 'Xóa' : 'Khôi phục'} dự án: ${job.client}`);
+    window.addHistory(`${job.isTrash ? 'Xóa' : 'Khôi phục'} dự án: ${job.client} `);
     saveState();
     updateUI();
   }
@@ -288,7 +288,7 @@ window.deleteJob = (jobId) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (job) {
     job.isTrash = true;
-    window.addHistory(`Xóa dự án: ${job.client}`);
+    window.addHistory(`Xóa dự án: ${job.client} `);
     saveState();
     window.closeModal();
     updateUI();
@@ -335,7 +335,7 @@ window.toggleServicePaid = (jobId, serviceIndex, newPaidState, checkboxEl) => {
   showPaymentToast(newPaidState ? '✓ Đã đánh dấu thanh toán' : '● Đã bỏ đánh dấu thanh toán',
     newPaidState ? 'var(--success)' : 'var(--text-dim)');
 
-  window.addHistory(`${newPaidState ? 'Đánh dấu' : 'Bỏ'} thanh toán: ${job.client} — ${job.services[serviceIndex].staff}`);
+  window.addHistory(`${newPaidState ? 'Đánh dấu' : 'Bỏ'} thanh toán: ${job.client} — ${job.services[serviceIndex].staff} `);
 };
 
 // Micro-update staff card payment metrics in DOM (no full re-render)
@@ -348,7 +348,7 @@ function _updateStaffPaymentMetrics(staffName) {
   const fmt = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
   // Staff card lives inside #staff-card-<name>
-  const card = document.getElementById(`staff-card-${staffName.replace(/'/g, "\\'")}`);
+  const card = document.getElementById(`staff - card - ${staffName.replace(/'/g, "\\'")} `);
   if (!card) return; // not visible right now, skip
   const vals = card.querySelectorAll('.payment-metric');
   // vals[0]=Tổng thu, vals[1]=Đã trả, vals[2]=Còn nợ (set during renderStaff)
@@ -364,14 +364,14 @@ function showPaymentToast(msg, color) {
   const toast = document.createElement('div');
   toast.id = 'haru-pay-toast';
   toast.style.cssText = `
-    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
-    background: ${color}; color: #fff;
-    padding: 0.6rem 1.25rem; border-radius: 100px;
-    font-size: 0.9rem; font-weight: 700;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    animation: toastIn 0.25s cubic-bezier(0.16,1,0.3,1);
-    pointer-events: none;
-  `;
+position: fixed; bottom: 1.5rem; right: 1.5rem; z - index: 9999;
+background: ${color}; color: #fff;
+padding: 0.6rem 1.25rem; border - radius: 100px;
+font - size: 0.9rem; font - weight: 700;
+box - shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+animation: toastIn 0.25s cubic - bezier(0.16, 1, 0.3, 1);
+pointer - events: none;
+`;
   toast.textContent = msg;
   document.body.appendChild(toast);
   setTimeout(() => {
@@ -391,15 +391,15 @@ window.updateReportMeta = (monthKey, ads, office) => {
   if (!state.financeMetadata[monthKey]) state.financeMetadata[monthKey] = {};
   state.financeMetadata[monthKey].ads = parseInt(ads) || 0;
   state.financeMetadata[monthKey].office = parseInt(office) || 0;
-  window.addHistory(`Cập nhật chi phí tháng: ${monthKey}`);
+  window.addHistory(`Cập nhật chi phí tháng: ${monthKey} `);
   saveState();
   updateUI();
 };
 
 // PA3: Lưu chi phí tháng
 window.saveMonthlyReport = (monthKey) => {
-  const adsEl = document.getElementById(`ads-input-${monthKey}`);
-  const offEl = document.getElementById(`off-input-${monthKey}`);
+  const adsEl = document.getElementById(`ads - input - ${monthKey} `);
+  const offEl = document.getElementById(`off - input - ${monthKey} `);
   if (!adsEl || !offEl) return;
   window.updateReportMeta(monthKey, adsEl.value, offEl.value);
   // Toast
@@ -421,7 +421,7 @@ window.updateTaxRate = (rate) => {
   if (isNaN(r) || r < 0 || r > 1) { alert('Thuế suất phải từ 0 đến 1 (VD: 0.1 = 10%)'); return; }
   if (!state.settings) state.settings = {};
   state.settings.taxRate = r;
-  window.addHistory(`Cập nhật thuế suất: ${(r * 100).toFixed(1)}%`);
+  window.addHistory(`Cập nhật thuế suất: ${(r * 100).toFixed(1)}% `);
   saveState();
   updateUI();
 };
@@ -451,8 +451,8 @@ window.updateEditStatus = (jobId, serviceName, newStatus) => {
     return;
   }
 
-  window.addHistory(`Cập nhật trạng thái edit: ${job.client} – ${serviceName} → ${newStatus}`);
-  showPaymentToast(`✓ Cập nhật: ${newStatus}`, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
+  window.addHistory(`Cập nhật trạng thái edit: ${job.client} – ${serviceName} → ${newStatus} `);
+  showPaymentToast(`✓ Cập nhật: ${newStatus} `, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
 
   // Micro-update: if job status changed, refresh card without full re-render
   if (allDone && newStatus === 'Hoàn thành') {
@@ -475,38 +475,38 @@ window.addStaff = (data) => {
     phone: data.phone || '',
     bank: data.bank || { no: '', name: '', bank: '' }
   });
-  window.addHistory(`Thêm nhân sự: ${data.name}`);
+  window.addHistory(`Thêm nhân sự: ${data.name} `);
   saveState();
   updateUI();
 };
 
 window.removeStaff = (name) => {
-  if (!confirm(`Xóa nhân sự "${name}" khỏi hệ thống?\n\nLưu ý: Dữ liệu công việc liên quan vẫn được giữ.`)) return;
+  if (!confirm(`Xóa nhân sự "${name}" khỏi hệ thống ?\n\nLưu ý: Dữ liệu công việc liên quan vẫn được giữ.`)) return;
   state.staff = state.staff.filter(s => s.name !== name);
-  window.addHistory(`Xóa nhân sự: ${name}`);
+  window.addHistory(`Xóa nhân sự: ${name} `);
   saveState();
   updateUI();
 };
 
 window.showEditStaff = (name) => {
-  const form = document.getElementById(`edit-form-${name}`);
+  const form = document.getElementById(`edit - form - ${name} `);
   if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 };
 
 window.saveStaffEdit = (originalName) => {
   const member = state.staff.find(s => s.name === originalName);
   if (!member) return;
-  const newName = document.getElementById(`edit-name-${originalName}`)?.value?.trim() || member.name;
-  const newRole = document.getElementById(`edit-role-${originalName}`)?.value || member.role;
-  const newPhone = document.getElementById(`edit-phone-${originalName}`)?.value || member.phone;
-  const newBankNo = document.getElementById(`edit-bankno-${originalName}`)?.value || '';
-  const newBankBank = document.getElementById(`edit-bankname-${originalName}`)?.value || '';
+  const newName = document.getElementById(`edit - name - ${originalName} `)?.value?.trim() || member.name;
+  const newRole = document.getElementById(`edit - role - ${originalName} `)?.value || member.role;
+  const newPhone = document.getElementById(`edit - phone - ${originalName} `)?.value || member.phone;
+  const newBankNo = document.getElementById(`edit - bankno - ${originalName} `)?.value || '';
+  const newBankBank = document.getElementById(`edit - bankname - ${originalName} `)?.value || '';
   if (!newName) { alert('Tên nhân sự không được để trống'); return; }
   member.name = newName;
   member.role = newRole;
   member.phone = newPhone;
   member.bank = { no: newBankNo, name: member.bank?.name || newName, bank: newBankBank };
-  window.addHistory(`Cập nhật nhân sự: ${newName}`);
+  window.addHistory(`Cập nhật nhân sự: ${newName} `);
   saveState();
   updateUI();
 };
@@ -536,7 +536,7 @@ window.addTransaction = (data) => {
     type: data.type || 'chi',
     category: data.category || 'Khác'
   });
-  window.addHistory(`Thêm giao dịch: ${data.description}`);
+  window.addHistory(`Thêm giao dịch: ${data.description} `);
   saveState();
   updateUI();
 };
@@ -548,7 +548,7 @@ window.exportCSV = () => {
   const rows = [['Ngày', 'Dự án', 'Khách hàng', 'Nội dung', 'Loại', 'Số tiền', 'Trạng thái']];
   state.jobs.filter(j => !j.isTrash).forEach(job => {
     job.services.forEach(s => {
-      rows.push([job.date, job.id, job.client, `${s.service} - ${s.staff}`, 'Chi thợ', s.cost, s.paid ? 'Đã trả' : 'Chưa trả']);
+      rows.push([job.date, job.id, job.client, `${s.service} - ${s.staff} `, 'Chi thợ', s.cost, s.paid ? 'Đã trả' : 'Chưa trả']);
     });
     rows.push([job.date, job.id, job.client, 'Gói dịch vụ', 'Thu', job.package, 'Đã ký']);
   });
@@ -772,6 +772,9 @@ function updateUI() {
 
   const sidebar = renderSidebar(state.activePage, window.navigate);
   app.appendChild(sidebar);
+
+  const bottomNav = renderBottomNav(state.activePage, window.navigate);
+  app.appendChild(bottomNav);
 
   const contentArea = document.createElement('main');
   contentArea.className = 'main-content';

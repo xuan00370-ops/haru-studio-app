@@ -873,6 +873,67 @@ tr.paid-row {
     white-space: nowrap;
   }
 
+  /* Ẩn Sidebar cũ trên Mobile - Thay bằng Bottom Nav */
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Định hình lại main-content nhường chỗ cho Bottom Nav */
+  .main-content {
+    padding-bottom: 85px !important;
+    /* Trừ hao chiều cao Bottom Nav + Safe Area */
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THANH ĐIỀU HƯỚNG ĐÁY (BOTTOM NAVIGATION BAR) */
+  .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom, 12px)) 0;
+    z-index: 9999;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 50px;
+    padding: 6px;
+    border-radius: 12px;
+    transition: all 0.2s;
+  }
+
+  .bottom-nav-item .icon {
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--primary);
+    background: rgba(249, 115, 22, 0.1);
+  }
+
+  .bottom-nav-item.active .icon {
+    transform: scale(1.15);
+  }
+
   /* --- CÁC BẢN VÁ LỖI TRÀN LỀ MOBILE MỚI --- */
   body,
   html,
@@ -940,13 +1001,67 @@ tr.paid-row {
   }
 
   /* Bảng Nhân Sự / Dịch vụ / Finance bên trong Modal */
-  table {
-    min-width: 600px;
-    /* Bắt buộc bảng phải cuộn ngang chứ không ép khung gãy layout */
+  .data-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .data-table thead {
+    display: none;
+  }
+
+  .data-table tbody,
+  .data-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .data-table tr {
+    margin-bottom: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.6rem;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  }
+
+  .data-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0.2rem !important;
+    border: none !important;
+    text-align: right !important;
+    /* Forces value to right */
+    white-space: pre-wrap !important;
+    font-size: 0.82rem;
+  }
+
+  /* Extract data-label to show row title on left side */
+  .data-table td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-right: 1rem;
+    text-align: left;
+    white-space: nowrap;
+    text-transform: uppercase;
   }
 
   .table-responsive-wrapper {
-    overflow-x: auto;
+    overflow-x: hidden;
+    /* Cards never overflow */
     width: 100%;
+  }
+
+  /* Thu gọn không gian trống - Space Saving */
+  .glass-panel {
+    padding: 1rem !important;
+  }
+
+  .view-container {
+    padding: 0.5rem;
   }
 }

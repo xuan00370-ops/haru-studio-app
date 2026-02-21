@@ -55,19 +55,44 @@ export function renderSidebar(activePage, navigate) {
   return aside;
 }
 
+export function renderBottomNav(activePage, navigate) {
+  const nav = document.createElement('nav');
+  nav.className = 'bottom-nav';
+
+  // Chỉ hiện các nút quan trọng nhất cho Mobile
+  const items = [
+    { id: 'dashboard', icon: '📊', label: 'Dự án' },
+    { id: 'calendar', icon: '📅', label: 'Lịch' },
+    { id: 'finance', icon: '📒', label: 'Giao dịch' },
+    { id: 'jobs', icon: '📁', label: 'Lưu trữ' },
+    { id: 'sync', icon: '⚙️', label: 'Hệ thống' }
+  ];
+
+  nav.innerHTML = items.map(item => `
+    <div class="bottom-nav-item ${activePage === item.id ? 'active' : ''}" onclick="window.navigate('${item.id}')">
+      <span class="icon">${item.icon}</span>
+      <span>${item.label}</span>
+    </div>
+  `).join('');
+
+  return nav;
+}
+
 export function renderMonthPicker(state, updateMonth) {
   const picker = document.createElement('div');
   picker.className = 'month-picker';
   const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
 
   picker.innerHTML = `
-    <button class="picker-btn" id="prev-year">←</button>
-    <div class="year-label">${state.currentYear}</div>
-    <button class="picker-btn" id="next-year">→</button>
-    <div style="width: 1px; height: 20px; background: var(--border); margin: 0 0.5rem;"></div>
-    <div class="month-tabs">
+    <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+      <button class="picker-btn" id="prev-year">←</button>
+      <div class="year-label" style="font-size: 1rem; padding: 0.2rem 0.5rem;">${state.currentYear}</div>
+      <button class="picker-btn" id="next-year">→</button>
+    </div>
+    <div style="width: 1px; height: 20px; background: var(--border); margin: 0 0.25rem; flex-shrink: 0;"></div>
+    <div class="month-tabs" style="display: flex; gap: 0.25rem; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; width: 100%;">
       ${months.map((m, i) => `
-        <div class="month-tab ${state.currentMonth === i + 1 ? 'active' : ''}" data-month="${i + 1}">
+        <div class="month-tab ${state.currentMonth === i + 1 ? 'active' : ''}" data-month="${i + 1}" style="flex-shrink: 0; min-width: 45px; text-align: center;">
           ${m}
         </div>
       `).join('')}
@@ -535,16 +560,16 @@ function renderJobDetailModal(state) {
                 <tbody>
                   ${job.services.map((s, idx) => `
                     <tr data-index="${idx}">
-                      <td style="font-weight: 800; font-size: 0.9rem; color: var(--text-main)">${s.service}</td>
-                      <td style="font-size: 0.92rem; font-weight: 600; color: var(--text-muted)">
+                      <td data-label="Vai trò" style="font-weight: 800; font-size: 0.9rem; color: var(--text-main)">${s.service}</td>
+                      <td data-label="Nghệ sĩ" style="font-size: 0.92rem; font-weight: 600; color: var(--text-muted)">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                           <span>${s.staff}</span>
                           ${s.staff && s.staff !== 'Chưa xếp' ? `<button class="btn btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem; background: #0084ff; color: #fff; border-radius: 4px" onclick="window.sendZaloReminder('${job.id}', ${idx})" title="Gửi lịch Zalo"><i class="fas fa-paper-plane"></i> Zalo</button>` : ''}
                         </div>
                       </td>
-                      <td style="text-align:right; font-size: 0.92rem; font-weight: 700; color: var(--danger)">${formatCurrency(s.cost)}</td>
-                      <td style="text-align:right; font-size: 0.92rem; color: var(--warning)">${formatCurrency(s.edit || 0)}</td>
-                      <td style="text-align:center"><input type="checkbox" class="service-paid-check" data-job-id="${job.id}" data-svc-idx="${idx}" ${s.paid ? 'checked' : ''}></td>
+                      <td data-label="Lương thợ" style="text-align:right; font-size: 0.92rem; font-weight: 700; color: var(--danger)">${formatCurrency(s.cost)}</td>
+                      <td data-label="Tiền sửa bài" style="text-align:right; font-size: 0.92rem; color: var(--warning)">${formatCurrency(s.edit || 0)}</td>
+                      <td data-label="Đã thu tiền" style="text-align:center"><input type="checkbox" class="service-paid-check" data-job-id="${job.id}" data-svc-idx="${idx}" ${s.paid ? 'checked' : ''}></td>
                     </tr>
                   `).join('')}
                 </tbody>
@@ -1059,14 +1084,14 @@ export function renderFinance(state) {
           <tbody>
              ${transactions.map(t => `
                 <tr>
-                   <td style="font-size: 0.75rem; color: var(--text-dim)">${new Date(t.date).toLocaleDateString('vi-VN')}</td>
-                   <td style="font-weight: 700; font-size: 0.92rem">${t.job}</td>
-                   <td style="font-size: 0.8rem">${t.description}</td>
-                   <td><span class="badge" style="font-size: 0.82rem; background: ${t.category.startsWith('Thu') ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}">${t.category}</span></td>
-                   <td style="text-align: right; font-weight: 700; color: ${t.amount >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                   <td data-label="Ngày" style="font-size: 0.75rem; color: var(--text-dim)">${new Date(t.date).toLocaleDateString('vi-VN')}</td>
+                   <td data-label="Dự án" style="font-weight: 700; font-size: 0.92rem">${t.job}</td>
+                   <td data-label="Nội dung" style="font-size: 0.8rem">${t.description}</td>
+                   <td data-label="Phân loại"><span class="badge" style="font-size: 0.82rem; background: ${t.category.startsWith('Thu') ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}">${t.category}</span></td>
+                   <td data-label="Số tiền" style="text-align: right; font-weight: 700; color: ${t.amount >= 0 ? 'var(--success)' : 'var(--danger)'}">
       ${t.amount >= 0 ? '+' : ''}${formatCurrency(t.amount)}
                    </td>
-                   <td><span style="font-size: 0.7rem; color: var(--text-dim)">${t.status}</span></td>
+                   <td data-label="Trạng thái"><span style="font-size: 0.7rem; color: var(--text-dim)">${t.status}</span></td>
                 </tr>
              `).join('')}
           </tbody>
@@ -1160,12 +1185,12 @@ export function renderTax(state) {
     const jEdit = j.services.reduce((s, sv) => s + (sv.edit || 0), 0);
     const jProfit = jRev - jStaff - jEdit;
     return `<tr>
-                  <td style="font-weight: 700; font-size: 0.85rem">${j.id}</td>
-                  <td style="font-size: 0.85rem">${j.client}</td>
-                  <td style="text-align: right; color: var(--success); font-weight: 700">${formatCurrency(jRev)}</td>
-                  <td style="text-align: right; color: var(--accent-pink)">${formatCurrency(jStaff)}</td>
-                  <td style="text-align: right; color: var(--accent-orange)">${formatCurrency(jEdit)}</td>
-                  <td style="text-align: right; font-weight: 800; color: ${jProfit >= 0 ? '#22c55e' : '#f87171'}">${formatCurrency(jProfit)}</td>
+                  <td data-label="Job" style="font-weight: 700; font-size: 0.85rem">${j.id}</td>
+                  <td data-label="Khách hàng" style="font-size: 0.85rem">${j.client}</td>
+                  <td data-label="Doanh thu" style="text-align: right; color: var(--success); font-weight: 700">${formatCurrency(jRev)}</td>
+                  <td data-label="Chi thợ" style="text-align: right; color: var(--danger); font-weight: 700">${formatCurrency(jStaff)}</td>
+                  <td data-label="Chi edit" style="text-align: right; color: var(--warning); font-weight: 700">${formatCurrency(jEdit)}</td>
+                  <td data-label="Lợi nhuận" style="text-align: right; font-weight: 800; color: ${jProfit >= 0 ? '#22c55e' : '#f87171'}">${formatCurrency(jProfit)}</td>
                </tr>`;
   }).join('')}
              <tr style="border-top: 2px solid var(--border); font-weight: 900">
@@ -1360,13 +1385,13 @@ export function renderDeadlineEdit(state) {
     const deadlineColor = t.status === 'Hoàn thành' ? 'var(--success)' : deadlinePassed ? 'var(--danger)' : '#ff9800';
     return `
                 <tr>
-                   <td style="font-weight: 800; font-size: 0.92rem">${t.job}</td>
-                   <td><span class="badge" style="background: ${t.type === 'VIDEO' ? 'rgba(236,72,153,0.1)' : 'rgba(59,130,246,0.1)'}; color: ${t.type === 'VIDEO' ? '#ec4899' : '#3b82f6'}">${t.type}</span></td>
-                   <td style="font-family: monospace; font-weight: 700; color: ${deadlineColor}">
+                   <td data-label="Job" style="font-weight: 800; font-size: 0.92rem">${t.job}</td>
+                   <td data-label="Hạng mục"><span class="badge" style="background: ${t.type === 'VIDEO' ? 'rgba(236,72,153,0.1)' : 'rgba(59,130,246,0.1)'}; color: ${t.type === 'VIDEO' ? '#ec4899' : '#3b82f6'}">${t.type}</span></td>
+                   <td data-label="Deadline" style="font-family: monospace; font-weight: 700; color: ${deadlineColor}">
                       ${t.deadline}
                       ${deadlinePassed && t.status !== 'Hoàn thành' ? '<span style="color: var(--danger); font-size: 0.55rem; display: block">MISSED</span>' : ''}
                    </td>
-                   <td>
+                   <td data-label="Trạng thái">
                       <select class="form-control deadline-status-select" data-job-id="${t.id}" data-service="${t.service}" style="padding: 0.25rem 0.6rem; font-size: 0.85rem; width: 140px; background:#fff; border:1.5px solid var(--border); color:var(--text-main)">
                          <option ${t.status === 'Chưa bắt đầu' ? 'selected' : ''}>Chưa bắt đầu</option>
                          <option ${t.status === 'Đang làm' ? 'selected' : ''}>Đang làm</option>
@@ -1375,10 +1400,10 @@ export function renderDeadlineEdit(state) {
                          <option ${t.status === 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
                       </select>
                    </td>
-                   <td style="font-size: 0.88rem; font-weight:600">${t.staff}</td>
-                   <td style="font-size: 0.88rem; color: var(--accent); font-weight:700">${t.editStaff}</td>
-                   <td style="text-align: right; font-size: 0.88rem; font-weight:700; color:var(--danger)">${formatCurrency(t.editCost)}</td>
-                   <td style="font-size: 0.85rem; color: var(--text-dim); font-weight:600">${t.service}</td>
+                   <td data-label="Nhân sự" style="font-size: 0.88rem; font-weight:600">${t.staff}</td>
+                   <td data-label="Người Cắt" style="font-size: 0.88rem; color: var(--accent); font-weight:700">${t.editStaff}</td>
+                   <td data-label="Phí Edit" style="text-align: right; font-size: 0.88rem; font-weight:700; color:var(--danger)">${formatCurrency(t.editCost)}</td>
+                   <td data-label="Dịch vụ" style="font-size: 0.85rem; color: var(--text-dim); font-weight:600">${t.service}</td>
                 </tr>
               `;
   }).join('') : '<tr><td colspan="8" style="text-align: center; padding: 2rem">Không có dữ liệu phù hợp</td></tr>'}
@@ -1895,25 +1920,25 @@ export function renderClients(state) {
 
     return `
              <tr>
-               <td style="font-weight: 800; font-size: 0.95rem; color: var(--text-main)">${c.name}</td>
-               <td>
-                  <div style="display: flex; align-items: center; gap: 0.4rem">
+               <td data-label="Khách hàng" style="font-weight: 800; font-size: 0.95rem; color: var(--text-main)">${c.name}</td>
+               <td data-label="Liên hệ">
+                  <div style="display: flex; align-items: center; gap: 0.4rem; justify-content: flex-end">
                     <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted)">${c.phone || '<em style="opacity:0.5">Trống</em>'}</span>
                     ${c.phone ? `<a href="https://zalo.me/${c.phone}" target="_blank" title="Zalo" style="color: #0084ff; font-size: 0.85rem"><i class="fas fa-comment-dots"></i></a>` : ''}
                   </div>
                </td>
-               <td style="text-align: right; font-weight: 700; color: var(--success); font-size: 0.9rem">${formatCurrency(c.totalRevenue)}</td>
-               <td style="text-align: right; font-weight: 800; color: ${c.debt > 0 ? 'var(--danger)' : 'var(--text-dim)'}; font-size: 0.9rem">${formatCurrency(c.debt)}</td>
-               <td style="text-align: right">
+               <td data-label="Doanh số" style="text-align: right; font-weight: 700; color: var(--success); font-size: 0.9rem">${formatCurrency(c.totalRevenue)}</td>
+               <td data-label="Còn nợ" style="text-align: right; font-weight: 800; color: ${c.debt > 0 ? 'var(--danger)' : 'var(--text-dim)'}; font-size: 0.9rem">${formatCurrency(c.debt)}</td>
+               <td data-label="Dự án" style="text-align: right">
                   <span class="badge" style="background: rgba(59,130,246,0.1); color: #3b82f6">${c.history.length} Jobs</span>
                </td>
-               <td style="text-align: center">
+               <td data-label="Customer Portal" style="text-align: center">
                   <div style="display: flex; justify-content: center; gap: 0.3rem">
                      <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem; background: rgba(22,163,74,0.08); color: var(--success); border-color: rgba(22,163,74,0.2)" onclick="window.open('${portalLink}', '_blank')"><i class="fas fa-external-link-alt"></i> Mở</button>
                      <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem" onclick="navigator.clipboard.writeText('${portalLink}'); alert('Đã copy link Portal của khách hàng này!')" title="Copy cho khách"><i class="fas fa-copy"></i> Copy</button>
                   </div>
                </td>
-               <td style="text-align: right">
+               <td data-label="Thao tác" style="text-align: right">
                  <button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem" onclick="window.editClientPrompt('${c.id}')" title="Sửa"><i class="fas fa-pen"></i></button>
                  <button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem; color: var(--danger)" onclick="if(confirm('Xóa thông tin khách hàng này?\\n\\nChú ý: Hành động này KHÔNG xóa các Dự án liên quan.')) window.removeClient('${c.id}')" title="Xóa"><i class="fas fa-trash"></i></button>
                </td>
