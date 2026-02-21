@@ -96,7 +96,7 @@ async function run() {
                     currentJob.services.push({
                         id: Math.random().toString(36).substr(2, 6),
                         service: serviceName,
-                        staff: (row[6] || '').split(',').map(s => s.trim()).filter(s => s),
+                        staff: (row[6] || '').trim(),
                         cost: parseCurrency(row[7]),
                         note: '',
                         isDone: false
