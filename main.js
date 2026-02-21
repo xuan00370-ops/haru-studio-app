@@ -2,7 +2,7 @@
 import { mockData } from './data.js';
 import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
-  renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS,
+  renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderHistory
 } from './components.js';
 

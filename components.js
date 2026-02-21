@@ -84,24 +84,23 @@ export function renderMonthPicker(state, updateMonth) {
   const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
 
   picker.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
-      <button class="picker-btn" id="prev-year">←</button>
-      <div class="year-label" style="font-size: 1rem; padding: 0.2rem 0.5rem;">${state.currentYear}</div>
-      <button class="picker-btn" id="next-year">→</button>
-    </div>
-    <div style="width: 1px; height: 20px; background: var(--border); margin: 0 0.25rem; flex-shrink: 0;"></div>
-    <div class="month-tabs" style="display: flex; gap: 0.25rem; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; width: 100%;">
-      ${months.map((m, i) => `
-        <div class="month-tab ${state.currentMonth === i + 1 ? 'active' : ''}" data-month="${i + 1}" style="flex-shrink: 0; min-width: 45px; text-align: center;">
-          ${m}
-        </div>
-      `).join('')}
+    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.5rem">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+         <button class="picker-btn" id="prev-year">←</button>
+         <div class="year-label" style="font-size: 1.1rem; padding: 0.2rem; font-weight: 900">${state.currentYear}</div>
+         <button class="picker-btn" id="next-year">→</button>
+      </div>
+      <select id="month-select" class="form-control" style="font-size: 0.95rem; font-weight: 700; padding: 0.4rem 1rem; background: var(--surface); color: var(--text-main); border: 1.5px solid var(--primary); border-radius: 8px; flex-grow: 1; max-width: 150px; cursor: pointer; outline: none; appearance: auto">
+        ${months.map((m, i) => `
+          <option value="${i + 1}" ${state.currentMonth === i + 1 ? 'selected' : ''}>Tháng ${i + 1}</option>
+        `).join('')}
+      </select>
     </div>
   `;
 
-  picker.querySelectorAll('.month-tab').forEach(tab => {
-    tab.onclick = () => updateMonth(parseInt(tab.dataset.month), state.currentYear);
-  });
+  picker.querySelector('#month-select').onchange = (e) => {
+    updateMonth(parseInt(e.target.value), state.currentYear);
+  };
 
   picker.querySelector('#prev-year').onclick = () => updateMonth(state.currentMonth, state.currentYear - 1);
   picker.querySelector('#next-year').onclick = () => updateMonth(state.currentMonth, state.currentYear + 1);
@@ -217,37 +216,38 @@ export function renderDashboard(state, navigate) {
             <span class="label" style="font-size: 0.55rem">Tổng Dự án</span>
             <div class="value" style="font-size: 0.95rem; font-weight: 800">${monthJobs.length}</div>
           </div>
-          <div class="stat-row" style="display: flex; gap: 1rem; border-left: 1px solid var(--border); padding-left: 1.5rem">
-            <div class="stat-card">
-              <span class="label" style="font-size: 0.55rem">Doanh thu</span>
-              <div class="value" style="font-size: 0.95rem; font-weight: 800">${formatCurrency(revenue)}</div>
+          <div class="stat-row" style="display: flex; flex-wrap: wrap; gap: 1rem; border-left: 2px solid var(--border); padding-left: 1rem; margin-top: 1rem">
+            <div class="stat-card" style="min-width: 120px">
+              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Doanh thu</span>
+              <div class="value" style="font-size: 1rem; font-weight: 800">${formatCurrency(revenue)}</div>
             </div>
-            <div class="stat-card">
-              <span class="label" style="font-size: 0.55rem">Nhân sự/Edit</span>
-              <div class="value" style="font-size: 0.95rem; font-weight: 800">${formatCurrency(staffCosts + editCosts)}</div>
+            <div class="stat-card" style="min-width: 120px">
+              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Nhân sự/Edit</span>
+              <div class="value" style="font-size: 1rem; font-weight: 800">${formatCurrency(staffCosts + editCosts)}</div>
             </div>
-            <div class="stat-card">
-              <span class="label" style="font-size: 0.55rem">Ads/Office</span>
-              <div class="value" style="font-size: 0.95rem; font-weight: 800">${formatCurrency((meta.ads || 0) + (meta.office || 0))}</div>
+            <div class="stat-card" style="min-width: 120px">
+              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Ads/Office</span>
+              <div class="value" style="font-size: 1rem; font-weight: 800">${formatCurrency((meta.ads || 0) + (meta.office || 0))}</div>
             </div>
-            <div class="stat-card">
-              <span class="label" style="font-size: 0.55rem">Lợi nhuận ròng</span>
-              <div class="value" style="font-size: 1.1rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(netProfit)}</div>
+            <div class="stat-card" style="min-width: 120px">
+              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Lợi nhuận ròng</span>
+              <div class="value" style="font-size: 1.25rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(netProfit)}</div>
             </div>
           </div>
         </div>
-        <div style="display: flex; gap: 0.5rem">
-           <div class="mini-form" style="display: flex; gap: 0.5rem; background: rgba(0,0,0,0.1); padding: 0.4rem; border-radius: 6px">
-              <div style="display: flex; align-items: center; gap: 0.3rem">
-                <span style="font-size: 0.82rem; color: var(--text-dim)">Ads:</span>
-                <input type="number" id="ads-input-${monthKey}" value="${meta.ads}" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); font-size: 0.7rem; width: 80px; color: var(--text-main); font-weight: 600; border-radius: 4px; padding: 2px 4px">
+
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; margin-top: 1.5rem; background: rgba(0,0,0,0.03); padding: 0.75rem; border-radius: 8px">
+           <div class="mini-form" style="display: flex; flex-wrap: wrap; gap: 0.75rem; flex-grow: 1; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 0.4rem; flex-grow: 1; min-width: 100px;">
+                <span style="font-size: 0.82rem; color: var(--text-dim); font-weight: 600">Ads:</span>
+                <input type="number" id="ads-input-${monthKey}" value="${meta.ads}" style="background: #fff; border: 1px solid var(--border); font-size: 0.85rem; width: 100%; color: var(--text-main); font-weight: 700; border-radius: 6px; padding: 0.35rem 0.5rem">
               </div>
-              <div style="display: flex; align-items: center; gap: 0.3rem">
-                <span style="font-size: 0.82rem; color: var(--text-dim)">Off:</span>
-                <input type="number" id="off-input-${monthKey}" value="${meta.office}" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); font-size: 0.7rem; width: 80px; color: var(--text-main); font-weight: 600; border-radius: 4px; padding: 2px 4px">
+              <div style="display: flex; align-items: center; gap: 0.4rem; flex-grow: 1; min-width: 100px;">
+                <span style="font-size: 0.82rem; color: var(--text-dim); font-weight: 600">Off:</span>
+                <input type="number" id="off-input-${monthKey}" value="${meta.office}" style="background: #fff; border: 1px solid var(--border); font-size: 0.85rem; width: 100%; color: var(--text-main); font-weight: 700; border-radius: 6px; padding: 0.35rem 0.5rem">
               </div>
            </div>
-           <button class="btn btn-secondary btn-sm" style="font-size: 0.65rem" onclick="window.saveMonthlyReport('${monthKey}')">💾 Lưu PA3</button>
+           <button class="btn btn-secondary btn-sm" style="font-size: 0.85rem; padding: 0.4rem 1rem; align-self: center;" onclick="window.saveMonthlyReport('${monthKey}')">💾 Lưu</button>
          </div>
       </div>
     </div>
@@ -1770,25 +1770,25 @@ function renderPA3ReportModal(state) {
       <h2>📊 Báo cáo PA3 — ${label}</h2>
       <button class="close-btn" onclick="window.closeModal()">&times;</button>
     </div>
-    <div class="modal-body" style="max-height:80vh;overflow-y:auto">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
-        <div class="glass-panel" style="padding:1rem;border-top:3px solid var(--success)">
+    <div class="modal-body" style="overflow-y:auto; padding: 0.5rem">
+      <div style="display:grid;grid-template-columns: repeat(3, 1fr);gap: 0.75rem;margin-bottom:1rem">
+        <div class="glass-panel" style="padding: 0.75rem;border-top:3px solid var(--success)">
           <div style="font-size:0.6rem;text-transform:uppercase;color:var(--text-dim);font-weight:700">Doanh thu</div>
-          <div style="font-size:1.4rem;font-weight:900;color:var(--success)">${fmt(revenue)}</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--success)">${fmt(revenue)}</div>
           <div style="font-size:0.7rem;color:var(--text-dim)">${jobs.length} dự án</div>
         </div>
-        <div class="glass-panel" style="padding:1rem;border-top:3px solid var(--danger)">
+        <div class="glass-panel" style="padding: 0.75rem;border-top:3px solid var(--danger)">
           <div style="font-size:0.6rem;text-transform:uppercase;color:var(--text-dim);font-weight:700">Tổng chi phí</div>
-          <div style="font-size:1.4rem;font-weight:900;color:var(--danger)">-${fmt(staffCost + editCost + ads + office)}</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--danger)">-${fmt(staffCost + editCost + ads + office)}</div>
         </div>
-        <div class="glass-panel" style="padding:1rem;border-top:3px solid ${net >= 0 ? 'var(--success)' : 'var(--danger)'}">
-          <div style="font-size:0.6rem;text-transform:uppercase;color:var(--text-dim);font-weight:700">Lợi nhuận sau thuế</div>
-          <div style="font-size:1.4rem;font-weight:900;color:${net >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmt(net)}</div>
+        <div class="glass-panel" style="padding: 0.75rem;border-top:3px solid ${net >= 0 ? 'var(--success)' : 'var(--danger)'}">
+          <div style="font-size:0.6rem;text-transform:uppercase;color:var(--text-dim);font-weight:700">Lãi sau thuế</div>
+          <div style="font-size:1.2rem;font-weight:900;color:${net >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmt(net)}</div>
         </div>
       </div>
-      <div class="glass-panel" style="padding:1rem;margin-bottom:1rem">
+      <div class="glass-panel" style="padding: 0.75rem;margin-bottom:1rem">
         ${rows.map(([lbl, val, color]) => `
-          <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.9rem">
+          <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.85rem">
             <span style="color:var(--text-dim)">${lbl}</span>
             <span style="font-weight:700;color:${color}">${fmt(val)}</span>
           </div>`).join('')}
