@@ -863,16 +863,23 @@ window.removeClient = (id) => {
 // BOOT & GO-LIVE IMPORT
 // ============================================================
 window.importGoLiveData = async () => {
-  if (!confirm("BẠN CÓ CHẮC CHẮN MUỐN NẠP DỮ LIỆU GO-LIVE?\\n\\nHành động này sẽ XÓA SẠCH dữ liệu Demo hiện tại và thay thế bằng 73 Dự án thật (Tháng 3 -> 7) từ Google Sheets của bạn.")) return;
+  if (!confirm("BẠN CÓ CHẮC CHẮN MUỐN NẠP DỮ LIỆU GO-LIVE?\n\nHành động này sẽ xóa các dự án Demo từ Tháng 3 trở đi và thay thế bằng 13 Dự án thật.\n\n(Dữ liệu của Tháng 1 và Tháng 2 sẽ được GIỮ LẠI nguyên vẹn)")) return;
 
   try {
     const res = await fetch('/new_state.json');
     const data = await res.json();
 
+    // Giữ lại các job của Tháng 1 và Tháng 2
+    const keptJobs = state.jobs.filter(j => {
+      if (!j.date) return false;
+      const m = new Date(j.date).getMonth() + 1;
+      return m === 1 || m === 2;
+    });
+
     // Ghi đè State
-    state.jobs = data.jobs || [];
+    state.jobs = [...keptJobs, ...(data.jobs || [])];
     state.clients = data.clients || [];
-    state.history = [{ time: new Date().toISOString(), action: 'Khởi tạo hệ thống Go-Live', user: 'Admin' }];
+    state.history = [{ time: new Date().toISOString(), action: 'Khởi tạo hệ thống Go-Live (Giữ lại T1, T2)', user: 'Admin' }];
     state.financeMetadata = {};
     state.manualTransactions = [];
 
@@ -880,7 +887,7 @@ window.importGoLiveData = async () => {
     saveState();
     updateUI();
 
-    alert("🎉 NẠP DỮ LIỆU THÀNH CÔNG!\\n\\n73 Dự án và thông tin Khách hàng đã được đồng bộ lên Firebase của bạn.");
+    alert("🎉 NẠP DỮ LIỆU THÀNH CÔNG!\n\n13 Dự án mới đã được chép vào. Dữ liệu Tháng 1 & 2 đã được giữ lại.");
   } catch (err) {
     console.error(err);
     alert("Lỗi khi nạp dữ liệu: " + err.message);
