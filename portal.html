@@ -43,6 +43,9 @@
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             line-height: 1.6;
+            overflow-x: hidden;
+            /* Fix horizontal scroll */
+            width: 100vw;
         }
 
         .app-container {
@@ -53,6 +56,8 @@
             position: relative;
             display: flex;
             flex-direction: column;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         header {
@@ -434,15 +439,29 @@
                 return;
             }
 
-            let state = null;
+            const urlData = urlParams.get('data');
+            const urlName = urlParams.get('name');
 
+            // 1. NGƯỜI DÙNG TRUY CẬP QUA LINK CHỨA SẴN DATA (HOẠT ĐỘNG 100% OFF-FIREBASE)
+            if (urlData && urlName) {
+                try {
+                    const clientName = decodeURIComponent(urlName);
+                    const jobsPayload = JSON.parse(decodeURIComponent(atob(urlData)));
+                    jobsPayload.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    renderPortal({ name: clientName }, jobsPayload, null);
+                    return; // Đã render xong
+                } catch (e) {
+                    console.warn("Lỗi giải mã URL Data, chuyển sang fetch DB.");
+                }
+            }
+
+            // 2. FETCH QUA FIREBASE NHƯ CŨ LÀM FALLBACK
+            let state = null;
             try {
                 if (db) {
-                    // Fetch directly from Firebase REST API
                     const res = await fetch(`https://${db}/haru_state.json`);
                     state = await res.json();
                 } else {
-                    // Fallback to local storage for testing
                     const raw = localStorage.getItem('haru_state_v1');
                     if (raw) state = JSON.parse(raw);
                 }
@@ -452,7 +471,6 @@
                 }
 
                 let clients = state.clients || [];
-                // Auto-reconstruct clients if empty based on Base64 logic
                 if (clients.length === 0) {
                     const map = new Map();
                     state.jobs.forEach(j => {
@@ -471,11 +489,8 @@
                 }
 
                 const clientJobs = state.jobs.filter(j => j.client === client.name && !j.isTrash);
-
-                // Sort jobs by date (newest first)
                 clientJobs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                // Update Footer Phone
                 if (state.settings && state.settings.studioPhone) {
                     const sPhone = document.getElementById('support-phone');
                     if (sPhone) sPhone.innerText = state.settings.studioPhone;
@@ -485,7 +500,9 @@
 
             } catch (err) {
                 console.error(err);
-                showError('Đã xảy ra lỗi khi kết nối máy chủ.<br><span style="font-size:0.8rem;opacity:0.7">(' + err.message + ')</span>');
+                if (!urlData) {
+                    showError('Đã xảy ra lỗi khi kết nối máy chủ.<br><span style="font-size:0.8rem;opacity:0.7">(' + err.message + ')</span>');
+                }
             }
         }
 

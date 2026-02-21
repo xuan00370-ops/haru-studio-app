@@ -1892,8 +1892,8 @@ export function renderClients(state) {
                </td>
                <td style="text-align: center">
                   <div style="display: flex; justify-content: center; gap: 0.3rem">
-                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem; background: rgba(22,163,74,0.08); color: var(--success); border-color: rgba(22,163,74,0.2)" onclick="window.open('/portal.html?cid=${c.id}${dbParam}', '_blank')"><i class="fas fa-external-link-alt"></i> Mở</button>
-                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem" onclick="navigator.clipboard.writeText(window.location.origin + '/portal.html?cid=${c.id}${dbParam}'); alert('Đã copy link Portal của khách hàng này!')" title="Copy cho khách"><i class="fas fa-copy"></i> Copy</button>
+                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem; background: rgba(22,163,74,0.08); color: var(--success); border-color: rgba(22,163,74,0.2)" onclick="window.open('/portal.html?cid=${c.id}${dbParam}&name=${encodeURIComponent(c.name)}&data=${btoa(encodeURIComponent(JSON.stringify(c.history)))}', '_blank')"><i class="fas fa-external-link-alt"></i> Mở</button>
+                     <button class="btn btn-sm btn-secondary" style="font-size: 0.65rem; padding: 0.2rem 0.4rem" onclick="navigator.clipboard.writeText(window.location.origin + '/portal.html?cid=${c.id}${dbParam}&name=${encodeURIComponent(c.name)}&data=${btoa(encodeURIComponent(JSON.stringify(c.history)))}'); alert('Đã copy link Portal của khách hàng này!')" title="Copy cho khách"><i class="fas fa-copy"></i> Copy</button>
                   </div>
                </td>
                <td style="text-align: right">
