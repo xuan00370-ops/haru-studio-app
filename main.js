@@ -650,17 +650,40 @@ window.removeServiceRowInModal = () => {
 window.runSync = async () => {
   try {
     const sheetUrlInput = document.getElementById('sync-sheet-url');
+    const nasRootInput = document.getElementById('sync-nas-root');
+    const driveApiInput = document.getElementById('sync-drive-api');
+
     const sheetUrl = sheetUrlInput ? sheetUrlInput.value.trim() : '';
+    const nasRoot = nasRootInput && nasRootInput.value.trim() ? nasRootInput.value.trim() : '/Volumes/HARUwedding';
+    const driveApiUrl = driveApiInput ? driveApiInput.value.trim() : '';
 
     const { runFullSync, getSyncLogs } = await import('./sync.js');
 
     document.body.style.cursor = 'wait';
     if (sheetUrlInput) sheetUrlInput.disabled = true;
+    if (nasRootInput) nasRootInput.disabled = true;
+    if (driveApiInput) driveApiInput.disabled = true;
 
-    const result = await runFullSync(state.jobs, '/Volumes/NAS/HaruWedding', [], sheetUrl);
+    let driveFolders = [];
+    if (driveApiUrl) {
+      try {
+        const resp = await fetch(driveApiUrl);
+        if (!resp.ok) throw new Error(`Drive API HTTP ${resp.status}`);
+        const payload = await resp.json();
+        if (Array.isArray(payload)) driveFolders = payload;
+        else if (Array.isArray(payload.folders)) driveFolders = payload.folders;
+        else if (Array.isArray(payload.data)) driveFolders = payload.data;
+      } catch (e) {
+        console.warn('Drive folders API error:', e.message);
+      }
+    }
+
+    const result = await runFullSync(state.jobs, nasRoot, driveFolders, sheetUrl);
 
     document.body.style.cursor = 'default';
     if (sheetUrlInput) sheetUrlInput.disabled = false;
+    if (nasRootInput) nasRootInput.disabled = false;
+    if (driveApiInput) driveApiInput.disabled = false;
 
     state.syncLogs = getSyncLogs();
     state.lastSyncResult = result;
@@ -671,7 +694,11 @@ window.runSync = async () => {
   } catch (err) {
     document.body.style.cursor = 'default';
     const sheetUrlInput = document.getElementById('sync-sheet-url');
+    const nasRootInput = document.getElementById('sync-nas-root');
+    const driveApiInput = document.getElementById('sync-drive-api');
     if (sheetUrlInput) sheetUrlInput.disabled = false;
+    if (nasRootInput) nasRootInput.disabled = false;
+    if (driveApiInput) driveApiInput.disabled = false;
 
     console.error('Sync error:', err);
     alert('Lỗi sync: ' + err.message);

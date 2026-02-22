@@ -29,7 +29,7 @@ export function clearSyncLogs() {
  * Scans NAS folder structure for project folders matching CD-CR pattern
  * Returns array of { folderName, path, client, date, matchType }
  */
-export function nasScanner(jobs, nasRootPath = '/Volumes/NAS/HaruWedding') {
+export function nasScanner(jobs, nasRootPath = '/Volumes/HARUwedding') {
     addSyncLog('info', `Bắt đầu quét NAS: ${nasRootPath}`);
     const results = { added: 0, updated: 0, skipped: 0, errors: 0, items: [] };
 
@@ -47,13 +47,14 @@ export function nasScanner(jobs, nasRootPath = '/Volumes/NAS/HaruWedding') {
             addSyncLog('skipped', `${job.id} — NAS path unchanged`, expectedPath);
         } else {
             const wasEmpty = !job.linkNAS;
+            const oldPath = job.linkNAS || '';
             job.linkNAS = expectedPath;
             if (wasEmpty) {
                 results.added++;
                 addSyncLog('added', `${job.id} ${job.client} — NAS path assigned`, expectedPath);
             } else {
                 results.updated++;
-                addSyncLog('updated', `${job.id} ${job.client} — NAS path updated`, `${job.linkNAS} → ${expectedPath}`);
+                addSyncLog('updated', `${job.id} ${job.client} — NAS path updated`, `${oldPath} → ${expectedPath}`);
             }
         }
         results.items.push({ job: job.id, client: job.client, nasPath: expectedPath });
@@ -72,21 +73,22 @@ export function driveScanner(jobs, driveFolders = []) {
     addSyncLog('info', `Bắt đầu quét Drive: ${driveFolders.length} folders`);
     const results = { added: 0, updated: 0, skipped: 0, errors: 0, items: [] };
 
-    // If no real Drive folders provided, generate expected links from job data
+    // If no real Drive folders provided, keep existing links or create searchable Drive query links
     if (driveFolders.length === 0) {
         for (const job of jobs) {
             if (job.isTrash) continue;
-            const expectedLink = `https://drive.google.com/drive/folders/${job.id}_${(job.client || '').replace(/\s/g, '_')}`;
+            const query = encodeURIComponent(`${job.id} ${(job.client || '').trim()}`.trim());
+            const fallbackLink = `https://drive.google.com/drive/search?q=${query}`;
 
             if (job.linkDrive && job.linkDrive.length > 10) {
                 results.skipped++;
                 addSyncLog('skipped', `${job.id} — Drive link exists`, job.linkDrive);
             } else {
-                job.linkDrive = expectedLink;
+                job.linkDrive = fallbackLink;
                 results.added++;
-                addSyncLog('added', `${job.id} ${job.client} — Drive link generated`, expectedLink);
+                addSyncLog('added', `${job.id} ${job.client} — Drive search link generated`, fallbackLink);
             }
-            results.items.push({ job: job.id, client: job.client, driveLink: job.linkDrive || expectedLink });
+            results.items.push({ job: job.id, client: job.client, driveLink: job.linkDrive || fallbackLink });
         }
     } else {
         // Real Drive folder matching by CD-CR then client+date
@@ -159,7 +161,15 @@ async function googleSheetScanner(jobs, sheetUrl) {
 
                 const exists = jobs.find(j => j.id === String(row.id));
                 if (exists) {
-                    results.skipped++;
+                    let changed = false;
+                    if (row.linkDrive && row.linkDrive !== exists.linkDrive) { exists.linkDrive = row.linkDrive; changed = true; }
+                    if (row.linkNAS && row.linkNAS !== exists.linkNAS) { exists.linkNAS = row.linkNAS; changed = true; }
+                    if (changed) {
+                        results.updated++;
+                        addSyncLog('updated', `[Sheet] Cập nhật link cho ${row.id}`, `${exists.linkNAS || ''} | ${exists.linkDrive || ''}`);
+                    } else {
+                        results.skipped++;
+                    }
                 } else {
                     jobs.push({
                         id: String(row.id),
@@ -170,7 +180,9 @@ async function googleSheetScanner(jobs, sheetUrl) {
                         status: row.status || 'Chưa gửi',
                         venue: row.venue || '',
                         services: row.services || [],
-                        timeline: row.timeline || { le: '', tiec: '' }
+                        timeline: row.timeline || { le: '', tiec: '' },
+                        linkNAS: row.linkNAS || '',
+                        linkDrive: row.linkDrive || ''
                     });
                     results.added++;
                     addSyncLog('added', `[Sheet] Đã thêm dự án mới: ${row.id}`, row.client);
@@ -193,7 +205,7 @@ async function googleSheetScanner(jobs, sheetUrl) {
  * Updates job.linkNAS and job.linkDrive fields
  * Returns unified summary
  */
-export async function runFullSync(jobs, nasRoot = '/Volumes/NAS/HaruWedding', driveFolders = [], sheetUrl = '') {
+export async function runFullSync(jobs, nasRoot = '/Volumes/HARUwedding', driveFolders = [], sheetUrl = '') {
     clearSyncLogs();
     addSyncLog('info', '═══ BẮT ĐẦU SYNC TOÀN BỘ ═══');
 

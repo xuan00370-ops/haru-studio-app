@@ -1705,12 +1705,16 @@ export function renderSync(state) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
           <div>
             <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">NAS Root Path</label>
-            <input type="text" class="form-control" id="sync-nas-root" value="/Volumes/NAS/HaruWedding" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
+            <input type="text" class="form-control" id="sync-nas-root" value="/Volumes/HARUwedding" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
           </div>
           <div>
             <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Tháng / Năm</label>
             <input type="text" class="form-control" value="${state.currentMonth}/${state.currentYear}" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem" readonly>
           </div>
+        </div>
+        <div>
+          <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Drive Folders API (tuỳ chọn)</label>
+          <input type="text" class="form-control" id="sync-drive-api" value="" placeholder="https://script.google.com/... (trả về mảng folders)" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
         </div>
         <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem">
           <button class="btn btn-primary btn-sm" style="flex: 1" onclick="window.runSync()"><i class="fas fa-cloud-download-alt"></i> Sync NAS + Drive</button>
