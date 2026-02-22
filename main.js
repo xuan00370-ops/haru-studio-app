@@ -217,7 +217,7 @@ window.saveJobDetail = (jobId) => {
   if (!job) return;
 
   // Đọc fields từ DOM
-  const client = job.client;
+  const client = document.getElementById('edit-job-client')?.value || job.client;
   const date = document.getElementById('edit-job-date')?.value || job.date;
   const eventType = document.getElementById('edit-job-type')?.value || job.eventType;
   const phone = document.getElementById('edit-job-phone')?.value || job.phone;

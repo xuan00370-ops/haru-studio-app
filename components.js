@@ -436,7 +436,12 @@ function renderJobDetailModal(state) {
         <div style="display: flex; flex-direction: column; gap: 1.25rem">
 
           <!-- Row 1: core info -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.875rem">
+          <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 0.875rem">
+            <div>
+              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Khách hàng (CD - CR)</label>
+              <input type="text" id="edit-job-client" class="form-control" value="${job.client}"
+                style="font-size: 0.95rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main); font-weight: 700">
+            </div>
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Ngày làm lễ</label>
               <input type="date" id="edit-job-date" class="form-control" value="${job.date}"

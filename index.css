@@ -291,6 +291,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .job-card-title {
@@ -298,7 +299,6 @@ body {
   font-weight: 800;
   letter-spacing: -0.3px;
   color: var(--text-main);
-  /* FIX: không dùng #fff trên light bg */
   margin-bottom: 0.2rem;
   line-height: 1.3;
 }
@@ -808,6 +808,11 @@ tr.paid-row {
   cursor: pointer;
 }
 
+/* Hide bottom nav on desktop, it will be visible in mobile media query */
+.bottom-nav {
+  display: none;
+}
+
 /* =====================
    RESPONSIVE DESIGN (MOBILE)
    ===================== */
@@ -863,8 +868,24 @@ tr.paid-row {
 
   .job-grid,
   .staff-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
+  }
+
+  .job-card {
+    padding: 0.8rem;
+    gap: 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .job-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+    line-height: 1.2;
+    letter-spacing: normal;
   }
 
   .data-table {
@@ -914,9 +935,9 @@ tr.paid-row {
     text-decoration: none;
     font-size: 0.65rem;
     font-weight: 700;
-    min-width: 50px;
-    padding: 6px;
-    border-radius: 12px;
+    min-width: 45px;
+    padding: 4px;
+    border-radius: 10px;
     transition: all 0.2s;
   }
 
@@ -1030,12 +1051,12 @@ tr.paid-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.35rem 0.2rem !important;
+    padding: 0.25rem 0.15rem !important;
     border: none !important;
     text-align: right !important;
     /* Forces value to right */
     white-space: pre-wrap !important;
-    font-size: 0.82rem;
+    font-size: 0.75rem;
   }
 
   /* Extract data-label to show row title on left side */
@@ -1058,10 +1079,110 @@ tr.paid-row {
 
   /* Thu gọn không gian trống - Space Saving */
   .glass-panel {
-    padding: 1rem !important;
+    padding: 0.4rem !important;
   }
 
   .view-container {
+    padding: 0.2rem;
+  }
+
+  /* Aggressive mobile adjustments */
+  @media (max-width: 400px) {
+    html {
+      font-size: 12px;
+    }
+
+    .bottom-nav-item {
+      min-width: 35px;
+      padding: 2px;
+      font-size: 0.55rem;
+    }
+
+    .job-grid {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .job-card {
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+    }
+
+    .job-card-title {
+      font-size: 0.9rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .view-container,
+    .glass-panel {
+      padding: 0.15rem;
+    }
+
+    .data-table td {
+      padding: 0.2rem 0.1rem !important;
+      font-size: 0.7rem;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.5rem !important;
+    }
+
+    .action-bar {
+      gap: 0.2rem;
+    }
+
+    .modal-body,
+    .modal-footer {
+      padding: 0.2rem;
+    }
+
+    .modal-header {
+      font-size: 0.9rem;
+    }
+
+    .modal-content {
+      font-size: 0.85rem;
+    }
+
+    .accordion-header {
+      font-size: 0.9rem;
+      padding: 0.3rem;
+    }
+
+    .accordion-content {
+      font-size: 0.85rem;
+      padding: 0.2rem 0.3rem;
+    }
+  }
+
+  /* Accordion component */
+  .accordion {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    background: #fff;
+  }
+
+  .accordion-header {
+    cursor: pointer;
+    padding: 0.5rem;
+    background: var(--bg-light);
+    font-weight: 600;
+  }
+
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0 0.5rem;
+  }
+
+  .accordion-content.open {
+    max-height: 500px;
+    /* enough for content */
     padding: 0.5rem;
   }
 }
