@@ -3,7 +3,7 @@ import { mockData } from './data.js';
 import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
-  renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderHistory
+  renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
@@ -25,6 +25,7 @@ export const state = {
   statusFilter: 'TẤT CẢ',
   searchQuery: '',
   staffViewMode: 'all',
+  editVideoFilter: 'TẤT CẢ',
   syncLogs: [],
   lastSyncResult: null,
   jobs: [...mockData.jobs],
@@ -472,6 +473,48 @@ window.updateEditStatus = (jobId, serviceName, newStatus) => {
   }
 };
 
+// ── Video Edit Tab Functions ───────────────────────────────
+window.updateVideoEditor = (jobId, serviceName, editorName) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  const svc = job.services.find(s => s.service === serviceName);
+  if (!svc) return;
+  svc.editStaff = editorName;
+  saveState();
+  window.addHistory(`Gán editor: ${editorName} cho ${job.client} – ${serviceName}`);
+  showPaymentToast(`✓ Editor: ${editorName || 'Đã xóa'}`, 'var(--primary)');
+};
+
+window.updateVideoEditStatus = (jobId, serviceName, newStatus) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  const svc = job.services.find(s => s.service === serviceName);
+  if (!svc) return;
+  svc.editStatus = newStatus;
+  if (newStatus === 'Hoàn thành') {
+    const allDone = job.services.every(s => (s.editStatus || '') === 'Hoàn thành');
+    if (allDone) job.status = 'Đã hoàn thành';
+  }
+  saveState();
+  window.addHistory(`Edit video: ${job.client} – ${serviceName} → ${newStatus}`);
+  showPaymentToast(`✓ ${newStatus}`, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
+  if (newStatus === 'Hoàn thành') updateUI();
+};
+
+window.updateVideoEditLink = (jobId, serviceName, link) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  const svc = job.services.find(s => s.service === serviceName);
+  if (!svc) return;
+  if (svc.editDriveLink === link) return;
+  svc.editDriveLink = link;
+  saveState();
+  if (link) {
+    window.addHistory(`Thêm link Drive: ${job.client} – ${serviceName}`);
+    showPaymentToast('✓ Đã lưu link Drive', 'var(--success)');
+  }
+};
+
 
 
 // ============================================================
@@ -532,6 +575,7 @@ window.setDeadlineFilter = (filter) => { state.deadlineFilter = filter; updateUI
 window.setStaffFilter = (staff) => { state.staffFilter = staff; updateUI(); };
 window.setStatusFilter = (status) => { state.statusFilter = status; updateUI(); };
 window.setSearchQuery = (query) => { state.searchQuery = query; updateUI(); };
+window.setEditVideoFilter = (filter) => { state.editVideoFilter = filter; updateUI(); };
 
 // ============================================================
 // MANUAL TRANSACTIONS
@@ -841,6 +885,7 @@ function updateUI() {
     case 'finance': contentArea.appendChild(renderFinance(periodState)); break;
     case 'tax': contentArea.appendChild(renderTax(periodState)); break;
     case 'edit': contentArea.appendChild(renderDeadlineEdit(periodState)); break;
+    case 'edit_video': contentArea.appendChild(renderEditVideo(periodState)); break;
     case 'calendar': contentArea.appendChild(renderCalendar(state)); break;
     case 'trash': contentArea.appendChild(renderTrash(state)); break;
     case 'settings': contentArea.appendChild(renderSettings(state)); break;

@@ -13,6 +13,9 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'edit' ? 'active' : ''}" onclick="window.navigate('edit')">
         <span class="icon">🎬</span> Deadline EDIT
       </div>
+      <div class="nav-item ${activePage === 'edit_video' ? 'active' : ''}" onclick="window.navigate('edit_video')">
+        <span class="icon">🎞️</span> Edit Video
+      </div>
       <div class="nav-item ${activePage === 'calendar' ? 'active' : ''}" onclick="window.navigate('calendar')">
         <span class="icon">📅</span> Lịch / Nhắc việc
       </div>
@@ -1435,6 +1438,247 @@ export function renderDeadlineEdit(state) {
   });
 
 
+
+  return container;
+}
+
+export function renderEditVideo(state) {
+  const container = document.createElement('div');
+  container.className = 'view-container reveal';
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const EDIT_DAYS = 20;
+
+  // Thu thập tất cả video tasks
+  const videoTasks = [];
+  state.jobs.forEach(job => {
+    if (job.isTrash) return;
+    job.services.forEach((s, sIdx) => {
+      const isVideo = s.service.toLowerCase().includes('quay');
+      if (!isVideo) return;
+
+      const jobDate = new Date(job.date);
+      jobDate.setHours(0, 0, 0, 0);
+      const deadlineDate = new Date(jobDate);
+      deadlineDate.setDate(deadlineDate.getDate() + EDIT_DAYS);
+
+      const diffMs = deadlineDate - today;
+      const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const elapsed = EDIT_DAYS - daysLeft;
+      const progress = Math.max(0, Math.min(100, (elapsed / EDIT_DAYS) * 100));
+
+      let stage, stageColor, stageBg, stageIcon;
+      const editStatus = s.editStatus || 'Chưa bắt đầu';
+      if (editStatus === 'Hoàn thành') {
+        stage = 'HOÀN THÀNH'; stageColor = '#22c55e'; stageBg = 'rgba(34,197,94,0.08)'; stageIcon = '✅';
+      } else if (daysLeft > 10) {
+        stage = 'THOẢI MÁI'; stageColor = '#22c55e'; stageBg = 'rgba(34,197,94,0.06)'; stageIcon = '🟢';
+      } else if (daysLeft > 5) {
+        stage = 'CẦN ĐẨY'; stageColor = '#eab308'; stageBg = 'rgba(234,179,8,0.06)'; stageIcon = '🟡';
+      } else if (daysLeft > 0) {
+        stage = 'GẤP'; stageColor = '#f97316'; stageBg = 'rgba(249,115,22,0.08)'; stageIcon = '🟠';
+      } else {
+        stage = 'QUÁ HẠN'; stageColor = '#ef4444'; stageBg = 'rgba(239,68,68,0.08)'; stageIcon = '🔴';
+      }
+
+      videoTasks.push({
+        jobId: job.id,
+        jobNo: job.jobNo,
+        client: job.client,
+        service: s.service,
+        serviceIdx: sIdx,
+        staff: s.staff,
+        editStaff: s.editStaff || '',
+        editCost: s.edit || 0,
+        editStatus,
+        editDriveLink: s.editDriveLink || '',
+        jobDate: job.date,
+        deadlineDate,
+        deadlineStr: deadlineDate.toLocaleDateString('vi-VN'),
+        daysLeft,
+        progress,
+        stage, stageColor, stageBg, stageIcon
+      });
+    });
+  });
+
+  // Sắp xếp thông minh: Quá hạn → Gấp → Cần đẩy → Thoải mái → Hoàn thành
+  const stageOrder = { 'QUÁ HẠN': 0, 'GẤP': 1, 'CẦN ĐẨY': 2, 'THOẢI MÁI': 3, 'HOÀN THÀNH': 4 };
+  videoTasks.sort((a, b) => (stageOrder[a.stage] ?? 5) - (stageOrder[b.stage] ?? 5) || a.daysLeft - b.daysLeft);
+
+  // Lọc theo nhân sự edit
+  const editFilter = state.editVideoFilter || 'TẤT CẢ';
+  const allEditors = [...new Set(videoTasks.map(t => t.editStaff).filter(Boolean))].sort();
+  const filtered = editFilter === 'TẤT CẢ' ? videoTasks : videoTasks.filter(t => t.editStaff === editFilter);
+
+  // Thống kê
+  const total = videoTasks.length;
+  const done = videoTasks.filter(t => t.editStatus === 'Hoàn thành').length;
+  const inProgress = videoTasks.filter(t => ['Đang cắt', 'Demo 1', 'Chỉnh sửa'].includes(t.editStatus)).length;
+  const overdue = videoTasks.filter(t => t.stage === 'QUÁ HẠN').length;
+
+  // Staff dropdown options
+  const staffOptions = state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+
+  container.innerHTML = `
+    <header class="section-header">
+       <div>
+         <h1 class="view-title">🎬 Edit Video Tracker</h1>
+         <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem">Theo dõi tiến độ hậu kỳ video — Deadline ${EDIT_DAYS} ngày</p>
+       </div>
+    </header>
+
+    <!-- Thống kê tổng quan -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem">
+       <div class="glass-panel" style="padding: 1rem; border-top: 3px solid #3b82f6; text-align: center">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Tổng Video</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #3b82f6; margin-top: 0.3rem">${total}</div>
+       </div>
+       <div class="glass-panel" style="padding: 1rem; border-top: 3px solid #22c55e; text-align: center">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Đã xong</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #22c55e; margin-top: 0.3rem">${done}</div>
+       </div>
+       <div class="glass-panel" style="padding: 1rem; border-top: 3px solid #f97316; text-align: center">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Đang làm</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #f97316; margin-top: 0.3rem">${inProgress}</div>
+       </div>
+       <div class="glass-panel" style="padding: 1rem; border-top: 3px solid #ef4444; text-align: center">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Quá hạn</div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #ef4444; margin-top: 0.3rem">${overdue}</div>
+       </div>
+    </div>
+
+    <!-- Bộ lọc nhân sự edit -->
+    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem">
+       <button onclick="window.setEditVideoFilter('TẤT CẢ')" class="btn btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.7rem; border-radius: 20px; ${editFilter === 'TẤT CẢ' ? 'background: var(--primary); color: #fff; border: none' : 'background: #fff; color: var(--text-dim); border: 1px solid var(--border)'}">Tất cả (${total})</button>
+       ${allEditors.map(name => `
+         <button onclick="window.setEditVideoFilter('${name}')" class="btn btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.7rem; border-radius: 20px; ${editFilter === name ? 'background: var(--primary); color: #fff; border: none' : 'background: #fff; color: var(--text-dim); border: 1px solid var(--border)'}">${name}</button>
+       `).join('')}
+    </div>
+
+    <!-- Video Cards Grid -->
+    <div class="edit-video-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.25rem">
+       ${filtered.length > 0 ? filtered.map(t => {
+    const progressColor = t.editStatus === 'Hoàn thành' ? '#22c55e' : t.stageColor;
+    const progressPct = t.editStatus === 'Hoàn thành' ? 100 : t.progress;
+
+    // Workflow steps
+    const steps = ['Chưa bắt đầu', 'Đang cắt', 'Demo 1', 'Chỉnh sửa', 'Hoàn thành'];
+    const currentStep = steps.indexOf(t.editStatus);
+
+    return `
+         <div class="edit-video-card" style="background: ${t.stageBg}; border: 1.5px solid ${t.stageColor}30; border-radius: 16px; padding: 1.25rem; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.04)">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem">
+               <div style="display: flex; align-items: center; gap: 0.5rem">
+                  <span style="font-size: 1.1rem">${t.stageIcon}</span>
+                  <span style="font-size: 0.68rem; font-weight: 900; color: ${t.stageColor}; text-transform: uppercase; letter-spacing: 0.5px; background: ${t.stageColor}15; padding: 0.15rem 0.5rem; border-radius: 4px">${t.stage}</span>
+                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); background: rgba(0,0,0,0.04); padding: 0.15rem 0.5rem; border-radius: 4px">${t.service}</span>
+               </div>
+               <div style="text-align: right">
+                  <span style="font-size: 0.62rem; font-weight: 800; color: var(--primary); background: var(--accent-soft); padding: 0.15rem 0.5rem; border-radius: 4px">#${t.jobNo || '—'}</span>
+               </div>
+            </div>
+
+            <!-- Client name -->
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.6rem; line-height: 1.3">${t.client}</div>
+
+            <!-- Progress bar -->
+            <div style="margin-bottom: 0.75rem">
+               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem">
+                  <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-dim)">Tiến độ</span>
+                  <span style="font-size: 0.78rem; font-weight: 800; color: ${progressColor}">
+                     ${t.editStatus === 'Hoàn thành' ? '✅ Xong' : (t.daysLeft > 0 ? `Còn ${t.daysLeft} ngày` : `Trễ ${Math.abs(t.daysLeft)} ngày`)}
+                  </span>
+               </div>
+               <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden">
+                  <div style="width: ${progressPct}%; height: 100%; background: ${progressColor}; border-radius: 3px; transition: width 0.3s"></div>
+               </div>
+            </div>
+
+            <!-- Workflow steps mini -->
+            <div style="display: flex; gap: 0.2rem; margin-bottom: 0.75rem">
+               ${steps.map((step, idx) => {
+      const isActive = idx === currentStep;
+      const isDone = idx < currentStep;
+      const dotColor = isDone ? '#22c55e' : isActive ? t.stageColor : 'rgba(0,0,0,0.1)';
+      return `<div style="flex: 1; height: 3px; background: ${dotColor}; border-radius: 2px" title="${step}"></div>`;
+    }).join('')}
+            </div>
+
+            <!-- Info grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.75rem">
+               <div>
+                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">📷 Thợ quay</label>
+                  <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-main)">${t.staff}</span>
+               </div>
+               <div>
+                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">💰 Chi phí edit</label>
+                  <span style="font-size: 0.88rem; font-weight: 800; color: var(--danger)">${formatCurrency(t.editCost)}</span>
+               </div>
+               <div>
+                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">📅 Ngày quay</label>
+                  <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted)">${new Date(t.jobDate).toLocaleDateString('vi-VN')}</span>
+               </div>
+               <div>
+                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">⏰ Deadline</label>
+                  <span style="font-size: 0.82rem; font-weight: 800; font-family: monospace; color: ${t.stageColor}">${t.deadlineStr}</span>
+               </div>
+            </div>
+
+            <!-- Controls -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; background: rgba(255,255,255,0.6); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border)">
+               <!-- Editor dropdown -->
+               <div style="display: flex; align-items: center; gap: 0.5rem">
+                  <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">🎬 Editor</label>
+                  <select class="form-control ev-editor-select" data-job-id="${t.jobId}" data-service="${t.service}"
+                     style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main); font-weight: 700">
+                     <option value="">— Chưa chọn —</option>
+                     ${state.staff.map(s => `<option value="${s.name}" ${t.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
+                  </select>
+               </div>
+
+               <!-- Status dropdown -->
+               <div style="display: flex; align-items: center; gap: 0.5rem">
+                  <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">📊 Trạng thái</label>
+                  <select class="form-control ev-status-select" data-job-id="${t.jobId}" data-service="${t.service}"
+                     style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid ${t.stageColor}40; color: ${t.stageColor}; font-weight: 800">
+                     ${steps.map(step => `<option value="${step}" ${t.editStatus === step ? 'selected' : ''}>${step}</option>`).join('')}
+                  </select>
+               </div>
+
+               <!-- Drive link -->
+               <div style="display: flex; align-items: center; gap: 0.5rem">
+                  <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">🔗 Drive</label>
+                  <input type="text" class="form-control ev-drive-input" data-job-id="${t.jobId}" data-service="${t.service}"
+                     placeholder="Link sản phẩm…" value="${t.editDriveLink}"
+                     style="flex: 1; font-size: 0.82rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+                  ${t.editDriveLink ? `<a href="${t.editDriveLink}" target="_blank" class="btn btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.7rem; background: #22c55e; color: #fff; border: none; white-space: nowrap; border-radius: 6px; text-decoration: none">Mở ↗</a>` : ''}
+               </div>
+            </div>
+         </div>`;
+  }).join('') : '<div class="empty-state">Không có video task nào trong tháng này</div>'}
+    </div>
+  `;
+
+  // Event delegation
+  container.addEventListener('change', function (ev) {
+    const el = ev.target;
+    if (el.classList.contains('ev-editor-select')) {
+      window.updateVideoEditor(el.dataset.jobId, el.dataset.service, el.value);
+    }
+    if (el.classList.contains('ev-status-select')) {
+      window.updateVideoEditStatus(el.dataset.jobId, el.dataset.service, el.value);
+    }
+  });
+
+  container.addEventListener('blur', function (ev) {
+    const el = ev.target;
+    if (el.classList.contains('ev-drive-input')) {
+      window.updateVideoEditLink(el.dataset.jobId, el.dataset.service, el.value);
+    }
+  }, true);
 
   return container;
 }
