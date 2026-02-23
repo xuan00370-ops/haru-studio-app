@@ -180,6 +180,64 @@ window.checkDeadlines = () => {
 // Auto-check every 30 minutes
 setInterval(() => { if (state.currentUser) window.checkDeadlines(); }, 30 * 60 * 1000);
 
+// ============================================================
+// QR PREVIEW
+// ============================================================
+window.openQR = (jobId) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+
+  const existing = document.getElementById('qr-panel-overlay');
+  if (existing) existing.remove();
+
+  // Generate preview URL (placeholder - would be real URL in production)
+  const previewUrl = `${window.location.origin}/preview/${job.id}`;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'qr-panel-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const bg = isDark ? '#162816' : '#fff';
+
+  const panel = document.createElement('div');
+  panel.style.cssText = `background:${bg};border-radius:16px;padding:2rem;max-width:380px;width:90vw;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3)`;
+
+  // Generate QR
+  let qrHtml = '';
+  if (typeof qrcode === 'function') {
+    const qr = qrcode(0, 'M');
+    qr.addData(previewUrl);
+    qr.make();
+    qrHtml = qr.createSvgTag({ scalable: true });
+  } else {
+    qrHtml = '<div style="width:200px;height:200px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:auto">QR Library không sẵn sàng</div>';
+  }
+
+  const statusColor = { 'Đã hoàn thành': '#22c55e', 'Nhận feedback': '#3b82f6', 'Chưa gửi': '#f59e0b', 'Sắp diễn ra': '#ef4444' }[job.status] || '#94a3b8';
+
+  panel.innerHTML = `
+    <div style="font-size:1.3rem;font-weight:900;color:var(--text-main);margin-bottom:0.3rem">📱 QR Preview</div>
+    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1.2rem">Quét mã để xem album khách hàng</div>
+    <div style="display:inline-block;padding:1rem;background:#fff;border-radius:12px;margin-bottom:1rem">
+      <div style="width:180px;height:180px">${qrHtml}</div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:1rem;font-weight:800;color:var(--text-main)">${job.client}</div>
+      <div style="font-size:0.75rem;color:var(--text-dim)">${new Date(job.date).toLocaleDateString('vi-VN')} · ${job.eventType || 'Sự kiện'}</div>
+      <span style="font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:10px;background:${statusColor}20;color:${statusColor};margin-top:0.3rem;display:inline-block">${job.status}</span>
+    </div>
+    <div style="font-size:0.65rem;color:var(--text-dim);word-break:break-all;padding:0.4rem;background:var(--accent-soft);border-radius:6px;margin-bottom:1rem">${previewUrl}</div>
+    <div style="display:flex;gap:0.5rem;justify-content:center">
+      <button onclick="navigator.clipboard.writeText('${previewUrl}');this.textContent='✅ Đã copy!';setTimeout(()=>this.textContent='📋 Copy Link',1500)" style="background:var(--primary);color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.82rem">📋 Copy Link</button>
+      <button onclick="this.closest('#qr-panel-overlay').remove()" style="background:var(--accent-soft);color:var(--text-main);border:1px solid var(--border);padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.82rem">Đóng</button>
+    </div>
+  `;
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+};
+
 async function bootload() {
   // 1. Cố gắng Load từ LocalStorage trước cho nhanh
   let localData = null;

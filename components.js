@@ -403,6 +403,7 @@ function renderJobCard(job) {
       return `<span onclick="window.toggleClientTag('${job.id}','${t}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.35rem;border-radius:4px;border:1px solid ${tc[t]}${active ? '' : '30'};background:${tc[t]}${active ? '20' : '05'};color:${tc[t]};opacity:${active ? 1 : 0.5};transition:all 0.2s">${t}</span>`;
     }).join('')}
           <span onclick="window.openChat('${job.id}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.4rem;border-radius:4px;background:var(--primary-glow);color:var(--primary);border:1px solid var(--border-bright);margin-left:auto">💬 ${(job.comments || []).length}</span>
+          <span onclick="window.openQR('${job.id}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.4rem;border-radius:4px;background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630">📱 QR</span>
         </div>
       </div>
     </div>
