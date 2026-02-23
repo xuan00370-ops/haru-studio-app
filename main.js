@@ -929,6 +929,7 @@ window.setStaffFilter = (staff) => { state.staffFilter = staff; updateUI(); };
 window.setStatusFilter = (status) => { state.statusFilter = status; updateUI(); };
 window.setSearchQuery = (query) => { state.searchQuery = query; updateUI(); };
 window.setEditVideoFilter = (filter) => { state.editVideoFilter = filter; updateUI(); };
+window.setEditVideoStatusFilter = (filter) => { state.editVideoStatusFilter = filter; updateUI(); };
 
 // ============================================================
 // MANUAL TRANSACTIONS

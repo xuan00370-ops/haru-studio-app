@@ -236,50 +236,44 @@ export function renderDashboard(state, navigate) {
       `;
     })() : ''}
 
-    <div class="monthly-report glass-panel" style="margin-top: 1rem; padding: 1rem; border: 1px solid var(--border-bright)">
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 2rem">
-        <div style="display: flex; gap: 1.5rem">
-          <div class="stat-card">
-            <span class="label" style="font-size: 0.55rem">Tổng Dự án</span>
-            <div class="value" style="font-size: 0.95rem; font-weight: 800">${monthJobs.length}</div>
+    <div class="monthly-report glass-panel" style="margin-top: 0.5rem; padding: 0.6rem 0.8rem; border: 1px solid var(--border-bright)">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap">
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap">
+          <div class="stat-card" style="min-width:50px">
+            <span class="label" style="font-size: 0.5rem">Tổng Dự án</span>
+            <div class="value" style="font-size: 0.9rem; font-weight: 800">${monthJobs.length}</div>
           </div>
-          <div class="stat-row" style="display: flex; flex-wrap: wrap; gap: 1rem; border-left: 2px solid var(--border); padding-left: 1rem; margin-top: 1rem">
-            <div class="stat-card" style="min-width: 120px">
-              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Doanh thu</span>
-              <div class="value" style="font-size: 1rem; font-weight: 800">${formatCurrency(revenue)}</div>
+          <div style="width:1px;height:28px;background:var(--border)"></div>
+          <div style="display: flex; gap: 0.8rem; flex-wrap: wrap">
+            <div style="min-width: 80px">
+              <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Doanh thu</span>
+              <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency(revenue)}</div>
             </div>
-            <div class="stat-card" style="min-width: 120px">
-              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Nhân sự/Edit</span>
-              <div class="value" style="font-size: 1rem; font-weight: 800">${formatCurrency(staffCosts + editCosts)}</div>
+            <div style="min-width: 80px">
+              <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Nhân sự/Edit</span>
+              <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency(staffCosts + editCosts)}</div>
             </div>
-            <div class="stat-card" style="min-width: 120px">
-              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Ads/Office</span>
-              <div class="value" style="font-size: 1rem; font-weight: 800">${formatCurrency((meta.ads || 0) + (meta.office || 0))}</div>
+            <div style="min-width: 80px">
+              <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Ads/Office</span>
+              <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency((meta.ads || 0) + (meta.office || 0))}</div>
             </div>
-            <div class="stat-card" style="min-width: 120px">
-              <span class="label" style="font-size: 0.6rem; text-transform: uppercase;">Lợi nhuận ròng</span>
-              <div class="value" style="font-size: 1.25rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(netProfit)}</div>
+            <div style="min-width: 80px">
+              <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Lợi nhuận ròng</span>
+              <div style="font-size: 1rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(netProfit)}</div>
             </div>
           </div>
         </div>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; margin-top: 1.5rem; background: rgba(0,0,0,0.03); padding: 0.75rem; border-radius: 8px">
-           <div class="mini-form" style="display: flex; flex-wrap: wrap; gap: 0.75rem; flex-grow: 1; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 0.4rem; flex-grow: 1; min-width: 100px;">
-                <span style="font-size: 0.82rem; color: var(--text-dim); font-weight: 600">Ads:</span>
-                <input type="number" id="ads-input-${monthKey}" value="${meta.ads}" style="background: #fff; border: 1px solid var(--border); font-size: 0.85rem; width: 100%; color: var(--text-main); font-weight: 700; border-radius: 6px; padding: 0.35rem 0.5rem">
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.4rem; flex-grow: 1; min-width: 100px;">
-                <span style="font-size: 0.82rem; color: var(--text-dim); font-weight: 600">Off:</span>
-                <input type="number" id="off-input-${monthKey}" value="${meta.office}" style="background: #fff; border: 1px solid var(--border); font-size: 0.85rem; width: 100%; color: var(--text-main); font-weight: 700; border-radius: 6px; padding: 0.35rem 0.5rem">
-              </div>
-           </div>
-           <button class="btn btn-secondary btn-sm" style="font-size: 0.85rem; padding: 0.4rem 1rem; align-self: center;" onclick="window.saveMonthlyReport('${monthKey}')">💾 Lưu</button>
-         </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(0,0,0,0.03); padding: 0.4rem 0.6rem; border-radius: 8px">
+          <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: 600">Ads:</span>
+          <input type="number" id="ads-input-${monthKey}" value="${meta.ads}" style="background: #fff; border: 1px solid var(--border); font-size: 0.78rem; width: 80px; color: var(--text-main); font-weight: 700; border-radius: 6px; padding: 0.25rem 0.4rem">
+          <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: 600">Off:</span>
+          <input type="number" id="off-input-${monthKey}" value="${meta.office}" style="background: #fff; border: 1px solid var(--border); font-size: 0.78rem; width: 80px; color: var(--text-main); font-weight: 700; border-radius: 6px; padding: 0.25rem 0.4rem">
+          <button class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem" onclick="window.saveMonthlyReport('${monthKey}')">💾 Lưu</button>
+        </div>
       </div>
     </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem">
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem">
          <button class="btn btn-primary btn-sm" onclick="window.viewPA3Report('${monthKey}')">📊 Xem PA3</button>
       </div>
     </div>
@@ -1557,7 +1551,12 @@ export function renderEditVideo(state) {
   // Lọc theo nhân sự edit
   const editFilter = state.editVideoFilter || 'TẤT CẢ';
   const allEditors = [...new Set(videoTasks.map(t => t.editStaff).filter(Boolean))].sort();
-  const filtered = editFilter === 'TẤT CẢ' ? videoTasks : videoTasks.filter(t => t.editStaff === editFilter);
+  let filtered = editFilter === 'TẤT CẢ' ? videoTasks : videoTasks.filter(t => t.editStaff === editFilter);
+
+  // Lọc theo trạng thái hoàn thành
+  const statusFilter = state.editVideoStatusFilter || 'ALL';
+  if (statusFilter === 'DONE') filtered = filtered.filter(t => t.editStatus === 'Hoàn thành');
+  else if (statusFilter === 'PENDING') filtered = filtered.filter(t => t.editStatus !== 'Hoàn thành');
 
   // Thống kê
   const total = videoTasks.length;
@@ -1597,11 +1596,16 @@ export function renderEditVideo(state) {
     </div>
 
     <!-- Bộ lọc nhân sự edit -->
-    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem">
+    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.5rem">
        <button onclick="window.setEditVideoFilter('TẤT CẢ')" class="btn btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.7rem; border-radius: 20px; ${editFilter === 'TẤT CẢ' ? 'background: var(--primary); color: #fff; border: none' : 'background: #fff; color: var(--text-dim); border: 1px solid var(--border)'}">Tất cả (${total})</button>
        ${allEditors.map(name => `
          <button onclick="window.setEditVideoFilter('${name}')" class="btn btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.7rem; border-radius: 20px; ${editFilter === name ? 'background: var(--primary); color: #fff; border: none' : 'background: #fff; color: var(--text-dim); border: 1px solid var(--border)'}">${name}</button>
        `).join('')}
+    </div>
+    <div style="display: flex; gap: 0.35rem; margin-bottom: 1.2rem">
+      <button onclick="window.setEditVideoStatusFilter('ALL')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">🎬 Tất cả (${filtered.length})</button>
+      <button onclick="window.setEditVideoStatusFilter('PENDING')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">⚠️ Chưa xong (${videoTasks.filter(t => t.editStatus !== 'Hoàn thành').length})</button>
+      <button onclick="window.setEditVideoStatusFilter('DONE')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">✅ Hoàn thành (${done})</button>
     </div>
 
     <!-- Video Cards Grid -->
@@ -1668,9 +1672,10 @@ export function renderEditVideo(state) {
                   <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">📅 Ngày quay</label>
                   <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted)">${new Date(t.jobDate).toLocaleDateString('vi-VN')}</span>
                </div>
-               <div>
-                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">⏰ Deadline</label>
-                  <span style="font-size: 0.82rem; font-weight: 800; font-family: monospace; color: ${t.stageColor}">${t.deadlineStr}</span>
+               <div style="background:${t.stageColor}12;border:1.5px solid ${t.stageColor}30;border-radius:8px;padding:0.35rem 0.5rem;${t.stage === 'QUÁ HẠN' ? 'animation:pulse 2s infinite' : ''}">
+                  <label style="font-size: 0.62rem; color: ${t.stageColor}; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.15rem">⏰ DEADLINE</label>
+                  <span style="font-size: 0.95rem; font-weight: 900; font-family: monospace; color: ${t.stageColor}">${t.deadlineStr}</span>
+                  <div style="font-size: 0.62rem; font-weight: 800; color: ${t.stageColor}; margin-top: 0.1rem">${t.editStatus === 'Hoàn thành' ? '✅ Đã xong' : t.daysLeft > 0 ? '⏳ Còn ' + t.daysLeft + ' ngày' : '🚨 Trễ ' + Math.abs(t.daysLeft) + ' ngày!'}</div>
                </div>
             </div>
 
