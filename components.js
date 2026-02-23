@@ -10,7 +10,10 @@ export function renderSidebar(activePage, navigate) {
   const aside = document.createElement('aside');
   aside.className = 'sidebar';
   aside.innerHTML = `
-    <div class="sidebar-brand">HARU STUDIO</div>
+    <div class="sidebar-brand" style="display:flex;align-items:center;gap:0.55rem">
+      <img src="/haru-job-logo.png" alt="Haru Job" style="width:24px;height:24px;object-fit:contain;border-radius:6px" />
+      <span>HARU JOB</span>
+    </div>
     <nav class="sidebar-nav">
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1rem 0 0.5rem 0.75rem; text-transform: uppercase;">Điều hành</div>
       <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.navigate('dashboard')">
@@ -2853,13 +2856,11 @@ export function renderLoginScreen() {
       border: 1.5px solid rgba(22,163,74,0.2); border-radius: 24px; padding: 2.5rem;
       box-shadow: 0 24px 80px rgba(0,60,0,0.12); text-align: center">
 
-      <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #16a34a, #22c55e);
-        border-radius: 14px; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 8px 24px rgba(22,163,74,0.25)">
-        <span style="color: #fff; font-size: 1.5rem; font-weight: 900">H</span>
+      <div style="margin: 0 auto 1.2rem; display:flex; justify-content:center; align-items:center;">
+        <img src="/haru-job-logo.png" alt="Haru Job" style="width: 110px; max-width: 60%; height: auto; object-fit: contain" />
       </div>
 
-      <h1 style="font-size: 1.6rem; font-weight: 900; color: #0f1f0f; margin-bottom: 0.3rem; letter-spacing: -0.5px">HARU STUDIO</h1>
+      <h1 style="font-size: 1.6rem; font-weight: 900; color: #0f1f0f; margin-bottom: 0.3rem; letter-spacing: -0.5px">HARU JOB</h1>
       <p style="font-size: 0.85rem; color: #3d6b40; margin-bottom: 2rem">Đăng nhập để tiếp tục</p>
 
       <div id="login-error" style="display: none; background: #fef2f2; border: 1px solid #fca5a5;
