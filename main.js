@@ -475,6 +475,16 @@ window.updateClientRating = (jobId, rating) => {
   }
 };
 
+window.toggleJobComplete = (jobId) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (job) {
+    job.status = (job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback') ? 'Sắp diễn ra' : 'Đã hoàn thành';
+    saveState();
+    updateUI();
+    window.addHistory && window.addHistory(`${job.client}: ${job.status}`);
+  }
+};
+
 window.toggleClientTag = (jobId, tag) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (job) {
@@ -933,6 +943,7 @@ window.setEditPhotoFilter = (filter) => { state.editPhotoFilter = filter; update
 window.setEditPhotoStatusFilter = (filter) => { state.editPhotoStatusFilter = filter; updateUI(); };
 window.toggleEditPhotoView = (view) => { state.editPhotoView = view; updateUI(); };
 window.setEditVideoStatusFilter = (filter) => { state.editVideoStatusFilter = filter; updateUI(); };
+window.toggleEditVideoView = (view) => { state.editVideoView = view; updateUI(); };
 
 // ============================================================
 // MANUAL TRANSACTIONS

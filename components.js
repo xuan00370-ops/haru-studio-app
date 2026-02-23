@@ -191,7 +191,7 @@ export function renderDashboard(state, navigate) {
            <option value="TẤT CẢ" ${state.statusFilter === 'TẤT CẢ' ? 'selected' : ''}>Tất cả trạng thái</option>
            ${allStatuses.map(s => `<option value="${s}" ${state.statusFilter === s ? 'selected' : ''}>${s}</option>`).join('')}
          </select>
-         <button class="btn btn-secondary btn-sm" onclick="window.runSync()"><i class="fas fa-sync"></i> Quét NAS</button>
+
          <button class="btn btn-primary" onclick="window.openModal('add_job')">
            <i class="fas fa-plus"></i> Thêm Dự Án
          </button>
@@ -301,8 +301,9 @@ function renderJobCard(job) {
   const photoCount = job.services.filter(s => s.service.toLowerCase().includes('chụp')).length;
   const videoCount = job.services.filter(s => s.service.toLowerCase().includes('quay')).length;
 
+  const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
   return `
-    <div class="job-card glass-panel" onclick="window.openModal('job_detail', '${job.id}')">
+    <div class="job-card glass-panel" onclick="window.openModal('job_detail', '${job.id}')" style="${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}">
       <div class="job-card-header" style="margin-bottom: 0.5rem">
         <div style="display: flex; flex-direction: column; gap: 0.1rem">
           <h3 class="job-card-title" style="font-size: 1.08rem; color: var(--text-main)">${job.client}</h3>
@@ -389,6 +390,7 @@ function renderJobCard(job) {
             <span class="value" style="font-size: 0.85rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(profit)}</span>
          </div>
          <div class="view-detail-link" style="font-size: 0.82rem; text-align: center; margin-top: 0.5rem; opacity: 0.7">Xem chi tiết &rarr;</div>
+         <div onclick="event.stopPropagation()" style="margin-top:0.5rem"><button onclick="window.toggleJobComplete&&window.toggleJobComplete('${job.id}')" style="width:100%;padding:0.35rem;border-radius:6px;font-size:0.72rem;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s;${isCompleted ? 'background:#22c55e;color:#fff' : 'background:#22c55e15;color:#22c55e;border:1px solid #22c55e30'}">${isCompleted ? '✅ Đã hoàn thành' : '⭕ Đánh dấu hoàn thành'}</button></div>
       </div>
 
       <div onclick="event.stopPropagation()" style="border-top:1px solid var(--border);padding-top:0.4rem;margin-top:0.3rem">
@@ -965,7 +967,7 @@ export function renderStaff(state) {
 
   container.innerHTML = `
     <header class="section-header">
-       <h1 class="view-title">👥 Đội Ngũ Nghệ Sĩ</h1>
+       <h1 class="view-title">👥 Cộng Tác Viên</h1>
        <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-staff-form').style.display='flex'"><i class="fas fa-plus"></i> Thêm nhân sự</button>
     </header>
 
@@ -1561,6 +1563,15 @@ export function renderEditVideo(state) {
   if (statusFilter === 'DONE') filtered = filtered.filter(t => t.editStatus === 'Hoàn thành');
   else if (statusFilter === 'PENDING') filtered = filtered.filter(t => t.editStatus !== 'Hoàn thành');
 
+  const isKanban = (state.editVideoView || 'list') === 'kanban';
+  const kanbanStatuses = [
+    { key: 'Chưa bắt đầu', label: '⏳ Chưa bắt đầu', color: '#94a3b8' },
+    { key: 'Đang cắt', label: '✂️ Đang cắt', color: '#3b82f6' },
+    { key: 'Demo 1', label: '🖥️ Demo', color: '#f59e0b' },
+    { key: 'Chỉnh sửa', label: '🔧 Chỉnh sửa', color: '#8b5cf6' },
+    { key: 'Hoàn thành', label: '✅ Hoàn thành', color: '#22c55e' }
+  ];
+
   // Thống kê
   const total = videoTasks.length;
   const done = videoTasks.filter(t => t.editStatus === 'Hoàn thành').length;
@@ -1605,13 +1616,35 @@ export function renderEditVideo(state) {
          <button onclick="window.setEditVideoFilter('${name}')" class="btn btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.7rem; border-radius: 20px; ${editFilter === name ? 'background: var(--primary); color: #fff; border: none' : 'background: #fff; color: var(--text-dim); border: 1px solid var(--border)'}">${name}</button>
        `).join('')}
     </div>
-    <div style="display: flex; gap: 0.35rem; margin-bottom: 1.2rem">
+    <div style="display: flex; gap: 0.35rem; margin-bottom: 1.2rem; flex-wrap: wrap; align-items: center">
       <button onclick="window.setEditVideoStatusFilter('ALL')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">🎬 Tất cả (${filtered.length})</button>
       <button onclick="window.setEditVideoStatusFilter('PENDING')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">⚠️ Chưa xong (${videoTasks.filter(t => t.editStatus !== 'Hoàn thành').length})</button>
       <button onclick="window.setEditVideoStatusFilter('DONE')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">✅ Hoàn thành (${done})</button>
+      <span style="margin-left:auto;display:flex;gap:0.3rem">
+        <button onclick="window.toggleEditVideoView('kanban')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">📋 Kanban</button>
+        <button onclick="window.toggleEditVideoView('list')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${!isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">📝 List</button>
+      </span>
     </div>
 
-    <!-- Video Cards Grid -->
+    ${isKanban ? `<div style="display:grid;grid-template-columns:repeat(${kanbanStatuses.length},1fr);gap:0.6rem;overflow-x:auto;min-height:300px">
+      ${kanbanStatuses.map(ks => {
+    const colTasks = filtered.filter(t => t.editStatus === ks.key); return `
+        <div class="ev-col" data-status="${ks.key}" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;border-top:3px solid ${ks.color}">
+          <div style="font-size:0.72rem;font-weight:800;color:${ks.color};margin-bottom:0.4rem;text-align:center">${ks.label} (${colTasks.length})</div>
+          <div class="ev-col-cards" data-status="${ks.key}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
+            ${colTasks.map(t => `<div class="ev-card" data-jobid="${t.jobId}" data-sidx="${t.serviceIdx}" style="background:var(--bg-card);border:1px solid ${t.stageColor}25;border-radius:8px;padding:0.5rem;border-left:3px solid ${t.stageColor};cursor:grab">
+              <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.15rem">${t.client} <span style="font-size:0.6rem;color:var(--text-dim)">#${t.jobNo}</span></div>
+              <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.2rem">${t.service}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
+                <span style="font-size:0.6rem;font-weight:700;background:#3b82f620;color:#3b82f6;padding:0.1rem 0.25rem;border-radius:4px">📹 ${t.staff}</span>
+                <span style="font-size:0.6rem;font-weight:700;background:#a855f720;color:#a855f7;padding:0.1rem 0.25rem;border-radius:4px">✏️ ${t.editStaff || '—'}</span>
+              </div>
+              <div style="font-size:0.58rem;font-weight:700;color:${t.daysLeft > 5 ? '#22c55e' : t.daysLeft > 0 ? '#f97316' : '#ef4444'};text-align:center;background:${t.daysLeft > 5 ? '#22c55e10' : t.daysLeft > 0 ? '#f9731610' : '#ef444410'};padding:0.1rem;border-radius:4px">⏰ ${t.deadlineStr} ${t.daysLeft > 0 ? '(còn ' + t.daysLeft + 'd)' : '(trễ ' + Math.abs(t.daysLeft) + 'd!)'}</div>
+            </div>`).join('')}
+          </div>
+        </div>`;
+  }).join('')}
+    </div>` : `
     <div class="edit-video-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.25rem">
        ${filtered.length > 0 ? filtered.map(t => {
     const progressColor = t.editStatus === 'Hoàn thành' ? '#22c55e' : t.stageColor;
@@ -1714,7 +1747,7 @@ export function renderEditVideo(state) {
             </div>
          </div>`;
   }).join('') : '<div class="empty-state">Không có video task nào trong tháng này</div>'}
-    </div>
+    </div>`}
   `;
 
   // Event delegation
@@ -1778,6 +1811,7 @@ export function renderSettings(state) {
              <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">SĐT liên hệ</label><input class="form-control" value="0909 xxx xxx" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
              <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">Địa chỉ</label><input class="form-control" value="TP. Hồ Chí Minh" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
           </div>
+          <button class="btn btn-primary btn-sm" style="margin-top: 1rem" onclick="alert('Đã lưu thông tin!')">💾 Lưu thông tin</button>
        </div>
     </div>
 
@@ -1983,6 +2017,11 @@ export function renderKanban(state) {
   (state.filteredJobs || state.jobs).forEach(job => {
     (job.services || []).forEach(svc => {
       if (svc.service && svc.service.toLowerCase().includes('quay')) {
+        const EDIT_DAYS = 20;
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const jobDate = new Date(job.date); jobDate.setHours(0, 0, 0, 0);
+        const dl = new Date(jobDate); dl.setDate(dl.getDate() + EDIT_DAYS);
+        const daysLeft = Math.ceil((dl - today) / 864e5);
         clips.push({
           jobId: job.id,
           svcKey: svc.service,
@@ -1991,7 +2030,9 @@ export function renderKanban(state) {
           staff: svc.staff || '—',
           editor: svc.editor || '—',
           editStatus: svc.editStatus || 'Chưa bắt đầu',
-          date: job.date
+          date: job.date,
+          daysLeft,
+          deadlineStr: dl.toLocaleDateString('vi-VN')
         });
       }
     });
@@ -2014,13 +2055,17 @@ export function renderKanban(state) {
           <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
             ${clips.filter(c => c.editStatus === s.id).map(c => `
               <div class="kanban-card" data-job-id="${c.jobId}" data-svc="${c.svcKey}"
-                style="background:var(--bg-main);border:1px solid var(--border);border-radius:8px;padding:0.5rem;cursor:grab;transition:all 0.15s;border-left:3px solid ${s.color}">
-                <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.2rem">${c.client}</div>
-                <div style="font-size:0.65rem;color:var(--text-dim)">${c.service}</div>
-                <div style="display:flex;justify-content:space-between;margin-top:0.3rem">
-                  <span style="font-size:0.6rem;color:var(--text-muted)">📹 ${c.staff}</span>
-                  <span style="font-size:0.6rem;color:var(--text-muted)">✏️ ${c.editor}</span>
+                style="background:var(--bg-main);border:1px solid var(--border);border-radius:8px;padding:0.55rem 0.6rem;cursor:grab;transition:all 0.15s;border-left:3px solid ${s.color};position:relative">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
+                  <span style="font-size:0.8rem;font-weight:800;color:var(--text-main)">${c.client}</span>
+                  <button onclick="event.stopPropagation();if(confirm('Xoá clip này?'))window.deleteVideoClip&&window.deleteVideoClip('${c.jobId}','${c.svcKey}')" style="background:none;border:none;cursor:pointer;font-size:0.65rem;color:#ef4444;padding:0.1rem 0.2rem;border-radius:4px;opacity:0.5" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">🗑️</button>
                 </div>
+                <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.2rem">${c.service}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
+                  <span style="font-size:0.62rem;font-weight:700;background:#3b82f620;color:#3b82f6;padding:0.1rem 0.3rem;border-radius:4px">📹 ${c.staff}</span>
+                  <span style="font-size:0.62rem;font-weight:700;background:#a855f720;color:#a855f7;padding:0.1rem 0.3rem;border-radius:4px">✏️ ${c.editor || '—'}</span>
+                </div>
+                <div style="font-size:0.58rem;font-weight:700;color:${c.daysLeft != null ? (c.daysLeft > 5 ? '#22c55e' : c.daysLeft > 0 ? '#f97316' : '#ef4444') : 'var(--text-muted)'};background:${c.daysLeft != null ? (c.daysLeft > 5 ? '#22c55e10' : c.daysLeft > 0 ? '#f9731610' : '#ef444410') : 'transparent'};padding:0.1rem 0.3rem;border-radius:4px;text-align:center">⏰ DL: ${c.deadlineStr || '—'} ${c.daysLeft != null ? (c.daysLeft > 0 ? '(còn ' + c.daysLeft + 'd)' : '(trễ ' + Math.abs(c.daysLeft) + 'd!)') : ''}</div>
               </div>
             `).join('')}
           </div>
@@ -3312,7 +3357,7 @@ export function renderStaffPortal(state) {
 // ============ EDIT PHOTO TRACKER (with Kanban) ============
 export function renderEditPhoto(state) {
   const container = document.createElement('div');
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const EDIT_DAYS = 7;
   const photoTasks = [];
   state.jobs.forEach(job => {
@@ -3320,7 +3365,7 @@ export function renderEditPhoto(state) {
     job.services.forEach((s, sIdx) => {
       const isPhoto = s.service.toLowerCase().includes('chụp');
       if (!isPhoto) return;
-      const jobDate = new Date(job.date); jobDate.setHours(0,0,0,0);
+      const jobDate = new Date(job.date); jobDate.setHours(0, 0, 0, 0);
       const dl = new Date(jobDate); dl.setDate(dl.getDate() + EDIT_DAYS);
       const daysLeft = Math.ceil((dl - today) / 864e5);
       const editStatus = s.editStatus || 'Chưa bắt đầu';
@@ -3334,8 +3379,8 @@ export function renderEditPhoto(state) {
     });
   });
 
-  const stageOrder = {'QUÁ HẠN':0,'GẤP':1,'CẦN ĐẨY':2,'THOẢI MÁI':3,'HOÀN THÀNH':4};
-  photoTasks.sort((a,b) => (stageOrder[a.stage]??5) - (stageOrder[b.stage]??5) || a.daysLeft - b.daysLeft);
+  const stageOrder = { 'QUÁ HẠN': 0, 'GẤP': 1, 'CẦN ĐẨY': 2, 'THOẢI MÁI': 3, 'HOÀN THÀNH': 4 };
+  photoTasks.sort((a, b) => (stageOrder[a.stage] ?? 5) - (stageOrder[b.stage] ?? 5) || a.daysLeft - b.daysLeft);
 
   const editFilter = state.editPhotoFilter || 'TẤT CẢ';
   const allEditors = [...new Set(photoTasks.map(t => t.editStaff || t.staff).filter(Boolean))].sort();
@@ -3348,8 +3393,8 @@ export function renderEditPhoto(state) {
   const done = photoTasks.filter(t => t.editStatus === 'Hoàn thành').length;
   const overdue = photoTasks.filter(t => t.stage === 'QUÁ HẠN').length;
   const isKanban = (state.editPhotoView || 'kanban') === 'kanban';
-  const staffOpts = state.staff.map(s => '<option value="'+s.name+'">'+s.name+'</option>').join('');
-  const statusOpts = ['Chưa bắt đầu','Đang chỉnh sửa','Demo','Chỉnh sửa lại','Hoàn thành'].map(s => '<option value="'+s+'">'+s+'</option>').join('');
+  const staffOpts = state.staff.map(s => '<option value="' + s.name + '">' + s.name + '</option>').join('');
+  const statusOpts = ['Chưa bắt đầu', 'Đang chỉnh sửa', 'Demo', 'Chỉnh sửa lại', 'Hoàn thành'].map(s => '<option value="' + s + '">' + s + '</option>').join('');
 
   const kanbanCols = [
     { key: 'Chưa bắt đầu', label: '📥 Chưa bắt đầu', color: '#94a3b8' },
@@ -3359,13 +3404,13 @@ export function renderEditPhoto(state) {
     { key: 'Hoàn thành', label: '✅ Hoàn thành', color: '#22c55e' }
   ];
 
-  const renderCard = (t) => '<div class="ep-card" data-jobid="'+t.jobId+'" data-sidx="'+t.serviceIdx+'" style="background:var(--bg-card);border:1px solid '+t.sc+'25;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;border-left:3px solid '+t.sc+';cursor:grab"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.82rem;font-weight:800;color:var(--text-main)">'+(t.client)+' <span style="font-size:0.6rem;color:var(--text-dim)">#'+t.jobNo+'</span></span><span style="font-size:0.58rem;font-weight:800;color:'+t.sc+';background:'+t.sc+'12;padding:0.1rem 0.3rem;border-radius:4px">'+t.stage+'</span></div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.2rem">'+t.service+' · '+(t.editStaff||t.staff||'—')+'</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:0.62rem"><span style="font-weight:700;color:'+t.sc+'">⏰ '+t.deadlineStr+'</span><span style="font-weight:700;color:'+t.sc+'">'+(t.editStatus==='Hoàn thành'?'✅ Xong':t.daysLeft>0?t.daysLeft+'d còn':'🚨 Trễ '+Math.abs(t.daysLeft)+'d')+'</span></div></div>';
+  const renderCard = (t) => '<div class="ep-card" data-jobid="' + t.jobId + '" data-sidx="' + t.serviceIdx + '" style="background:var(--bg-card);border:1px solid ' + t.sc + '25;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;border-left:3px solid ' + t.sc + ';cursor:grab"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.82rem;font-weight:800;color:var(--text-main)">' + (t.client) + ' <span style="font-size:0.6rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.58rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.2rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:0.62rem"><span style="font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</span><span style="font-weight:700;color:' + t.sc + '">' + (t.editStatus === 'Hoàn thành' ? '✅ Xong' : t.daysLeft > 0 ? t.daysLeft + 'd còn' : '🚨 Trễ ' + Math.abs(t.daysLeft) + 'd') + '</span></div></div>';
 
-  container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline '+EDIT_DAYS+' ngày</p></div></header>'
-    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">'+total+'</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">'+done+'</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">'+(total-done)+'</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">'+overdue+'</div></div></div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem"><div style="display:flex;gap:0.3rem;flex-wrap:wrap"><button onclick="window.setEditPhotoFilter(\'TẤT CẢ\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(editFilter==='TẤT CẢ'?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">Tất cả</button>'+allEditors.map(n => '<button onclick="window.setEditPhotoFilter(\''+n+'\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(editFilter===n?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">'+n+'</button>').join('')+'</div><div style="display:flex;gap:0.3rem"><button onclick="window.toggleEditPhotoView(\'kanban\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(isKanban?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">📋 Kanban</button><button onclick="window.toggleEditPhotoView(\'list\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(!isKanban?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">📝 List</button></div></div>'
-    + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat('+kanbanCols.length+',1fr);gap:0.6rem;overflow-x:auto">'+kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="'+col.key+'" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid '+col.color+'"><div style="font-size:0.72rem;font-weight:800;color:'+col.color+';margin-bottom:0.4rem;text-align:center">'+col.label+' ('+colTasks.length+')</div><div class="ep-col-cards">'+colTasks.map(renderCard).join('')+'</div></div>'; }).join('')+'</div>'
-    : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">'+filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid '+t.sc+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">'+t.client+' <span style="font-size:0.65rem;color:var(--text-dim)">#'+t.jobNo+'</span></span><span style="font-size:0.6rem;font-weight:800;color:'+t.sc+';background:'+t.sc+'12;padding:0.1rem 0.3rem;border-radius:4px">'+t.stage+'</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">'+t.service+' · '+(t.editStaff||t.staff||'—')+'</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:'+t.sc+'">⏰ '+t.deadlineStr+'</div><select onchange="window.updateEditStatus(\''+t.jobId+'\','+t.serviceIdx+',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">'+['Chưa bắt đầu','Đang chỉnh sửa','Demo','Chỉnh sửa lại','Hoàn thành'].map(s => '<option value="'+s+'" '+(t.editStatus===s?'selected':'')+'>'+s+'</option>').join('')+'</select></div></div>').join('')+'</div>');
+  container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline ' + EDIT_DAYS + ' ngày</p></div></header>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">' + total + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">' + done + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">' + (total - done) + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">' + overdue + '</div></div></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem"><div style="display:flex;gap:0.3rem;flex-wrap:wrap"><button onclick="window.setEditPhotoFilter(\'TẤT CẢ\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">Tất cả</button>' + allEditors.map(n => '<button onclick="window.setEditPhotoFilter(\'' + n + '\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === n ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">' + n + '</button>').join('') + '</div><div style="display:flex;gap:0.3rem"><button onclick="window.toggleEditPhotoView(\'kanban\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📋 Kanban</button><button onclick="window.toggleEditPhotoView(\'list\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (!isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📝 List</button></div></div>'
+    + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat(' + kanbanCols.length + ',1fr);gap:0.6rem;overflow-x:auto">' + kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="' + col.key + '" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid ' + col.color + '"><div style="font-size:0.72rem;font-weight:800;color:' + col.color + ';margin-bottom:0.4rem;text-align:center">' + col.label + ' (' + colTasks.length + ')</div><div class="ep-col-cards">' + colTasks.map(renderCard).join('') + '</div></div>'; }).join('') + '</div>'
+      : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">' + filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid ' + t.sc + '"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + t.client + ' <span style="font-size:0.65rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.6rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</div><select onchange="window.updateEditStatus(\'' + t.jobId + '\',' + t.serviceIdx + ',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">' + ['Chưa bắt đầu', 'Đang chỉnh sửa', 'Demo', 'Chỉnh sửa lại', 'Hoàn thành'].map(s => '<option value="' + s + '" ' + (t.editStatus === s ? 'selected' : '') + '>' + s + '</option>').join('') + '</select></div></div>').join('') + '</div>');
 
   // Kanban drag-drop with SortableJS
   if (isKanban) {
