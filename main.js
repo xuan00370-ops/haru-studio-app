@@ -514,8 +514,63 @@ window.closeModal = () => {
   state.modal.isOpen = false;
   state.modal.type = null;
   state.modal.data = null;
+  state.globalSearchQuery = '';
+  state.globalSearchResults = [];
   updateUI();
 };
+
+// ==========================================
+// GLOBAL SEARCH LOGIC
+// ==========================================
+window.openGlobalSearch = () => {
+  state.globalSearchQuery = '';
+  state.globalSearchResults = [];
+  window.openModal('global_search');
+};
+
+window._handleGlobalSearchInput = (query) => {
+  state.globalSearchQuery = query;
+  if (!query || query.length < 2) {
+    state.globalSearchResults = [];
+  } else {
+    const q = query.toLowerCase();
+    state.globalSearchResults = state.jobs.filter(j => !j.isTrash && (
+      j.client.toLowerCase().includes(q) ||
+      (j.phone && j.phone.includes(q)) ||
+      j.id.toLowerCase().includes(q) ||
+      (j.venue && j.venue.toLowerCase().includes(q))
+    )).slice(0, 50); // Mới nhất lên đầu (nếu mảng sort rồi), giới hạn 50
+  }
+  updateUI();
+};
+
+window._jumpToJob = (jobId) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+
+  // Chuyển tháng và năm về đúng tháng của dự án
+  const d = new Date(job.date);
+  state.currentMonth = d.getMonth() + 1;
+  state.currentYear = d.getFullYear();
+
+  // Navigate về dashboard 
+  window.navigate('dashboard');
+
+  // Mở modal
+  window.openModal('job_detail', { id: jobId });
+};
+
+// Lắng nghe Cmd/Ctrl + K
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    if (state.modal.isOpen && state.modal.type === 'global_search') {
+      window.closeModal();
+    } else {
+      window.openGlobalSearch();
+    }
+  }
+});
 
 // ============================================================
 // CLIENT RATING & TAGS
@@ -1213,6 +1268,14 @@ window.addTransaction = (data) => {
   updateUI();
 };
 
+window.deleteTransaction = (id) => {
+  if (!confirm('Bạn có chắc muốn xóa giao dịch này?')) return;
+  state.manualTransactions = state.manualTransactions.filter(t => t.id !== id);
+  window.addHistory('Xóa giao dịch thủ công');
+  saveState();
+  updateUI();
+};
+
 // ============================================================
 // DATA EXPORT / IMPORT / RESET
 // ============================================================
@@ -1699,6 +1762,144 @@ function updateUI() {
 // ============================================================
 // PHASE 3: CLIENT & CRM FUNCTIONS
 // ============================================================
+window.exportInvoiceToPDF = (jobId) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+
+  const total = job.package || 0;
+  const deposit = job.deposit || 0;
+  const remaining = total - deposit;
+  const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+  const f = n => formatter.format(n);
+
+  const servicesList = (job.services || []).map(s => `<li>${s.service}</li>`).join('');
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Hóa Đơn - ${job.client}</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.5; padding: 2rem; max-width: 800px; margin: 0 auto; }
+          .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #16a34a; padding-bottom: 1rem; margin-bottom: 2rem; }
+          .brand h1 { margin: 0; color: #16a34a; font-size: 2.5rem; letter-spacing: -1px; }
+          .brand p { margin: 0; color: #666; font-size: 0.9rem; }
+          .invoice-meta { text-align: right; }
+          .invoice-meta div { margin-bottom: 0.3rem; }
+          .bill-to h3 { margin: 0 0 0.5rem 0; color: #16a34a; font-size: 1.1rem; text-transform: uppercase; }
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+          th { background: #16a34a; color: white; padding: 0.75rem; text-align: left; font-weight: 600; }
+          td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+          .text-right { text-align: right; }
+          .summary { border-top: 2px solid #e2e8f0; padding-top: 1rem; width: 60%; float: right; }
+          .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 1.1rem; }
+          .summary-row.total { font-size: 1.3rem; font-weight: bold; color: #16a34a; margin-top: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.5rem; }
+          .summary-row.rem { font-size: 1.3rem; font-weight: bold; color: #ea580c; }
+          .footer { margin-top: 4rem; text-align: center; color: #666; font-size: 0.85rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; clear: both; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="brand">
+            <h1>HARU STUDIO</h1>
+            <p>Dịch vụ Quay/Chụp Sự kiện & Ngày Cưới</p>
+          </div>
+          <div class="invoice-meta">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 0.5rem">HÓA ĐƠN DỊCH VỤ</div>
+            <div><strong>Mã Hóa Đơn:</strong> #${job.jobNo || job.id.split('-')[1] || '0000'}</div>
+            <div><strong>Ngày lập:</strong> ${new Date().toLocaleDateString('vi-VN')}</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div>
+            <h3>Khách Hàng</h3>
+            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.2rem">${job.client}</div>
+            <div><strong>SĐT:</strong> ${job.phone || 'Chưa cung cấp'}</div>
+          </div>
+          <div>
+            <h3>Thông Tin Sự Kiện</h3>
+            <div><strong>Ngày tổ chức:</strong> ${new Date(job.date).toLocaleDateString('vi-VN')}</div>
+            <div><strong>Loại hình:</strong> ${job.eventType || 'Wedding'}</div>
+            <div><strong>Địa điểm:</strong> ${job.venue || 'Chưa cập nhật'}</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Chi Tiết Dịch Vụ</th>
+              <th class="text-right">Phí Dịch Vụ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="font-weight: bold; margin-bottom: 0.5rem">Gói Quay/Chụp Tổng Hợp</div>
+                <ul style="margin: 0; padding-left: 1.2rem; color: #555">
+                  ${servicesList}
+                </ul>
+              </td>
+              <td class="text-right" style="vertical-align: top; font-weight: bold">Trọn gói</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="summary">
+          <div class="summary-row">
+            <span>Tổng Giá Trị Gói:</span>
+            <span>${f(total)}</span>
+          </div>
+          <div class="summary-row">
+            <span>Đã Đặt Cọc:</span>
+            <span>${f(deposit)}</span>
+          </div>
+          <div class="summary-row rem">
+            <span>Còn Lại Cần Thanh Toán:</span>
+            <span>${f(remaining)}</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của Haru Studio!</p>
+          <p>Mọi thắc mắc vui lòng liên hệ hotline hoặc inbox trực tiếp qua Fanpage.</p>
+        </div>
+        <script>
+          setTimeout(() => { window.print(); window.close(); }, 500);
+        </script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+};
+window._promptEditLink = (type, title) => {
+  const inputId = `edit-job-link-${type}`;
+  const inputEl = document.getElementById(inputId);
+  if (!inputEl) return;
+
+  const currentVal = inputEl.value;
+  const newVal = prompt(`Nhập ${title}:`, currentVal);
+
+  if (newVal !== null) {
+    inputEl.value = newVal;
+    // Tạm thời update job link trực tiếp trong state để re-render modal ngay lập tức
+    // Lưu ý: data thực sự chỉ được save vào DB khi bấm nút "Lưu dự án" ở modal
+    if (state.modal.type === 'job_detail' && state.modal.data && state.modal.data.id) {
+      const job = state.jobs.find(j => j.id === state.modal.data.id);
+      if (job) {
+        if (type === 'customer') job.linkCustomer = newVal;
+        if (type === 'nas') job.linkNAS = newVal;
+        if (type === 'drive') job.linkDrive = newVal;
+
+        // Cập nhật lại UI modal lập tức
+        updateUI();
+      }
+    }
+  }
+};
+
 window.addClientPrompt = () => {
   const name = prompt('Tên khách hàng:');
   if (!name) return;

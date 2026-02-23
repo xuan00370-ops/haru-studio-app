@@ -24,6 +24,10 @@ export function renderSidebar(activePage, navigate) {
       <span>HARU JOB</span>
     </div>
     <nav class="sidebar-nav">
+      <div class="nav-item" onclick="window.openGlobalSearch()" style="background: rgba(22,163,74,0.1); border: 1px dashed rgba(22,163,74,0.3); margin-bottom: 0.5rem; justify-content: space-between">
+        <span><span class="icon">🔎</span> Tìm kiếm</span>
+        <span style="font-size: 0.65rem; padding: 0.15rem 0.3rem; background: rgba(0,0,0,0.05); border-radius: 4px; color: var(--text-dim)">Cmd+K</span>
+      </div>
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1rem 0 0.5rem 0.75rem; text-transform: uppercase;">Điều hành</div>
       <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.navigate('dashboard')">
         <span class="icon">📊</span> Dự án
@@ -44,6 +48,7 @@ export function renderSidebar(activePage, navigate) {
         <span class="icon">📅</span> Lịch / Nhắc việc
       </div>
 
+      ${window._state?.staffViewMode === 'staff' ? '' : `
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Quản lý</div>
       <div class="nav-item ${activePage === 'jobs' ? 'active' : ''}" onclick="window.navigate('jobs')">
         <span class="icon">📁</span> Lưu trữ dự án
@@ -84,6 +89,7 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.navigate('settings')">
         <span class="icon">⚙️</span> Cài đặt
       </div>
+      `}
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border)">
         <div class="nav-item" onclick="window.toggleTheme();window.updateUI()" style="cursor:pointer">
@@ -107,9 +113,12 @@ export function renderBottomNav(activePage, navigate) {
     { id: 'dashboard', icon: '📊', label: 'Dự án' },
     { id: 'staff', icon: '🎭', label: 'Nhân sự' },
     { id: 'edit_video', icon: '🎞️', label: 'Edit' },
-    { id: 'calendar', icon: '📅', label: 'Lịch' },
-    { id: 'finance', icon: '📒', label: 'Tiền' }
+    { id: 'calendar', icon: '📅', label: 'Lịch' }
   ];
+  if (window._state?.staffViewMode !== 'staff') {
+    items.push({ id: 'finance', icon: '📒', label: 'Tiền' });
+    items.push({ id: 'jobs', icon: '📁', label: 'Lưu trữ' });
+  }
 
   nav.innerHTML = items.map(item => `
     <div class="bottom-nav-item ${activePage === item.id ? 'active' : ''}" onclick="window.navigate('${item.id}')">
@@ -220,9 +229,10 @@ export function renderDashboard(state, navigate) {
         <p style="color: var(--text-dim); font-size: 0.9rem;">Quản lý tiến độ, tổng kết và tình trạng dự án của bạn</p>
       </div>
       <div style="display: flex; gap: 0.75rem; align-items: center">
-         <input type="text" placeholder="Tìm theo tên job, ghi chú…" value="${state.searchQuery || ''}"
-           onchange="window.setSearchQuery(this.value)"
-           style="background: #fff; border: 1.5px solid var(--border); color: var(--text-main); padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.85rem; width: 200px">
+         <div onclick="window.openGlobalSearch()" style="background: #fff; border: 1.5px solid var(--border); color: var(--text-dim); padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.85rem; width: 220px; cursor: pointer; display: flex; align-items: center; justify-content: space-between">
+           <span><i class="fas fa-search" style="margin-right:0.4rem"></i> Tìm kiếm toàn cục...</span>
+           <span style="font-size: 0.65rem; background: var(--bg-hover); padding: 0.1rem 0.3rem; border-radius: 4px">Cmd+K</span>
+         </div>
          <select onchange="window.setStatusFilter(this.value)"
            style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-main); background: #fff; padding: 0.4rem 0.5rem; border-radius: 6px; font-size: 0.7rem">
            <option value="TẤT CẢ" ${state.statusFilter === 'TẤT CẢ' ? 'selected' : ''}>Tất cả trạng thái</option>
@@ -429,6 +439,7 @@ function renderJobCard(job) {
       </div>
 
       <div class="job-card-footer" style="margin-top: 0.75rem; border-top: 1px dashed var(--border); padding-top: 0.5rem">
+         ${window._state?.staffViewMode === 'staff' ? '' : `
          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
             <div style="font-size: 0.82rem"><span style="color: var(--text-dim)">Gói:</span> ${formatCurrency(job.package)}</div>
             <div style="font-size: 0.82rem"><span style="color: var(--text-dim)">Cọc</span> ${formatCurrency(job.deposit || 0)}</div>
@@ -439,6 +450,7 @@ function renderJobCard(job) {
             <label style="font-size: 0.82rem; font-weight: 700">Lợi / Lỗ (tạm tính):</label>
             <span class="value" style="font-size: 0.85rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(profit)}</span>
          </div>
+         `}
          <div class="view-detail-link" style="font-size: 0.82rem; text-align: center; margin-top: 0.5rem; opacity: 0.7">Xem chi tiết &rarr;</div>
          <div onclick="event.stopPropagation()" style="margin-top:0.5rem"><button onclick="window.toggleJobComplete&&window.toggleJobComplete('${job.id}')" style="width:100%;padding:0.35rem;border-radius:6px;font-size:0.72rem;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s;${isCompleted ? 'background:#22c55e;color:#fff' : 'background:#22c55e15;color:#22c55e;border:1px solid #22c55e30'}">${isCompleted ? '✅ Đã hoàn thành' : '⭕ Đánh dấu hoàn thành'}</button></div>
       </div>
@@ -479,6 +491,9 @@ export function renderModalOverlay(state, closeModal) {
       break;
     case 'pa3_report':
       container.appendChild(renderPA3ReportModal(state));
+      break;
+    case 'global_search':
+      container.appendChild(renderGlobalSearchModal(state));
       break;
   }
 
@@ -522,7 +537,12 @@ function renderJobDetailModal(state) {
           </div>
         </div>
       </div>
-      <button class="close-btn" onclick="window.closeModal()">&#x2715;</button>
+      <div style="display: flex; gap: 0.5rem; align-items: center">
+        <button onclick="window.exportInvoiceToPDF('${job.id}')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 800; border-radius: 8px; border: 1px solid var(--border-bright); background: #fff; cursor: pointer; color: var(--text-dim); transition: 0.2s" onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-dim)'">
+          <i class="fas fa-file-pdf" style="color: #ef4444"></i> Hóa Đơn PDF
+        </button>
+        <button class="close-btn" onclick="window.closeModal()">&#x2715;</button>
+      </div>
     </div>
 
     <!-- MODAL BODY: 2 cols -->
@@ -571,6 +591,7 @@ function renderJobDetailModal(state) {
           </div>
 
           <!-- Row 2: finance -->
+          ${window._state?.staffViewMode === 'staff' ? '' : `
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.875rem; background: rgba(22,163,74,0.04); padding: 1rem; border-radius: 10px; border: 1px solid var(--border)">
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Giá trị gói (VNĐ)</label>
@@ -589,6 +610,7 @@ function renderJobDetailModal(state) {
               </div>
             </div>
           </div>
+          `}
 
           <!-- Row 3: ghi chú -->
           <div>
@@ -710,27 +732,49 @@ function renderJobDetailModal(state) {
 
           <!-- Row 5: Links -->
           <div>
-            <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.5rem">🔗 Links</label>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem">
-              <div style="display: flex; gap: 0.5rem; align-items: center">
-                <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); width: 90px; flex-shrink: 0">Cho khách:</span>
-                <input type="text" id="edit-job-link-customer" class="form-control" placeholder="Link ảnh/video gửi khách…" value="${job.linkCustomer || ''}"
-                  style="flex: 1; font-size: 0.9rem; padding: 0.45rem 0.75rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
-                <button class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('edit-job-link-customer').value)"><i class="fas fa-copy"></i></button>
-                <button class="btn btn-secondary btn-sm" onclick="window.open(document.getElementById('edit-job-link-customer').value,'_blank')"><i class="fas fa-external-link-alt"></i></button>
+            <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.5rem">🔗 Quản lý Liên kết (Links)</label>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap">
+              
+              <!-- Hidden inputs to store actual values for saveJobDetail to read -->
+              <input type="hidden" id="edit-job-link-customer" value="${job.linkCustomer || ''}">
+              <input type="hidden" id="edit-job-link-nas" value="${job.linkNAS || ''}">
+              <input type="hidden" id="edit-job-link-drive" value="${job.linkDrive || ''}">
+
+              <!-- Customer Link Button -->
+              <div class="link-btn-wrapper" onclick="window._promptEditLink('customer', 'Link trả file khách')" 
+                   style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; transition: 0.2s;
+                   ${job.linkCustomer ? 'background: rgba(22,163,74,0.1); border: 1.5px solid rgba(22,163,74,0.4); color: var(--success);' : 'background: #fff; border: 1.5px dashed var(--border); color: var(--text-dim);'}">
+                <i class="fas fa-link"></i>
+                <span>${job.linkCustomer ? 'Đã có Link Khách' : '+ Thêm Link Khách'}</span>
+                ${job.linkCustomer ? `<div class="link-actions" style="display:flex; gap: 0.25rem; margin-left: 0.5rem">
+                  <span onclick="event.stopPropagation(); window.open('${job.linkCustomer}','_blank')" style="padding: 0.15rem 0.35rem; background: var(--success); color: #fff; border-radius: 4px" title="Mở link"><i class="fas fa-external-link-alt"></i></span>
+                  <span onclick="event.stopPropagation(); navigator.clipboard.writeText('${job.linkCustomer}')" style="padding: 0.15rem 0.35rem; background: var(--bg-hover); color: var(--text-main); border-radius: 4px" title="Copy link"><i class="fas fa-copy"></i></span>
+                </div>` : ''}
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem">
-                <div style="display: flex; align-items: center; gap: 0.5rem">
-                  <i class="fas fa-server" style="color: var(--accent-blue); width: 16px; font-size: 0.85rem; flex-shrink: 0"></i>
-                  <input type="text" id="edit-job-link-nas" class="form-control" placeholder="/Volumes/NAS/…" value="${job.linkNAS || ''}"
-                    style="font-size: 0.88rem; padding: 0.4rem 0.65rem; background: rgba(37,99,235,0.04); border: 1.5px solid rgba(37,99,235,0.18); color: var(--text-main)">
-                </div>
-                <div style="display: flex; align-items: center; gap: 0.5rem">
-                  <i class="fab fa-google-drive" style="color: var(--accent-teal); width: 16px; font-size: 0.85rem; flex-shrink: 0"></i>
-                  <input type="text" id="edit-job-link-drive" class="form-control" placeholder="https://drive.google.com/…" value="${job.linkDrive || ''}"
-                    style="font-size: 0.88rem; padding: 0.4rem 0.65rem; background: rgba(13,148,136,0.04); border: 1.5px solid rgba(13,148,136,0.18); color: var(--text-main)">
-                </div>
+
+              <!-- NAS Link Button -->
+              <div class="link-btn-wrapper" onclick="window._promptEditLink('nas', 'Đường dẫn thư mục NAS')"
+                   style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; transition: 0.2s;
+                   ${job.linkNAS ? 'background: rgba(37,99,235,0.08); border: 1.5px solid rgba(37,99,235,0.4); color: var(--accent-blue);' : 'background: #fff; border: 1.5px dashed var(--border); color: var(--text-dim);'}">
+                <i class="fas fa-server"></i>
+                <span>${job.linkNAS ? 'Đã liên kết NAS' : '+ Gắn thư mục NAS'}</span>
+                ${job.linkNAS ? `<div class="link-actions" style="display:flex; gap: 0.25rem; margin-left: 0.5rem">
+                  <span onclick="event.stopPropagation(); navigator.clipboard.writeText('${job.linkNAS}')" style="padding: 0.15rem 0.35rem; background: var(--bg-hover); color: var(--text-main); border-radius: 4px" title="Copy path"><i class="fas fa-copy"></i></span>
+                </div>` : ''}
               </div>
+
+              <!-- Google Drive Button -->
+              <div class="link-btn-wrapper" onclick="window._promptEditLink('drive', 'Link thư mục Google Drive')"
+                   style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; transition: 0.2s;
+                   ${job.linkDrive ? 'background: rgba(13,148,136,0.08); border: 1.5px solid rgba(13,148,136,0.4); color: var(--accent-teal);' : 'background: #fff; border: 1.5px dashed var(--border); color: var(--text-dim);'}">
+                <i class="fab fa-google-drive"></i>
+                <span>${job.linkDrive ? 'Đã có Link Drive' : '+ Thêm Link Drive'}</span>
+                ${job.linkDrive ? `<div class="link-actions" style="display:flex; gap: 0.25rem; margin-left: 0.5rem">
+                  <span onclick="event.stopPropagation(); window.open('${job.linkDrive}','_blank')" style="padding: 0.15rem 0.35rem; background: var(--accent-teal); color: #fff; border-radius: 4px" title="Mở Drive"><i class="fas fa-external-link-alt"></i></span>
+                  <span onclick="event.stopPropagation(); navigator.clipboard.writeText('${job.linkDrive}')" style="padding: 0.15rem 0.35rem; background: var(--bg-hover); color: var(--text-main); border-radius: 4px" title="Copy link"><i class="fas fa-copy"></i></span>
+                </div>` : ''}
+              </div>
+
             </div>
           </div>
 
@@ -748,8 +792,7 @@ function renderJobDetailModal(state) {
                 <tr>
                   <th>Vai trò</th>
                   <th>Nghệ sĩ</th>
-                  <th style="text-align:right">Lương thợ</th>
-                  <th style="text-align:right">Edit</th>
+                  ${window._state?.staffViewMode === 'staff' ? '' : `<th style="text-align:right">Lương thợ</th><th style="text-align:right">Edit</th>`}
                   <th style="text-align:center">TT</th>
                 </tr>
               </thead>
@@ -763,8 +806,10 @@ function renderJobDetailModal(state) {
                           ${s.staff && s.staff !== 'Chưa xếp' ? `<button class="btn btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem; background: #0084ff; color: #fff; border-radius: 4px" onclick="window.sendZaloReminder('${job.id}', ${idx})" title="Gửi lịch Zalo"><i class="fas fa-paper-plane"></i> Zalo</button>` : ''}
                         </div>
                       </td>
+                      ${window._state?.staffViewMode === 'staff' ? '' : `
                       <td data-label="Lương thợ" style="text-align:right; font-size: 0.92rem; font-weight: 700; color: var(--danger)">${formatCurrency(s.cost)}</td>
                       <td data-label="Tiền sửa bài" style="text-align:right; font-size: 0.92rem; color: var(--warning)">${formatCurrency(s.edit || 0)}</td>
+                      `}
                       <td data-label="Đã thu tiền" style="text-align:center"><input type="checkbox" class="service-paid-check" data-job-id="${job.id}" data-svc-idx="${idx}" ${s.paid ? 'checked' : ''}></td>
                     </tr>
                   `).join('')}
@@ -778,16 +823,17 @@ function renderJobDetailModal(state) {
         <div style="position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem">
 
           <!-- Profit card -->
+          ${window._state?.staffViewMode === 'staff' ? '' : `
           <div style="background: ${profit >= 0 ? 'rgba(21,128,61,0.06)' : 'rgba(185,28,28,0.06)'}; border: 2px solid ${profit >= 0 ? 'rgba(21,128,61,0.20)' : 'rgba(185,28,28,0.20)'}; border-radius: 14px; padding: 1.25rem">
             <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem">💰 Ước tính lợi nhuận</div>
             <div style="font-size: 2.2rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}; line-height: 1.1; margin-bottom: 1rem">
               ${formatCurrency(profit)}
             </div>
             ${[
-      ['Doanh thu', revenue, 'var(--success)'],
-      ['Chi phí thợ', staffCosts, 'var(--danger)'],
-      ['Chi phí edit', editCosts, 'var(--warning)'],
-    ].map(([label, val, color]) => `
+        ['Doanh thu', revenue, 'var(--success)'],
+        ['Chi phí thợ', staffCosts, 'var(--danger)'],
+        ['Chi phí edit', editCosts, 'var(--warning)'],
+      ].map(([label, val, color]) => `
               <div style="display: flex; justify-content: space-between; font-size: 0.88rem; padding: 0.3rem 0; border-bottom: 1px solid var(--border)">
                 <span style="color: var(--text-dim)">${label}</span>
                 <span style="font-weight: 700; color: ${color}">${formatCurrency(val)}</span>
@@ -799,16 +845,17 @@ function renderJobDetailModal(state) {
           <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 1rem">
             <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.75rem">💳 Thanh toán</div>
             ${[
-      ['Giá gói', revenue, 'var(--text-main)'],
-      ['Đã đặt cọc', job.deposit || 0, 'var(--success)'],
-      ['Còn lại', depositRemaining, 'var(--warning)'],
-    ].map(([lbl, val, clr]) => `
+        ['Giá gói', revenue, 'var(--text-main)'],
+        ['Đã đặt cọc', job.deposit || 0, 'var(--success)'],
+        ['Còn lại', depositRemaining, 'var(--warning)'],
+      ].map(([lbl, val, clr]) => `
               <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem">
                 <span style="color: var(--text-dim)">${lbl}</span>
                 <span style="font-weight: 700; color: ${clr}">${formatCurrency(val)}</span>
               </div>
             `).join('')}
           </div>
+          `}
 
           <!-- Action buttons -->
           <div style="display: flex; flex-direction: column; gap: 0.6rem">
@@ -1238,6 +1285,21 @@ export function renderFinance(state) {
     });
   });
 
+  if (state.manualTransactions) {
+    state.manualTransactions.forEach(t => {
+      transactions.push({
+        id: t.id,
+        date: t.date,
+        job: '—',
+        description: t.description,
+        amount: t.type === 'chi' ? -Math.abs(t.amount) : Math.abs(t.amount),
+        status: '—',
+        category: t.category || (t.type === 'chi' ? 'Chi khác' : 'Thu khác'),
+        isManual: true
+      });
+    });
+  }
+
   // Sort by date desc
   transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -1286,8 +1348,10 @@ export function renderFinance(state) {
                    <td data-label="Phân loại"><span class="badge" style="font-size: 0.82rem; background: ${t.category.startsWith('Thu') ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}">${t.category}</span></td>
                    <td data-label="Số tiền" style="text-align: right; font-weight: 700; color: ${t.amount >= 0 ? 'var(--success)' : 'var(--danger)'}">
       ${t.amount >= 0 ? '+' : ''}${formatCurrency(t.amount)}
+                   <td data-label="Trạng thái">
+                     <span style="font-size: 0.7rem; color: var(--text-dim)">${t.status}</span>
+                     ${t.isManual ? `<button onclick="window.deleteTransaction(${t.id})" style="margin-left:8px;cursor:pointer;background:none;border:none;color:var(--danger);font-size:0.8rem" title="Xóa giao dịch"><i class="fas fa-trash"></i></button>` : ''}
                    </td>
-                   <td data-label="Trạng thái"><span style="font-size: 0.7rem; color: var(--text-dim)">${t.status}</span></td>
                 </tr>
              `).join('')}
           </tbody>
@@ -1698,6 +1762,7 @@ export function renderEditVideo(state) {
   const statusFilter = state.editVideoStatusFilter || 'ALL';
   if (statusFilter === 'DONE') filtered = filtered.filter(t => t.editStatus === 'Hoàn thành');
   else if (statusFilter === 'PENDING') filtered = filtered.filter(t => t.editStatus !== 'Hoàn thành');
+  else if (statusFilter === 'PENDING_DEMO') filtered = filtered.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang cắt');
 
   const isKanban = (state.editVideoView || 'list') === 'kanban';
   const kanbanStatuses = [
@@ -1753,8 +1818,9 @@ export function renderEditVideo(state) {
        `).join('')}
     </div>
     <div style="display: flex; gap: 0.35rem; margin-bottom: 1.2rem; flex-wrap: wrap; align-items: center">
-      <button onclick="window.setEditVideoStatusFilter('ALL')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">🎬 Tất cả (${filtered.length})</button>
+      <button onclick="window.setEditVideoStatusFilter('ALL')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">🎬 Tất cả (${videoTasks.length})</button>
       <button onclick="window.setEditVideoStatusFilter('PENDING')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">⚠️ Chưa xong (${videoTasks.filter(t => t.editStatus !== 'Hoàn thành').length})</button>
+      <button onclick="window.setEditVideoStatusFilter('PENDING_DEMO')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING_DEMO' ? 'background:#8b5cf6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">🚀 Chưa gửi Demo (${videoTasks.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang cắt').length})</button>
       <button onclick="window.setEditVideoStatusFilter('DONE')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">✅ Hoàn thành (${done})</button>
       <span style="margin-left:auto;display:flex;gap:0.3rem">
         <button onclick="window.toggleEditVideoView('kanban')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">📋 Kanban</button>
@@ -1768,17 +1834,20 @@ export function renderEditVideo(state) {
         <div class="ev-col" data-status="${ks.key}" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;border-top:3px solid ${ks.color}">
           <div style="font-size:0.72rem;font-weight:800;color:${ks.color};margin-bottom:0.4rem;text-align:center">${ks.label} (${colTasks.length})</div>
           <div class="ev-col-cards" data-status="${ks.key}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
-            ${colTasks.map(t => `<div class="ev-card" data-jobid="${t.jobId}" data-sidx="${t.serviceIdx}" style="background:var(--bg-card);border:1px solid ${t.stageColor}25;border-radius:8px;padding:0.5rem;border-left:3px solid ${t.stageColor};cursor:grab">
-              <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.15rem">${t.client} <span style="font-size:0.6rem;color:var(--text-dim)">#${t.jobNo}</span></div>
+            ${colTasks.map(t => `<div class="ev-card" data-jobid="${t.jobId}" data-sidx="${t.serviceIdx}" style="background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-card)'};border:1px solid ${t.stageColor}40;border-radius:8px;padding:0.5rem;border-left:4px solid ${t.stageColor};cursor:grab; box-shadow: 0 2px 4px rgba(0,0,0,0.02)">
+              <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.15rem;display:flex;justify-content:space-between">
+                <span>${t.client} <span style="font-size:0.6rem;color:var(--text-dim)">#${t.jobNo}</span></span>
+                ${t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite">🚨</span>' : ''}
+              </div>
               <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.2rem">${t.service}</div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
                 <span style="font-size:0.6rem;font-weight:700;background:#3b82f620;color:#3b82f6;padding:0.1rem 0.25rem;border-radius:4px">📹 ${t.staff}</span>
                 <select onchange="event.stopPropagation();window.updateVideoEditor&&window.updateVideoEditor('${t.jobId}','${t.service}',this.value)" style="font-size:0.58rem;padding:0.1rem 0.2rem;border-radius:4px;border:1px solid #a855f740;background:#a855f710;color:#a855f7;font-weight:700;font-family:inherit;cursor:pointer;max-width:90px">
                   <option value="">✏️ ${t.editStaff || 'Chọn'}</option>
                   ${state.staff.map(s => `<option value="${s.name}" ${t.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
                 </select>
               </div>
-              <div style="font-size:0.58rem;font-weight:700;color:${t.daysLeft > 5 ? '#22c55e' : t.daysLeft > 0 ? '#f97316' : '#ef4444'};text-align:center;background:${t.daysLeft > 5 ? '#22c55e10' : t.daysLeft > 0 ? '#f9731610' : '#ef444410'};padding:0.1rem;border-radius:4px">⏰ ${t.deadlineStr} ${t.daysLeft > 0 ? '(còn ' + t.daysLeft + 'd)' : '(trễ ' + Math.abs(t.daysLeft) + 'd!)'}</div>
+              <div style="font-size:0.58rem;font-weight:700;color:${t.editStatus === 'Hoàn thành' ? '#22c55e' : t.daysLeft > 5 ? '#22c55e' : t.daysLeft > 0 ? '#f97316' : '#ef4444'};text-align:center;background:${t.editStatus === 'Hoàn thành' ? '#22c55e10' : t.daysLeft > 5 ? '#22c55e10' : t.daysLeft > 0 ? '#f9731610' : '#ef444415'};padding:0.15rem;border-radius:4px">⏰ ${t.deadlineStr} ${t.editStatus === 'Hoàn thành' ? '(Đã xong)' : t.daysLeft > 0 ? '(còn ' + t.daysLeft + 'd)' : '(trễ ' + Math.abs(t.daysLeft) + 'd!)'}</div>
             </div>`).join('')}
           </div>
         </div>`;
@@ -2302,6 +2371,16 @@ export function renderAnalytics(state) {
     });
   });
 
+  // Tính phân bổ Dịch Vụ
+  const servicesMap = {};
+  state.jobs.forEach(j => {
+    (j.services || []).forEach(svc => {
+      if (svc.service) {
+        servicesMap[svc.service] = (servicesMap[svc.service] || 0) + 1;
+      }
+    });
+  });
+
   const monthLabels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
   const statusColors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
@@ -2318,8 +2397,8 @@ export function renderAnalytics(state) {
       </div>
 
       <div class="glass-panel" style="padding:1.2rem">
-        <h3 style="font-size:0.9rem;font-weight:800;color:var(--text-dim);margin-bottom:0.8rem">📋 Trạng thái dự án</h3>
-        <div style="height:250px;position:relative"><canvas id="chart-status"></canvas></div>
+        <h3 style="font-size:0.9rem;font-weight:800;color:var(--text-dim);margin-bottom:0.8rem">📋 Tỉ trọng dịch vụ</h3>
+        <div style="height:250px;position:relative"><canvas id="chart-services"></canvas></div>
       </div>
 
       <div class="glass-panel" style="padding:1.2rem">
@@ -2376,18 +2455,18 @@ export function renderAnalytics(state) {
       }
     });
 
-    // Status doughnut
-    const statusCtx = container.querySelector('#chart-status');
-    if (statusCtx) new Chart(statusCtx, {
+    // Services Distribution Pie Chart
+    const svCtx = container.querySelector('#chart-services');
+    if (svCtx) new Chart(svCtx, {
       type: 'doughnut',
       data: {
-        labels: Object.keys(statusMap),
-        datasets: [{ data: Object.values(statusMap), backgroundColor: statusColors.slice(0, Object.keys(statusMap).length), borderWidth: 0 }]
+        labels: Object.keys(servicesMap),
+        datasets: [{ data: Object.values(servicesMap), backgroundColor: ['#3b82f6', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#6366f1'], borderWidth: 0 }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { color: txtColor, font: { size: 11 } } } },
-        cutout: '55%'
+        plugins: { legend: { position: 'right', labels: { color: txtColor, font: { size: 10 } } } },
+        cutout: '60%'
       }
     });
 
@@ -3550,6 +3629,7 @@ export function renderEditPhoto(state) {
   const statusFilter = state.editPhotoStatusFilter || 'ALL';
   if (statusFilter === 'DONE') filtered = filtered.filter(t => t.editStatus === 'Hoàn thành');
   else if (statusFilter === 'PENDING') filtered = filtered.filter(t => t.editStatus !== 'Hoàn thành');
+  else if (statusFilter === 'PENDING_DEMO') filtered = filtered.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang chỉnh sửa');
 
   const total = photoTasks.length;
   const done = photoTasks.filter(t => t.editStatus === 'Hoàn thành').length;
@@ -3566,11 +3646,11 @@ export function renderEditPhoto(state) {
     { key: 'Hoàn thành', label: '✅ Hoàn thành', color: '#22c55e' }
   ];
 
-  const renderCard = (t) => '<div class="ep-card" data-jobid="' + t.jobId + '" data-sidx="' + t.serviceIdx + '" style="background:var(--bg-card);border:1px solid ' + t.sc + '25;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;border-left:3px solid ' + t.sc + ';cursor:grab"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.82rem;font-weight:800;color:var(--text-main)">' + (t.client) + ' <span style="font-size:0.6rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.58rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.2rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:0.62rem"><span style="font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</span><span style="font-weight:700;color:' + t.sc + '">' + (t.editStatus === 'Hoàn thành' ? '✅ Xong' : t.daysLeft > 0 ? t.daysLeft + 'd còn' : '🚨 Trễ ' + Math.abs(t.daysLeft) + 'd') + '</span></div></div>';
+  const renderCard = (t) => '<div class="ep-card" data-jobid="' + t.jobId + '" data-sidx="' + t.serviceIdx + '" style="background:' + (t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-card)') + ';border:1px solid ' + t.sc + '40;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;border-left:4px solid ' + t.sc + ';cursor:grab; box-shadow: 0 2px 4px rgba(0,0,0,0.02)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.82rem;font-weight:800;color:var(--text-main)">' + (t.client) + ' <span style="font-size:0.6rem;color:var(--text-dim)">#' + t.jobNo + '</span></span>' + (t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite">🚨</span>' : '<span style="font-size:0.58rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span>') + '</div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.2rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:0.62rem;margin-top:0.35rem;padding-top:0.3rem;border-top:1px dashed var(--border)"><span style="font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</span><span style="font-weight:700;color:' + t.sc + '">' + (t.editStatus === 'Hoàn thành' ? '✅ Xong' : t.daysLeft > 0 ? t.daysLeft + 'd còn' : 'Trễ ' + Math.abs(t.daysLeft) + 'd') + '</span></div></div>';
 
   container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline ' + EDIT_DAYS + ' ngày</p></div></header>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">' + total + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">' + done + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">' + (total - done) + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">' + overdue + '</div></div></div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem"><div style="display:flex;gap:0.3rem;flex-wrap:wrap"><button onclick="window.setEditPhotoFilter(\'TẤT CẢ\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">Tất cả</button>' + allEditors.map(n => '<button onclick="window.setEditPhotoFilter(\'' + n + '\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === n ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">' + n + '</button>').join('') + '</div><div style="display:flex;gap:0.3rem"><button onclick="window.toggleEditPhotoView(\'kanban\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📋 Kanban</button><button onclick="window.toggleEditPhotoView(\'list\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (!isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📝 List</button></div></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem"><div style="display:flex;gap:0.3rem;flex-wrap:wrap"><button onclick="window.setEditPhotoFilter(\'TẤT CẢ\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">Tất cả</button>' + allEditors.map(n => '<button onclick="window.setEditPhotoFilter(\'' + n + '\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === n ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">' + n + '</button>').join('') + '</div><div style="display:flex;gap:0.3rem"><button onclick="window.setEditPhotoStatusFilter(\'ALL\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📸 Tất cả (' + total + ')</button><button onclick="window.setEditPhotoStatusFilter(\'PENDING\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">⚠️ Chưa xong (' + (total - done) + ')</button><button onclick="window.setEditPhotoStatusFilter(\'PENDING_DEMO\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'PENDING_DEMO' ? 'background:#8b5cf6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">🚀 Chưa gửi Demo (' + photoTasks.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang chỉnh sửa').length + ')</button><button onclick="window.setEditPhotoStatusFilter(\'DONE\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">✅ Xong (' + done + ')</button></div><div style="display:flex;gap:0.3rem"><button onclick="window.toggleEditPhotoView(\'kanban\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📋 Kanban</button><button onclick="window.toggleEditPhotoView(\'list\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (!isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📝 List</button></div></div>'
     + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat(' + kanbanCols.length + ',1fr);gap:0.6rem;overflow-x:auto">' + kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="' + col.key + '" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid ' + col.color + '"><div style="font-size:0.72rem;font-weight:800;color:' + col.color + ';margin-bottom:0.4rem;text-align:center">' + col.label + ' (' + colTasks.length + ')</div><div class="ep-col-cards">' + colTasks.map(renderCard).join('') + '</div></div>'; }).join('') + '</div>'
       : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">' + filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid ' + t.sc + '"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + t.client + ' <span style="font-size:0.65rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.6rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</div><select onchange="window.updateEditStatus(\'' + t.jobId + '\',' + t.serviceIdx + ',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">' + ['Chưa bắt đầu', 'Đang chỉnh sửa', 'Demo', 'Chỉnh sửa lại', 'Hoàn thành'].map(s => '<option value="' + s + '" ' + (t.editStatus === s ? 'selected' : '') + '>' + s + '</option>').join('') + '</select></div></div>').join('') + '</div>');
 
@@ -3600,5 +3680,65 @@ export function renderEditPhoto(state) {
       }
     }, 300);
   }
+  return container;
+}
+
+// ==========================================
+// GLOBAL SEARCH MODAL
+// ==========================================
+export function renderGlobalSearchModal(state) {
+  const container = document.createElement('div');
+  container.className = 'global-search-container';
+  container.style.cssText = 'width: 600px; max-width: 95vw; background: var(--surface); border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; max-height: 80vh';
+
+  const results = state.globalSearchResults || [];
+  const query = state.globalSearchQuery || '';
+
+  const resultsHTML = results.length > 0 ? results.map(j => {
+    const d = new Date(j.date);
+    const monthStr = `T${d.getMonth() + 1}/${d.getFullYear()}`;
+    return `
+      <div onclick="window._jumpToJob('${j.id}')" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s" class="hover-bg-success">
+        <div>
+          <div style="font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 0.25rem">${j.client}</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; gap: 0.75rem">
+            <span>🔖 ${j.id}</span>
+            <span>📱 ${j.phone || 'Chưa có SĐT'}</span>
+            <span>📍 ${j.venue || 'Chưa xếp venue'}</span>
+          </div>
+        </div>
+        <div style="text-align: right">
+          <div style="font-size: 0.75rem; font-weight: 800; padding: 0.2rem 0.5rem; background: var(--bg-hover); border-radius: 6px; color: var(--primary)">${monthStr}</div>
+          <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.3rem">${j.status}</div>
+        </div>
+      </div>
+    `;
+  }).join('') : (query.length > 1 ? '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Không tìm thấy kết quả nào cho "' + query + '"</div>' : '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Gõ tên cô dâu chú rể, SDT hoặc mã Job để tìm kiếm (Enter)</div>');
+
+  container.innerHTML = `
+    <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; background: var(--surface)">
+      <i class="fas fa-search" style="color: var(--primary); font-size: 1.2rem"></i>
+      <input type="text" id="global-search-input" placeholder="Tìm kiếm toàn cục..." value="${query}" autocomplete="off"
+        style="flex: 1; border: none; outline: none; background: transparent; font-size: 1.1rem; color: var(--text-main); font-weight: 600">
+      <button onclick="window.closeModal()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-dim)">&times;</button>
+    </div>
+    <div style="overflow-y: auto; flex: 1; background: var(--bg-main)">
+      ${resultsHTML}
+    </div>
+  `;
+
+  // Focus input on render and attach events
+  setTimeout(() => {
+    const inp = container.querySelector('#global-search-input');
+    if (inp) {
+      inp.focus();
+      // Only set selection if there's actual text
+      if (inp.value) inp.setSelectionRange(inp.value.length, inp.value.length);
+      inp.addEventListener('input', (e) => {
+        window._handleGlobalSearchInput(e.target.value);
+      });
+    }
+  }, 10);
+
   return container;
 }
