@@ -882,7 +882,7 @@ const SESSION_KEY = 'haru_session';
 
 window.login = (username, password) => {
   const accounts = state.settings.accounts || [];
-  const account = accounts.find(a => a.username === username && a.password === password);
+  const account = accounts.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
   if (!account) {
     return false;
   }
