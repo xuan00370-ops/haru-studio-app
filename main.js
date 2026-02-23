@@ -804,10 +804,8 @@ window.updateEditStatus = (jobId, serviceName, newStatus) => {
   window.addHistory(`Cập nhật trạng thái edit: ${job.client} – ${serviceName} → ${newStatus} `);
   showPaymentToast(`✓ Cập nhật: ${newStatus} `, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
 
-  // Micro-update: if job status changed, refresh card without full re-render
-  if (allDone && newStatus === 'Hoàn thành') {
-    updateUI();
-  }
+  // Micro-update: always refresh for kanban consistency
+  updateUI();
 };
 
 // ── Video Edit Tab Functions ───────────────────────────────
@@ -835,7 +833,7 @@ window.updateVideoEditStatus = (jobId, serviceName, newStatus) => {
   saveState();
   window.addHistory(`Edit video: ${job.client} – ${serviceName} → ${newStatus}`);
   showPaymentToast(`✓ ${newStatus}`, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
-  if (newStatus === 'Hoàn thành') updateUI();
+  updateUI();
 };
 
 window.updateVideoEditLink = (jobId, serviceName, link) => {
