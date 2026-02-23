@@ -1184,4 +1184,197 @@ tr.paid-row {
     /* enough for content */
     padding: 0.5rem;
   }
+
+  /* ============ EDITOR PORTAL MOBILE ============ */
+  /* Header wrap */
+  [style*="position:sticky"][style*="z-index:100"] {
+    flex-wrap: wrap !important;
+    padding: 0.4rem 0.75rem !important;
+    gap: 0.4rem !important;
+  }
+
+  [style*="position:sticky"][style*="z-index:100"]>div {
+    flex-wrap: wrap !important;
+    gap: 0.3rem !important;
+  }
+
+  /* Stats pills wrap */
+  [style*="font-size:0.75rem"][style*="font-weight:800"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* Period label */
+  [style*="font-size:0.78rem"][style*="font-weight:800"] {
+    font-size: 0.65rem !important;
+  }
+
+  /* Main content padding */
+  [style*="max-width:1400px"] {
+    padding: 0.5rem 0.6rem !important;
+  }
+
+  /* Kanban pills compact */
+  [style*="margin-bottom:0.85rem"][style*="gap:0.35rem"] {
+    gap: 0.2rem !important;
+  }
+
+  [style*="margin-bottom:0.85rem"][style*="gap:0.35rem"]>div {
+    padding: 0.2rem !important;
+  }
+
+  [style*="margin-bottom:0.85rem"][style*="gap:0.35rem"]>div span[style*="font-size:0.9rem"] {
+    font-size: 0.7rem !important;
+  }
+
+  [style*="margin-bottom:0.85rem"][style*="gap:0.35rem"]>div div[style*="font-size:0.58rem"] {
+    font-size: 0.45rem !important;
+  }
+
+  /* Client cards */
+  [style*="border-radius:14px"][style*="padding:0.85rem"] {
+    padding: 0.5rem 0.6rem !important;
+  }
+
+  /* Client header wrap */
+  [style*="border-radius:14px"]>div[style*="justify-content:space-between"] {
+    flex-wrap: wrap !important;
+    gap: 0.3rem !important;
+  }
+
+  /* Links row stack on mobile */
+  [style*="border-radius:14px"]>div[style*="gap:0.5rem"][style*="margin-bottom:0.5rem"] {
+    flex-direction: column !important;
+    gap: 0.3rem !important;
+  }
+
+  /* Clip row wrap */
+  [style*="border-radius:10px"][style*="padding:0.6rem"] {
+    padding: 0.4rem !important;
+  }
+
+  [style*="border-radius:10px"][style*="padding:0.6rem"]>div[style*="flex-wrap:wrap"] {
+    gap: 0.3rem !important;
+  }
+
+  [style*="border-radius:10px"][style*="padding:0.6rem"]>div[style*="flex-wrap:wrap"]>div[style*="display:flex"][style*="gap:0.4rem"]:last-child {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+    gap: 0.3rem !important;
+  }
+
+  /* Checklist row wrap */
+  [style*="padding-left:42px"] {
+    padding-left: 8px !important;
+    flex-wrap: wrap !important;
+  }
+
+  [style*="padding-left:42px"]>div[style*="gap:0.25rem"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* Output/Note row stack */
+  [style*="padding-left:42px"][style*="gap:0.4rem"] {
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+    padding-left: 8px !important;
+  }
+
+  /* Select dropdowns wider on mobile */
+  .ep-editor-select,
+  .ep-status-select {
+    width: 100% !important;
+    min-width: 80px !important;
+    font-size: 0.8rem !important;
+    padding: 0.3rem !important;
+  }
+
+  /* Inputs bigger tap targets */
+  .ep-drive-input,
+  .ep-note-input,
+  .ep-footage-input,
+  .ep-nas-input {
+    font-size: 0.8rem !important;
+    padding: 0.35rem 0.5rem !important;
+    min-height: 36px !important;
+  }
+
+  /* Done button bigger */
+  .ep-done-btn {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    min-height: 36px !important;
+    margin-top: 0 !important;
+  }
+
+  /* Checklist labels bigger tap */
+  [style*="padding-left:42px"] label,
+  [style*="padding-left:8px"] label {
+    padding: 0.25rem 0.4rem !important;
+    font-size: 0.78rem !important;
+    min-height: 32px !important;
+  }
+
+  /* Body overflow for editor portal */
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ============ ADMIN MOBILE FIX ============ */
+  /* Fix main-content width on mobile */
+  #app {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Add logout to bottom nav */
+  .bottom-nav {
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 8px)) !important;
+  }
+}
+
+/* ============ EDITOR PORTAL EXTRA SMALL ============ */
+@media (max-width: 480px) {
+
+  /* Header becomes column layout */
+  [style*="position:sticky"][style*="z-index:100"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.3rem !important;
+  }
+
+  [style*="position:sticky"][style*="z-index:100"]>div:last-child {
+    width: 100% !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Clip card info stack */
+  [style*="border-radius:10px"][style*="padding:0.6rem"]>div[style*="flex-wrap:wrap"]:first-child {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  /* Editor/Status row full width */
+  [style*="border-radius:10px"] div[style*="text-align:center"] {
+    text-align: left !important;
+  }
+
+  .ep-editor-select,
+  .ep-status-select {
+    width: 100% !important;
+  }
+
+  /* Client avatar smaller */
+  [style*="width:36px"][style*="height:36px"][style*="border-radius:10px"] {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.75rem !important;
+  }
 }

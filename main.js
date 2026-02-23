@@ -964,7 +964,7 @@ function updateUI() {
   }
 
   // ── Role ADMIN → giao diện đầy đủ ──
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow = window.innerWidth <= 900 ? 'auto' : 'hidden';
   app.style.display = 'grid';
   app.style.gridTemplateColumns = '270px 1fr';
 

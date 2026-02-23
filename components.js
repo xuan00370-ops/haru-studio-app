@@ -71,10 +71,10 @@ export function renderBottomNav(activePage, navigate) {
   // Chỉ hiện các nút quan trọng nhất cho Mobile
   const items = [
     { id: 'dashboard', icon: '📊', label: 'Dự án' },
+    { id: 'edit_video', icon: '🎞️', label: 'Edit' },
     { id: 'calendar', icon: '📅', label: 'Lịch' },
-    { id: 'finance', icon: '📒', label: 'Giao dịch' },
-    { id: 'jobs', icon: '📁', label: 'Lưu trữ' },
-    { id: 'sync', icon: '⚙️', label: 'Hệ thống' }
+    { id: 'finance', icon: '📒', label: 'Tiền' },
+    { id: 'jobs', icon: '📁', label: 'Lưu trữ' }
   ];
 
   nav.innerHTML = items.map(item => `
@@ -82,7 +82,12 @@ export function renderBottomNav(activePage, navigate) {
       <span class="icon">${item.icon}</span>
       <span>${item.label}</span>
     </div>
-  `).join('');
+  `).join('') + `
+    <div class="bottom-nav-item" onclick="window.logout()" style="color:#ef4444">
+      <span class="icon">🚪</span>
+      <span>Thoát</span>
+    </div>
+  `;
 
   return nav;
 }
