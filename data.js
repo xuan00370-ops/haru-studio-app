@@ -1,6 +1,6 @@
 export const mockData = {
     // Centralized Job Store with Month/Year derived from date
-    jobs:     [
+    jobs: [
         {
                 "id": "004- T1",
                 "jobNo": 2,
@@ -480,78 +480,6 @@ export const mockData = {
                                 "paid": false,
                                 "edit": 500000,
                                 "date": "2026-01-29"
-                        },
-                        {
-                                "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
-                                "staff": "Chênh lệch",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "148.900.000,00₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "80.600.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "16.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "11.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "0₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
-                        },
-                        {
-                                "service": "20.300.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-01-29"
                         }
                 ]
         },
@@ -703,70 +631,6 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
-                                "staff": "Chênh lệch",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "38.500.000,00₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "16.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "11.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "20.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "0₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-02-12"
-                        },
-                        {
-                                "service": "10.300.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
                                 "date": "2026-02-12"
                         }
                 ]
@@ -1116,78 +980,6 @@ export const mockData = {
                                 "paid": false,
                                 "edit": 300000,
                                 "date": "2026-03-29"
-                        },
-                        {
-                                "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
-                                "staff": "Chênh lệch",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "148.900.000,00₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "80.600.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "16.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "11.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "20.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "0₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
-                        },
-                        {
-                                "service": "10.300.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-03-29"
                         }
                 ]
         },
@@ -1233,78 +1025,6 @@ export const mockData = {
                                 "cost": 1700000,
                                 "paid": false,
                                 "edit": 300000,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
-                                "staff": "Chênh lệch",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "148.900.000,00₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "80.600.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "16.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "11.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "20.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "0₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-04-26"
-                        },
-                        {
-                                "service": "10.300.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
                                 "date": "2026-04-26"
                         }
                 ]
@@ -1430,78 +1150,6 @@ export const mockData = {
                                 "paid": false,
                                 "edit": 0,
                                 "date": "2026-05-16"
-                        },
-                        {
-                                "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
-                                "staff": "Chênh lệch",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "148.900.000,00₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "80.600.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "16.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "11.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "20.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "0₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
-                        },
-                        {
-                                "service": "10.300.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-05-16"
                         }
                 ]
         },
@@ -1602,78 +1250,6 @@ export const mockData = {
                                 "paid": false,
                                 "edit": 300000,
                                 "date": "2026-06-20"
-                        },
-                        {
-                                "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
-                                "staff": "Chênh lệch",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "148.900.000,00₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "80.600.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "16.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "11.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "20.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "0₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
-                        },
-                        {
-                                "service": "10.300.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-06-20"
                         }
                 ]
         },
@@ -1735,78 +1311,6 @@ export const mockData = {
                                 "cost": 1700000,
                                 "paid": false,
                                 "edit": 300000,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
-                                "staff": "Chênh lệch",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "148.900.000,00₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "80.600.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "16.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "11.500.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "20.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "0₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "10.000.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
-                                "date": "2026-07-19"
-                        },
-                        {
-                                "service": "10.300.000₫",
-                                "staff": "",
-                                "cost": 0,
-                                "paid": false,
-                                "edit": 0,
                                 "date": "2026-07-19"
                         }
                 ],

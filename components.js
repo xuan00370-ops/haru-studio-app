@@ -6,6 +6,15 @@ function _staffStr(staff) {
   return staff || '';
 }
 
+function isValidServiceRow(svc) {
+  const name = String(svc?.service || '').trim();
+  if (!name) return false;
+  // Loại các dòng số tiền/ghi chú bị lẫn vào cột dịch vụ
+  if (/^\d[\d\.,\s]*đ?$/i.test(name)) return false;
+  if (/^(tổng giá trị hợp đồng|chênh lệch|giá trị gói|số tiền cọc|ghi chú|chi phí phát sinh)$/i.test(name)) return false;
+  return true;
+}
+
 export function renderSidebar(activePage, navigate) {
   const aside = document.createElement('aside');
   aside.className = 'sidebar';
@@ -194,8 +203,8 @@ export function renderDashboard(state, navigate) {
   }
 
   const revenue = monthJobs.reduce((sum, j) => sum + j.package, 0);
-  const staffCosts = monthJobs.reduce((sum, j) => sum + j.services.reduce((s, ser) => s + ser.cost, 0), 0);
-  const editCosts = monthJobs.reduce((sum, j) => sum + j.services.reduce((s, ser) => s + (ser.edit || 0), 0), 0);
+  const staffCosts = monthJobs.reduce((sum, j) => sum + (j.services || []).filter(isValidServiceRow).reduce((s, ser) => s + (ser.cost || 0), 0), 0);
+  const editCosts = monthJobs.reduce((sum, j) => sum + (j.services || []).filter(isValidServiceRow).reduce((s, ser) => s + (ser.edit || 0), 0), 0);
 
   const totalCost = staffCosts + editCosts + (meta.ads || 0) + (meta.office || 0);
   const netProfit = revenue - totalCost;
@@ -322,13 +331,14 @@ function renderJobCard(job) {
   const deadlines = calculateDeadlines(job.date);
   const statusClass = job.status.toLowerCase().replace(/\s+/g, '-');
 
-  const staffCosts = job.services.reduce((sum, s) => sum + s.cost, 0);
-  const editCosts = job.services.reduce((sum, s) => sum + (s.edit || 0), 0);
+  const validServices = (job.services || []).filter(isValidServiceRow);
+  const staffCosts = validServices.reduce((sum, s) => sum + (s.cost || 0), 0);
+  const editCosts = validServices.reduce((sum, s) => sum + (s.edit || 0), 0);
   const profit = job.package - (staffCosts + editCosts);
 
   // High-Precision Metrics
-  const photoCount = job.services.filter(s => s.service.toLowerCase().includes('chụp')).length;
-  const videoCount = job.services.filter(s => s.service.toLowerCase().includes('quay')).length;
+  const photoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
+  const videoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('quay')).length;
 
   const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
   return `
@@ -481,11 +491,13 @@ function renderJobDetailModal(state) {
   const container = document.createElement('div');
   if (!job) return container;
 
+  const validServices = (job.services || []).filter(isValidServiceRow);
   const revenue = job.package || 0;
-  const staffCosts = (job.services || []).reduce((sum, s) => sum + s.cost, 0);
-  const editCosts = (job.services || []).reduce((sum, s) => sum + (s.edit || 0), 0);
+  const staffCosts = validServices.reduce((sum, s) => sum + (s.cost || 0), 0);
+  const editCosts = validServices.reduce((sum, s) => sum + (s.edit || 0), 0);
   const profit = revenue - (staffCosts + editCosts);
   const depositRemaining = revenue - (job.deposit || 0);
+  const serviceRows = (job.services || []).map((s, idx) => ({ s, idx })).filter(x => isValidServiceRow(x.s));
 
   const statusColors = {
     'Chưa gửi': '#b45309', 'Nhận Feedback': '#2563eb',
@@ -742,7 +754,7 @@ function renderJobDetailModal(state) {
                 </tr>
               </thead>
                 <tbody>
-                  ${job.services.map((s, idx) => `
+                  ${serviceRows.map(({ s, idx }) => `
                     <tr data-index="${idx}">
                       <td data-label="Vai trò" style="font-weight: 800; font-size: 0.9rem; color: var(--text-main)">${s.service}</td>
                       <td data-label="Nghệ sĩ" style="font-size: 0.92rem; font-weight: 600; color: var(--text-muted)">
