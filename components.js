@@ -252,14 +252,13 @@ export function renderDashboard(state, navigate) {
       </div>
     </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem">
-         <button class="btn btn-secondary btn-sm" onclick="window.saveMonthlyReport('${monthKey}')">💾 Lưu chi phí tháng</button>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem">
          <button class="btn btn-primary btn-sm" onclick="window.viewPA3Report('${monthKey}')">📊 Xem PA3</button>
       </div>
     </div>
 
-    <div class="job-grid" style="margin-top: 4rem">
-      ${monthJobs.length > 0 ? monthJobs.map(job => renderJobCard(job)).join('') : '<div class="empty-state">Chưa có dự án nào được ghi nhận</div>'}
+    <div class="job-grid" style="margin-top: 1.5rem">
+      ${monthJobs.length > 0 ? monthJobs.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).map(job => renderJobCard(job)).join('') : '<div class="empty-state">Chưa có dự án nào được ghi nhận</div>'}
     </div>
   `;
 
@@ -441,6 +440,13 @@ function renderJobDetailModal(state) {
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Khách hàng (CD - CR)</label>
               <input type="text" id="edit-job-client" class="form-control" value="${job.client}"
                 style="font-size: 0.95rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main); font-weight: 700">
+            </div>
+            <div>
+              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Trạng thái</label>
+              <select id="edit-job-status" class="form-control"
+                style="font-size: 0.95rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border); color: ${statusColor}; font-weight: 700">
+                ${['Chưa gửi', 'Đang edit', 'Nhận Feedback', 'Đã hoàn thành'].map(s => `<option value="${s}" ${job.status === s ? 'selected' : ''} style="color: var(--text-main)">${s}</option>`).join('')}
+              </select>
             </div>
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Ngày làm lễ</label>
@@ -888,7 +894,7 @@ export function renderJobs(state) {
   const activeJobs = state.jobs.filter(j => !j.isTrash);
   container.innerHTML = `
     <h1 class="view-title">Kho Lưu Trữ Dự Án</h1>
-    <p style="color: var(--text-dim); margin-bottom: 3rem;">Lọc theo tháng: ${state.currentMonth}/${state.currentYear}</p>
+    <p style="color: var(--text-dim); margin-bottom: 1rem;">Lọc theo tháng: ${state.currentMonth}/${state.currentYear}</p>
     <div class="job-grid">
       ${activeJobs.length > 0 ? activeJobs.map(job => renderJobCard(job)).join('') : '<div class="empty-state">Không có dự án nào trong kỳ này</div>'}
     </div>
@@ -1318,7 +1324,7 @@ export function renderTrash(state) {
   const trashJobs = state.jobs.filter(j => j.isTrash);
   container.innerHTML = `
   <h1 class="view-title" > Thùng Rác</h1>
-    <div class="job-grid" style="margin-top: 3rem">
+    <div class="job-grid" style="margin-top: 1rem">
       ${trashJobs.length > 0 ? trashJobs.map(job => renderJobCard(job)).join('') : '<div class="empty-state">Thùng rác trống</div>'}
     </div>
 `;
@@ -1429,16 +1435,6 @@ export function renderDeadlineEdit(state) {
   });
 
 
-  // Event delegation for deadline status selects
-  container.addEventListener('change', function (ev) {
-    var sel = ev.target;
-    if (!sel.classList.contains('deadline-status-select')) return;
-    var jobId = sel.getAttribute('data-job-id');
-    var service = sel.getAttribute('data-service');
-    var status = sel.value;
-    if (!jobId || !service) return;
-    window.updateEditStatus(jobId, service, status);
-  });
 
   return container;
 }
@@ -1549,47 +1545,7 @@ export function renderHistory(state) {
   return container;
 }
 
-// Global Help Scripts for UI Interaction
-window.saveJobDetail = (jobId) => {
-  const modal = document.querySelector('.modal-container');
-  if (!modal) return;
-
-  const currentJob = window.state.jobs.find(j => j.id === jobId);
-  if (!currentJob) return;
-
-  const updatedData = {
-    date: modal.querySelector('#edit-job-date')?.value,
-    eventType: modal.querySelector('#edit-job-type')?.value,
-    phone: modal.querySelector('#edit-job-phone')?.value,
-    venue: modal.querySelector('#edit-job-venue')?.value,
-    notes: modal.querySelector('#edit-job-notes')?.value,
-    linkCustomer: modal.querySelector('#edit-job-link-customer')?.value || '',
-    linkNAS: modal.querySelector('#edit-job-link-nas')?.value || '',
-    linkDrive: modal.querySelector('#edit-job-link-drive')?.value || '',
-    package: parseFloat(modal.querySelector('#edit-job-package')?.value) || 0,
-    deposit: parseFloat(modal.querySelector('#edit-job-deposit')?.value) || 0,
-    timeline: {
-      le_sang: modal.querySelector('input[name="le_sang"]')?.checked,
-      tiec_trua: modal.querySelector('input[name="tiec_trua"]')?.checked,
-      tiec_toi: modal.querySelector('input[name="tiec_toi"]')?.checked,
-      le: modal.querySelector('input[name="le_time"]')?.value,
-      tiec: modal.querySelector('input[name="tiec_time_toi"]')?.value || modal.querySelector('input[name="tiec_time_trua"]')?.value
-    },
-    services: currentJob.services.map((s, i) => ({
-      ...s,
-      paid: modal.querySelectorAll('.service-paid-check')[i]?.checked
-    }))
-  };
-
-  window.updateJob(jobId, updatedData);
-  window.closeModal();
-};
-
-window.saveMonthlyMeta = (monthKey) => {
-  const ads = 4500000;
-  const office = 15000000;
-  window.updateReportMeta(monthKey, ads, office);
-};
+// saveJobDetail & saveMonthlyMeta — đã chuyển về main.js để tránh trùng lặp
 
 export function renderNAS(state) {
   const container = document.createElement('div');

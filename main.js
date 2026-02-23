@@ -218,6 +218,7 @@ window.saveJobDetail = (jobId) => {
 
   // Đọc fields từ DOM
   const client = document.getElementById('edit-job-client')?.value || job.client;
+  const status = document.getElementById('edit-job-status')?.value || job.status;
   const date = document.getElementById('edit-job-date')?.value || job.date;
   const eventType = document.getElementById('edit-job-type')?.value || job.eventType;
   const phone = document.getElementById('edit-job-phone')?.value || job.phone;
@@ -228,6 +229,17 @@ window.saveJobDetail = (jobId) => {
   const linkCustomer = document.getElementById('edit-job-link-customer')?.value || job.linkCustomer;
   const linkNAS = document.getElementById('edit-job-link-nas')?.value || job.linkNAS;
   const linkDrive = document.getElementById('edit-job-link-drive')?.value || job.linkDrive;
+
+  // Đọc timeline — tách riêng tiệc trưa và tiệc tối
+  const modal = document.querySelector('.modal-container');
+  const timeline = {
+    le_sang: modal?.querySelector('input[name="le_sang"]')?.checked || false,
+    tiec_trua: modal?.querySelector('input[name="tiec_trua"]')?.checked || false,
+    tiec_toi: modal?.querySelector('input[name="tiec_toi"]')?.checked || false,
+    le: modal?.querySelector('input[name="le_time"]')?.value || job.timeline?.le || '05:00',
+    tiec_trua_time: modal?.querySelector('input[name="tiec_time_trua"]')?.value || job.timeline?.tiec_trua_time || '11:00',
+    tiec: modal?.querySelector('input[name="tiec_time_toi"]')?.value || job.timeline?.tiec || '18:00'
+  };
 
   // Đọc service rows từ table
   const table = document.getElementById('services-table-edit');
@@ -260,8 +272,8 @@ window.saveJobDetail = (jobId) => {
   if (errors.length > 0) { showValidationError(errors); return; }
 
   window.updateJob(jobId, {
-    date, eventType, phone, package: packageVal, deposit: depositVal,
-    venue, notes, linkCustomer, linkNAS, linkDrive, services
+    client, status, date, eventType, phone, package: packageVal, deposit: depositVal,
+    venue, notes, linkCustomer, linkNAS, linkDrive, timeline, services
   });
   window.closeModal();
   // Toast thành công
@@ -364,13 +376,13 @@ function showPaymentToast(msg, color) {
   const toast = document.createElement('div');
   toast.id = 'haru-pay-toast';
   toast.style.cssText = `
-position: fixed; bottom: 1.5rem; right: 1.5rem; z - index: 9999;
+position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
 background: ${color}; color: #fff;
-padding: 0.6rem 1.25rem; border - radius: 100px;
-font - size: 0.9rem; font - weight: 700;
-box - shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-animation: toastIn 0.25s cubic - bezier(0.16, 1, 0.3, 1);
-pointer - events: none;
+padding: 0.6rem 1.25rem; border-radius: 100px;
+font-size: 0.9rem; font-weight: 700;
+box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+pointer-events: none;
 `;
   toast.textContent = msg;
   document.body.appendChild(toast);
@@ -398,8 +410,8 @@ window.updateReportMeta = (monthKey, ads, office) => {
 
 // PA3: Lưu chi phí tháng
 window.saveMonthlyReport = (monthKey) => {
-  const adsEl = document.getElementById(`ads - input - ${monthKey} `);
-  const offEl = document.getElementById(`off - input - ${monthKey} `);
+  const adsEl = document.getElementById(`ads-input-${monthKey}`);
+  const offEl = document.getElementById(`off-input-${monthKey}`);
   if (!adsEl || !offEl) return;
   window.updateReportMeta(monthKey, adsEl.value, offEl.value);
   // Toast
@@ -489,18 +501,18 @@ window.removeStaff = (name) => {
 };
 
 window.showEditStaff = (name) => {
-  const form = document.getElementById(`edit - form - ${name} `);
+  const form = document.getElementById(`edit-form-${name}`);
   if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 };
 
 window.saveStaffEdit = (originalName) => {
   const member = state.staff.find(s => s.name === originalName);
   if (!member) return;
-  const newName = document.getElementById(`edit - name - ${originalName} `)?.value?.trim() || member.name;
-  const newRole = document.getElementById(`edit - role - ${originalName} `)?.value || member.role;
-  const newPhone = document.getElementById(`edit - phone - ${originalName} `)?.value || member.phone;
-  const newBankNo = document.getElementById(`edit - bankno - ${originalName} `)?.value || '';
-  const newBankBank = document.getElementById(`edit - bankname - ${originalName} `)?.value || '';
+  const newName = document.getElementById(`edit-name-${originalName}`)?.value?.trim() || member.name;
+  const newRole = document.getElementById(`edit-role-${originalName}`)?.value || member.role;
+  const newPhone = document.getElementById(`edit-phone-${originalName}`)?.value || member.phone;
+  const newBankNo = document.getElementById(`edit-bankno-${originalName}`)?.value || '';
+  const newBankBank = document.getElementById(`edit-bankname-${originalName}`)?.value || '';
   if (!newName) { alert('Tên nhân sự không được để trống'); return; }
   member.name = newName;
   member.role = newRole;
