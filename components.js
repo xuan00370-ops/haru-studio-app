@@ -2975,6 +2975,70 @@ export function renderEditorPortal(state) {
     </div>`;
   }
 
+  // ============ EDITOR KANBAN VIEW ============
+  function renderEditorKanban() {
+    return `
+    <div style="display:flex;gap:0.5rem;overflow-x:auto;padding-bottom:1rem;min-height:500px">
+      ${steps.map((step, i) => {
+      const clipsInStep = ac.filter(c => c.es === step);
+      return `
+        <div style="flex:1;min-width:220px;background:var(--bg-card);border-radius:12px;padding:0.6rem;border:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.6rem;padding-bottom:0.4rem;border-bottom:2px solid ${stepColors[i]}">
+            <span>${stepIcons[i]}</span>
+            <span style="font-size:0.75rem;font-weight:800;color:${stepColors[i]}">${step}</span>
+            <span style="font-size:0.6rem;background:${stepColors[i]}20;color:${stepColors[i]};padding:0.1rem 0.35rem;border-radius:8px;font-weight:800;margin-left:auto">${clipsInStep.length}</span>
+          </div>
+          <div class="ep-kanban-list" data-status="${step}" style="min-height:50px;display:flex;flex-direction:column;gap:0.4rem">
+            ${clipsInStep.map(c => {
+        const g = Object.values(jobGroups).find(gr => gr.clips.includes(c));
+        if (!g) return '';
+        const jobComments = state.jobs.find(j => j.id === g.id)?.comments || [];
+        const svcComments = jobComments.filter(cm => !cm.service || cm.service === c.svc);
+        const isDone = c.es === 'Hoàn thành';
+        const clDone = Object.values(c.cl).filter(Boolean).length;
+        return `
+              <div class="ep-kanban-card" data-job-id="${g.id}" data-svc="${c.svc}"
+                style="background:var(--bg-main);border:1px solid ${c.sc}25;border-radius:10px;padding:0.55rem;cursor:grab;transition:all 0.15s;border-left:3px solid ${c.sc};${isDone ? 'opacity:0.55' : ''}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem">
+                  <span style="font-size:0.82rem;font-weight:800;color:var(--text-main)">${g.client}</span>
+                  <span style="font-size:0.85rem">${c.si}</span>
+                </div>
+                <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.2rem">${c.svc} · 📅 ${c.dateStr}</div>
+                <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text-muted);margin-bottom:0.25rem">
+                  <span>📷 ${c.staff}</span>
+                  <span>✏️ ${c.editStaff || '—'}</span>
+                </div>
+                <div style="font-size:0.6rem;font-weight:800;color:${c.sc};background:${c.sc}10;padding:0.15rem 0.3rem;border-radius:4px;text-align:center;margin-bottom:0.3rem">
+                  ⏰ ${isDone ? 'Đã xong' : c.daysLeft > 0 ? c.daysLeft + ' ngày còn' : 'TRỄ ' + Math.abs(c.daysLeft) + ' ngày!'}
+                </div>
+                <div style="display:flex;align-items:center;gap:0.2rem;margin-bottom:0.3rem">
+                  <div style="flex:1;height:3px;background:#0001;border-radius:2px"><div style="width:${clDone * 20}%;height:100%;background:${clDone === 5 ? '#22c55e' : '#3b82f6'};border-radius:2px"></div></div>
+                  <span style="font-size:0.55rem;font-weight:800;color:${clDone === 5 ? '#22c55e' : 'var(--text-dim)'}">${clDone}/5</span>
+                </div>
+                ${g.notes ? `<div style="background:#eab30808;border:1px solid #eab30815;border-radius:6px;padding:0.25rem 0.4rem;margin-bottom:0.25rem;font-size:0.62rem">
+                  <b style="color:#eab308">📝</b> <span style="color:var(--text-muted)">${g.notes.substring(0, 80)}${g.notes.length > 80 ? '…' : ''}</span>
+                </div>` : ''}
+                ${c.editorNote ? `<div style="background:#3b82f608;border:1px solid #3b82f615;border-radius:6px;padding:0.25rem 0.4rem;margin-bottom:0.25rem;font-size:0.62rem">
+                  <b style="color:#3b82f6">✏️</b> <span style="color:var(--text-muted)">${c.editorNote.substring(0, 80)}${c.editorNote.length > 80 ? '…' : ''}</span>
+                </div>` : ''}
+                ${svcComments.length > 0 ? `<div style="background:#22c55e08;border:1px solid #22c55e15;border-radius:6px;padding:0.25rem 0.4rem;font-size:0.58rem">
+                  <b style="color:#22c55e">💬 ${svcComments.length} ghi chú</b>
+                  ${svcComments.slice(-2).map(cm => `<div style="color:var(--text-muted);margin-top:0.15rem;padding-left:0.3rem;border-left:2px solid #22c55e30">
+                    <b>${cm.user}</b>: ${cm.text.substring(0, 60)}${cm.text.length > 60 ? '…' : ''}
+                  </div>`).join('')}
+                </div>` : ''}
+                <div style="display:flex;gap:0.2rem;margin-top:0.3rem;justify-content:flex-end">
+                  <button class="ep-kanban-chat" data-job-id="${g.id}" style="font-size:0.55rem;background:var(--primary-glow);color:var(--primary);border:1px solid var(--border-bright);padding:0.15rem 0.3rem;border-radius:4px;cursor:pointer;font-weight:700">💬 Chat</button>
+                  ${c.editDriveLink ? `<a href="${c.editDriveLink}" target="_blank" style="font-size:0.55rem;background:#3b82f610;color:#3b82f6;border:1px solid #3b82f620;padding:0.15rem 0.3rem;border-radius:4px;text-decoration:none;font-weight:700">🔗 Output</a>` : ''}
+                </div>
+              </div>`;
+      }).join('')}
+          </div>
+        </div>`;
+    }).join('')}
+    </div>`;
+  }
+
   container.innerHTML = `
     <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(22,163,74,0.1);
       padding:0.6rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100">
@@ -2989,6 +3053,10 @@ export function renderEditorPortal(state) {
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:0.5rem">
+        <div style="display:flex;gap:0.2rem;background:var(--accent-soft);border-radius:8px;padding:0.15rem;border:1px solid var(--border)">
+          <button class="ep-view-toggle" data-view="list" style="font-size:0.72rem;font-weight:700;padding:0.25rem 0.5rem;border-radius:6px;cursor:pointer;border:none;background:transparent;color:var(--text-dim);font-family:inherit">📋 List</button>
+          <button class="ep-view-toggle" data-view="kanban" style="font-size:0.72rem;font-weight:700;padding:0.25rem 0.5rem;border-radius:6px;cursor:pointer;border:none;background:var(--primary);color:#fff;font-family:inherit">📌 Kanban</button>
+        </div>
         <div style="display:flex;gap:0.35rem;font-size:0.75rem;font-weight:800">
           <span style="background:#3b82f610;color:#3b82f6;padding:0.2rem 0.5rem;border-radius:6px">${tot} clip</span>
           ${urg > 0 ? `<span style="background:#ef444410;color:#ef4444;padding:0.2rem 0.5rem;border-radius:6px;animation:pulse 2s infinite">🔥 ${urg} gấp</span>` : ''}
@@ -3026,9 +3094,17 @@ export function renderEditorPortal(state) {
         <span style="font-size:0.7rem;color:var(--text-dim)">(${don}/${tot})</span>
       </div>
 
-      ${renderMonthSection(monthNames[pm - 1] + ' ' + py, gsM0)}
-      ${renderMonthSection(monthNames[m1 - 1] + ' ' + y1, gsM1)}
-      ${gs.length === 0 ? `<div style="text-align:center;padding:2.5rem;color:var(--text-dim);background:#fff;border-radius:14px;border:1.5px dashed var(--border)">Không có video nào trong giai đoạn này 🎬</div>` : ''}
+      <!-- LIST VIEW (hidden by default) -->
+      <div id="ep-list-view" style="display:none">
+        ${renderMonthSection(monthNames[pm - 1] + ' ' + py, gsM0)}
+        ${renderMonthSection(monthNames[m1 - 1] + ' ' + y1, gsM1)}
+        ${gs.length === 0 ? `<div style="text-align:center;padding:2.5rem;color:var(--text-dim);background:#fff;border-radius:14px;border:1.5px dashed var(--border)">Không có video nào trong giai đoạn này 🎬</div>` : ''}
+      </div>
+
+      <!-- KANBAN VIEW (shown by default) -->
+      <div id="ep-kanban-view">
+        ${renderEditorKanban()}
+      </div>
     </div>
     <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}</style>
   `;
@@ -3044,6 +3120,24 @@ export function renderEditorPortal(state) {
     if (btn) window.updateVideoEditStatus(btn.dataset.jobId, btn.dataset.service, 'Hoàn thành');
     const reopen = e.target.closest('.ep-reopen-btn');
     if (reopen) window.updateVideoEditStatus(reopen.dataset.jobId, reopen.dataset.service, 'Chỉnh sửa');
+
+    // View toggle
+    const viewBtn = e.target.closest('.ep-view-toggle');
+    if (viewBtn) {
+      const view = viewBtn.dataset.view;
+      const listEl = container.querySelector('#ep-list-view');
+      const kanbanEl = container.querySelector('#ep-kanban-view');
+      container.querySelectorAll('.ep-view-toggle').forEach(b => {
+        b.style.background = 'transparent'; b.style.color = 'var(--text-dim)';
+      });
+      viewBtn.style.background = 'var(--primary)'; viewBtn.style.color = '#fff';
+      if (view === 'list') { listEl.style.display = ''; kanbanEl.style.display = 'none'; }
+      else { listEl.style.display = 'none'; kanbanEl.style.display = ''; }
+    }
+
+    // Kanban chat button
+    const chatBtn = e.target.closest('.ep-kanban-chat');
+    if (chatBtn && window.openChat) window.openChat(chatBtn.dataset.jobId);
   });
   container.addEventListener('blur', function (e) {
     const el = e.target;
@@ -3052,6 +3146,28 @@ export function renderEditorPortal(state) {
     if (el.classList.contains('ep-footage-input')) window.updateJobLink(el.dataset.jobId, 'linkFootage', el.value);
     if (el.classList.contains('ep-nas-input')) window.updateJobLink(el.dataset.jobId, 'linkNAS', el.value);
   }, true);
+
+  // Init SortableJS for editor kanban
+  setTimeout(() => {
+    if (typeof Sortable === 'undefined') return;
+    container.querySelectorAll('.ep-kanban-list').forEach(list => {
+      new Sortable(list, {
+        group: 'editor-kanban',
+        animation: 150,
+        ghostClass: 'kanban-ghost',
+        dragClass: 'kanban-drag',
+        onEnd: (evt) => {
+          const card = evt.item;
+          const newStatus = evt.to.dataset.status;
+          const jobId = card.dataset.jobId;
+          const svc = card.dataset.svc;
+          if (window.updateVideoEditStatus) {
+            window.updateVideoEditStatus(jobId, svc, newStatus);
+          }
+        }
+      });
+    });
+  }, 200);
 
   return container;
 }
