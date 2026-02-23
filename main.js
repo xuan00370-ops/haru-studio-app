@@ -943,7 +943,7 @@ function updateUI() {
 
   // ── Nếu role EDITOR → hiển thị Editor Portal riêng (2 tháng liền) ──
   if (state.currentUser.role === 'editor') {
-    document.body.style.overflow = 'auto';
+    document.body.style.overflowY = 'auto';
     app.style.display = 'block';
     app.style.gridTemplateColumns = 'none';
     // Lấy tháng hiện tại + tháng trước
@@ -965,7 +965,7 @@ function updateUI() {
 
   // ── Role ADMIN → giao diện đầy đủ ──
   const isMobile = window.innerWidth <= 900;
-  document.body.style.overflow = isMobile ? 'auto' : 'hidden';
+  document.body.style.overflowY = isMobile ? 'auto' : 'hidden';
   if (isMobile) {
     app.style.display = 'block';
     app.style.gridTemplateColumns = 'none';
