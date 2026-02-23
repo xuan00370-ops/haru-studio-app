@@ -3177,3 +3177,131 @@ export function renderEditorPortal(state) {
   return container;
 }
 
+// ============ STAFF PORTAL ============
+export function renderStaffPortal(state) {
+  const container = document.createElement('div');
+  container.style.cssText = `min-height:100vh;background:var(--bg-deep);font-family:'Outfit',sans-serif;`;
+
+  const staffName = state.currentUser?.staffName || state.currentUser?.displayName || 'Nhân sự';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  const myJobs = [];
+  const myClips = [];
+  state.jobs.forEach(job => {
+    if (job.isTrash) return;
+    const myServices = job.services.filter(s => s.staff === staffName || s.editStaff === staffName);
+    if (!myServices.length) return;
+    const jobDate = new Date(job.date);
+    const isPast = jobDate < today;
+    const isToday = jobDate.toDateString() === today.toDateString();
+    myServices.forEach(s => {
+      myJobs.push({
+        jobId: job.id, client: job.client, date: job.date, dateStr: jobDate.toLocaleDateString('vi-VN'),
+        eventType: job.eventType || 'Lễ cưới', service: s.service, cost: s.cost || 0,
+        paid: !!s.paid, isPast, isToday, status: job.status,
+        address: job.address || job.venue || '', timeline: job.timeline || {}
+      });
+      if (s.service.toLowerCase().includes('quay') && (s.editStaff === staffName || s.staff === staffName)) {
+        const dl = new Date(jobDate); dl.setDate(dl.getDate() + 20);
+        const daysLeft = Math.ceil((dl - today) / 864e5);
+        const editStatus = s.editStatus || 'Chưa bắt đầu';
+        let sc = '#22c55e'; if (daysLeft <= 0 && editStatus !== 'Hoàn thành') sc = '#ef4444'; else if (daysLeft <= 5) sc = '#f97316'; else if (daysLeft <= 10) sc = '#eab308';
+        if (editStatus === 'Hoàn thành') sc = '#22c55e';
+        myClips.push({ jobId: job.id, client: job.client, service: s.service, editStatus, deadlineStr: dl.toLocaleDateString('vi-VN'), daysLeft, sc, editorNote: s.editorNote || '', editDriveLink: s.editDriveLink || '', dateStr: jobDate.toLocaleDateString('vi-VN') });
+      }
+    });
+  });
+
+  myJobs.sort((a,b) => new Date(a.date) - new Date(b.date));
+  const totalEarnings = myJobs.reduce((s,j) => s + j.cost, 0);
+  const paidEarnings = myJobs.filter(j => j.paid).reduce((s,j) => s + j.cost, 0);
+  const unpaidEarnings = totalEarnings - paidEarnings;
+  const upcomingJobs = myJobs.filter(j => !j.isPast);
+  const pastJobs = myJobs.filter(j => j.isPast);
+  const fmt = (n) => n.toLocaleString('vi-VN') + 'đ';
+  const activeTab = state.staffPortalTab || 'jobs';
+
+  container.innerHTML = `
+    <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(22,163,74,0.1);padding:0.6rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100">
+      <div style="display:flex;align-items:center;gap:0.6rem">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#16a34a,#22c55e);border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <span style="color:#fff;font-size:0.9rem;font-weight:900">${staffName[0]}</span>
+        </div>
+        <div>
+          <span style="font-size:1rem;font-weight:800;color:var(--text-main)">👋 ${staffName}</span>
+          <div style="font-size:0.68rem;color:var(--text-dim)">${today.toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <div style="display:flex;gap:0.3rem;font-size:0.72rem;font-weight:800">
+          <span style="background:#3b82f610;color:#3b82f6;padding:0.15rem 0.45rem;border-radius:6px">${myJobs.length} job</span>
+          <span style="background:#22c55e10;color:#22c55e;padding:0.15rem 0.45rem;border-radius:6px">${fmt(totalEarnings)}</span>
+          ${unpaidEarnings > 0 ? '<span style="background:#ef444410;color:#ef4444;padding:0.15rem 0.45rem;border-radius:6px">Nợ '+fmt(unpaidEarnings)+'</span>' : ''}
+        </div>
+        <button onclick="window.toggleTheme();window.updateUI()" class="theme-toggle">${isDark?'☀️':'🌙'}</button>
+        <button onclick="window.logout()" style="background:#ef444408;border:1px solid #ef444425;color:#ef4444;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">🚪 Thoát</button>
+      </div>
+    </div>
+
+    <div style="padding:0.8rem 1.5rem;max-width:1200px;margin:0 auto">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:0.8rem">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.5rem 0.7rem;text-align:center;border-top:3px solid #3b82f6">
+          <div style="font-size:0.5rem;font-weight:800;color:var(--text-dim);text-transform:uppercase">Tổng Job</div>
+          <div style="font-size:1.2rem;font-weight:900;color:#3b82f6">${myJobs.length}</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.5rem 0.7rem;text-align:center;border-top:3px solid #22c55e">
+          <div style="font-size:0.5rem;font-weight:800;color:var(--text-dim);text-transform:uppercase">Đã thanh toán</div>
+          <div style="font-size:1.2rem;font-weight:900;color:#22c55e">${fmt(paidEarnings)}</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.5rem 0.7rem;text-align:center;border-top:3px solid #f97316">
+          <div style="font-size:0.5rem;font-weight:800;color:var(--text-dim);text-transform:uppercase">Chưa thanh toán</div>
+          <div style="font-size:1.2rem;font-weight:900;color:#f97316">${fmt(unpaidEarnings)}</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.5rem 0.7rem;text-align:center;border-top:3px solid #8b5cf6">
+          <div style="font-size:0.5rem;font-weight:800;color:var(--text-dim);text-transform:uppercase">Clips Edit</div>
+          <div style="font-size:1.2rem;font-weight:900;color:#8b5cf6">${myClips.length}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.25rem;margin-bottom:0.8rem;background:var(--accent-soft);border-radius:10px;padding:0.2rem;border:1px solid var(--border)">
+        <button class="sp-tab" data-tab="jobs" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;${activeTab==='jobs'?'background:var(--primary);color:#fff':'background:transparent;color:var(--text-dim)'}">📋 Công việc (${myJobs.length})</button>
+        <button class="sp-tab" data-tab="payment" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;${activeTab==='payment'?'background:var(--primary);color:#fff':'background:transparent;color:var(--text-dim)'}">💰 Thanh toán</button>
+        ${myClips.length > 0 ? '<button class="sp-tab" data-tab="clips" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;'+(activeTab==='clips'?'background:var(--primary);color:#fff':'background:transparent;color:var(--text-dim)')+'">🎬 Clips ('+myClips.length+')</button>' : ''}
+      </div>
+
+      <div id="sp-jobs" style="${activeTab==='jobs'?'':'display:none'}">
+        ${upcomingJobs.length?'<div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:0.4rem">🔜 Sắp tới ('+upcomingJobs.length+')</div>':''}
+        ${upcomingJobs.map(j => '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;border-left:3px solid '+(j.isToday?'#f97316':'var(--primary)')+'"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">'+j.client+'</span>'+(j.isToday?' <span style="font-size:0.55rem;background:#f97316;color:#fff;padding:0.1rem 0.3rem;border-radius:4px;font-weight:800">HÔM NAY</span>':'')+'</div><span style="font-size:0.72rem;font-weight:700;color:var(--text-dim)">'+j.dateStr+'</span></div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.15rem">'+j.service+' · '+j.eventType+(j.address?' · 📍 '+j.address:'')+'</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem"><span style="font-size:0.72rem;font-weight:800;color:var(--primary)">'+fmt(j.cost)+'</span><span style="font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;'+(j.paid?'background:#22c55e15;color:#22c55e':'background:#f9731615;color:#f97316')+'">'+(j.paid?'✅ Đã TT':'⏳ Chưa TT')+'</span></div></div>').join('')}
+        ${pastJobs.length?'<div style="font-size:0.75rem;font-weight:800;color:var(--text-dim);margin:0.6rem 0 0.4rem">✅ Đã làm ('+pastJobs.length+')</div>':''}
+        ${pastJobs.map(j => '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;opacity:0.7"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:0.85rem;font-weight:800;color:var(--text-main)">'+j.client+'</span><span style="font-size:0.72rem;font-weight:700;color:var(--text-dim)">'+j.dateStr+'</span></div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.15rem">'+j.service+' · '+j.eventType+'</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem"><span style="font-size:0.72rem;font-weight:800;color:var(--primary)">'+fmt(j.cost)+'</span><span style="font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;'+(j.paid?'background:#22c55e15;color:#22c55e':'background:#f9731615;color:#f97316')+'">'+(j.paid?'✅ Đã TT':'⏳ Chưa TT')+'</span></div></div>').join('')}
+        ${myJobs.length===0?'<div style="text-align:center;padding:2rem;color:var(--text-dim);font-size:0.85rem">Chưa có công việc nào 🎬</div>':''}
+      </div>
+
+      <div id="sp-payment" style="${activeTab==='payment'?'':'display:none'}">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.8rem;margin-bottom:0.6rem">
+          <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.5rem">💰 Tổng kết</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem">
+            <div style="text-align:center;padding:0.4rem;background:#3b82f608;border-radius:8px"><div style="font-size:0.5rem;font-weight:800;color:#3b82f6;text-transform:uppercase">Tổng thu nhập</div><div style="font-size:1rem;font-weight:900;color:#3b82f6">${fmt(totalEarnings)}</div></div>
+            <div style="text-align:center;padding:0.4rem;background:#22c55e08;border-radius:8px"><div style="font-size:0.5rem;font-weight:800;color:#22c55e;text-transform:uppercase">Đã nhận</div><div style="font-size:1rem;font-weight:900;color:#22c55e">${fmt(paidEarnings)}</div></div>
+            <div style="text-align:center;padding:0.4rem;background:#f9731608;border-radius:8px"><div style="font-size:0.5rem;font-weight:800;color:#f97316;text-transform:uppercase">Còn nợ</div><div style="font-size:1rem;font-weight:900;color:#f97316">${fmt(unpaidEarnings)}</div></div>
+          </div>
+        </div>
+        ${myJobs.map(j => '<div style="background:var(--bg-card);border:1px solid '+(j.paid?'#22c55e':'#f97316')+'20;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.35rem;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:0.82rem;font-weight:700;color:var(--text-main)">'+j.client+'</div><div style="font-size:0.62rem;color:var(--text-dim)">'+j.dateStr+' · '+j.service+'</div></div><div style="text-align:right"><div style="font-size:0.85rem;font-weight:800;color:'+(j.paid?'#22c55e':'#f97316')+'">'+fmt(j.cost)+'</div><div style="font-size:0.55rem;font-weight:700;color:'+(j.paid?'#22c55e':'#f97316')+'">'+(j.paid?'✅ Đã thanh toán':'⏳ Chờ thanh toán')+'</div></div></div>').join('')}
+      </div>
+
+      <div id="sp-clips" style="${activeTab==='clips'?'':'display:none'}">
+        ${myClips.length===0?'<div style="text-align:center;padding:2rem;color:var(--text-dim)">Không có clip nào 🎬</div>':''}
+        ${myClips.map(c => '<div style="background:var(--bg-card);border:1px solid '+c.sc+'25;border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;border-left:3px solid '+c.sc+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">'+c.client+'</span><span style="font-size:0.65rem;font-weight:800;color:'+c.sc+';background:'+c.sc+'12;padding:0.15rem 0.4rem;border-radius:5px">'+c.editStatus+'</span></div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.3rem">'+c.service+' · �� '+c.dateStr+'</div><div style="background:'+c.sc+'10;border:1px solid '+c.sc+'20;border-radius:8px;padding:0.3rem 0.5rem;display:flex;justify-content:space-between;align-items:center;'+(c.daysLeft<=0&&c.editStatus!=='Hoàn thành'?'animation:pulse 2s infinite':'')+'"><span style="font-size:0.68rem;font-weight:800;color:'+c.sc+'">⏰ DL: '+c.deadlineStr+'</span><span style="font-size:0.68rem;font-weight:800;color:'+c.sc+'">'+(c.editStatus==='Hoàn thành'?'✅ Đã xong':c.daysLeft>0?'⏳ '+c.daysLeft+' ngày':'🚨 Trễ '+Math.abs(c.daysLeft)+' ngày!')+'</span></div>'+(c.editorNote?'<div style="font-size:0.62rem;color:var(--text-muted);margin-top:0.25rem;background:#3b82f608;padding:0.2rem 0.4rem;border-radius:5px">✏️ '+c.editorNote+'</div>':'')+(c.editDriveLink?'<div style="margin-top:0.2rem"><a href="'+c.editDriveLink+'" target="_blank" style="font-size:0.62rem;color:#3b82f6;font-weight:700">🔗 Mở link sản phẩm</a></div>':'')+'</div>').join('')}
+      </div>
+    </div>
+    <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}</style>
+  `;
+
+  container.addEventListener('click', (e) => {
+    const tabBtn = e.target.closest('.sp-tab');
+    if (tabBtn) { state.staffPortalTab = tabBtn.dataset.tab; window.updateUI(); }
+  });
+
+  return container;
+}

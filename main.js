@@ -4,7 +4,7 @@ import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory,
-  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban, renderWatermark
+  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban, renderWatermark, renderStaffPortal
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
@@ -1203,19 +1203,40 @@ const SESSION_KEY = 'haru_session';
 })();
 
 window.login = (username, password) => {
-  // Luôn dùng accounts hardcoded, không phụ thuộc localStorage
+  // Hardcoded admin/editor accounts
   const HARDCODED_ACCOUNTS = [
     { username: 'ADMIN', password: 'ADMIN', role: 'admin', displayName: 'Admin' },
     { username: 'EDIT', password: 'EDIT', role: 'editor', displayName: 'Editor' }
   ];
-  const account = HARDCODED_ACCOUNTS.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
+  let account = HARDCODED_ACCOUNTS.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
+
+  // Auto-generate staff accounts: username = tên, password = phone hoặc '1234'
+  if (!account) {
+    const staffMember = state.staff.find(s => s.name.toLowerCase() === username.toLowerCase());
+    if (staffMember) {
+      const staffPwd = staffMember.phone || '1234';
+      if (password === staffPwd || password === '1234') {
+        const isEditor = (staffMember.role || '').toLowerCase().includes('edit');
+        account = {
+          username: staffMember.name,
+          password: staffPwd,
+          role: isEditor ? 'editor' : 'staff',
+          displayName: staffMember.name,
+          staffName: staffMember.name
+        };
+      }
+    }
+  }
+
   if (!account) {
     return false;
   }
-  state.currentUser = { username: account.username, role: account.role, displayName: account.displayName };
+  state.currentUser = { username: account.username, role: account.role, displayName: account.displayName, staffName: account.staffName || null };
   localStorage.setItem(SESSION_KEY, JSON.stringify(state.currentUser));
   if (account.role === 'editor') {
     state.activePage = 'edit_video';
+  } else if (account.role === 'staff') {
+    state.activePage = 'staff_portal';
   } else {
     state.activePage = 'dashboard';
   }
@@ -1260,6 +1281,16 @@ function updateUI() {
     app.style.gridTemplateColumns = 'none';
     const loginEl = renderLoginScreen();
     app.appendChild(loginEl);
+    return;
+  }
+
+  // ── Nếu role STAFF → hiển thị Staff Portal riêng ──
+  if (state.currentUser.role === 'staff') {
+    document.body.style.overflowY = 'auto';
+    app.style.display = 'block';
+    app.style.gridTemplateColumns = 'none';
+    const portal = renderStaffPortal(state);
+    app.appendChild(portal);
     return;
   }
 
