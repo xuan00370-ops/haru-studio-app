@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "csv-parse": "^6.1.0",
-    "firebase": "^12.9.0"
+    "firebase": "^12.9.0",
+    "googleapis": "^171.4.0"
   }
 }
