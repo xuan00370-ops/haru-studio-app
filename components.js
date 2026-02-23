@@ -2162,3 +2162,417 @@ export function renderClients(state) {
 
   return container;
 }
+
+// ============================================================
+// LOGIN SCREEN
+// ============================================================
+export function renderLoginScreen() {
+  const container = document.createElement('div');
+  container.style.cssText = `
+    width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 40%, #a5d6a7 100%);
+    background-image: radial-gradient(ellipse at 30% 20%, rgba(22,163,74,0.15) 0%, transparent 50%),
+                      radial-gradient(ellipse at 70% 80%, rgba(34,197,94,0.1) 0%, transparent 50%);
+    font-family: 'Outfit', sans-serif;
+  `;
+
+  container.innerHTML = `
+    <div style="width: 400px; max-width: 92vw; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(22,163,74,0.2); border-radius: 24px; padding: 2.5rem;
+      box-shadow: 0 24px 80px rgba(0,60,0,0.12); text-align: center">
+
+      <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #16a34a, #22c55e);
+        border-radius: 14px; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 8px 24px rgba(22,163,74,0.25)">
+        <span style="color: #fff; font-size: 1.5rem; font-weight: 900">H</span>
+      </div>
+
+      <h1 style="font-size: 1.6rem; font-weight: 900; color: #0f1f0f; margin-bottom: 0.3rem; letter-spacing: -0.5px">HARU STUDIO</h1>
+      <p style="font-size: 0.85rem; color: #3d6b40; margin-bottom: 2rem">Đăng nhập để tiếp tục</p>
+
+      <div id="login-error" style="display: none; background: #fef2f2; border: 1px solid #fca5a5;
+        border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; color: #b91c1c; font-size: 0.85rem; font-weight: 600">
+        Sai tài khoản hoặc mật khẩu
+      </div>
+
+      <form id="login-form" style="display: flex; flex-direction: column; gap: 1rem">
+        <div style="text-align: left">
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #3d6b40; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem">Tài khoản</label>
+          <input type="text" id="login-username" placeholder="username" required autocomplete="username"
+            style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid rgba(20,83,45,0.15); border-radius: 12px;
+              font-size: 1rem; font-family: inherit; background: #fff; color: #0f1f0f; outline: none;
+              transition: border-color 0.2s; box-sizing: border-box"
+            onfocus="this.style.borderColor='#22c55e'; this.style.boxShadow='0 0 0 3px rgba(34,197,94,0.12)'"
+            onblur="this.style.borderColor='rgba(20,83,45,0.15)'; this.style.boxShadow='none'">
+        </div>
+        <div style="text-align: left">
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #3d6b40; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem">Mật khẩu</label>
+          <input type="password" id="login-password" placeholder="••••••" required autocomplete="current-password"
+            style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid rgba(20,83,45,0.15); border-radius: 12px;
+              font-size: 1rem; font-family: inherit; background: #fff; color: #0f1f0f; outline: none;
+              transition: border-color 0.2s; box-sizing: border-box"
+            onfocus="this.style.borderColor='#22c55e'; this.style.boxShadow='0 0 0 3px rgba(34,197,94,0.12)'"
+            onblur="this.style.borderColor='rgba(20,83,45,0.15)'; this.style.boxShadow='none'">
+        </div>
+        <button type="submit" style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #16a34a, #15803d);
+          color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 800; font-family: inherit;
+          cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(22,163,74,0.3)"
+          onmouseenter="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 24px rgba(22,163,74,0.4)'"
+          onmouseleave="this.style.transform='none'; this.style.boxShadow='0 4px 16px rgba(22,163,74,0.3)'">
+          Đăng nhập →
+        </button>
+      </form>
+
+      <p style="font-size: 0.72rem; color: #6b8f6e; margin-top: 1.5rem">Haru Wedding Film © 2026</p>
+    </div>
+  `;
+
+  // Form submit handler
+  setTimeout(() => {
+    const form = container.querySelector('#login-form');
+    if (form) {
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+        const success = window.login(username, password);
+        if (!success) {
+          const errEl = document.getElementById('login-error');
+          if (errEl) errEl.style.display = 'block';
+        }
+      };
+    }
+  }, 0);
+
+  return container;
+}
+
+// ============================================================
+// EDITOR PORTAL — Giao diện chuyên dụng cho Editor
+// ============================================================
+export function renderEditorPortal(state) {
+  const container = document.createElement('div');
+  container.style.cssText = `
+    min-height: 100vh; background: var(--bg-deep);
+    background-image: radial-gradient(ellipse at 20% 0%, rgba(22,163,74,0.04) 0%, transparent 50%);
+    font-family: 'Outfit', sans-serif; overflow-y: auto;
+  `;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const EDIT_DAYS = 20;
+  const userName = state.currentUser?.displayName || 'Editor';
+  const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+
+  // Thu thập video tasks
+  const videoTasks = [];
+  state.jobs.forEach(job => {
+    if (job.isTrash) return;
+    job.services.forEach((s, sIdx) => {
+      const isVideo = s.service.toLowerCase().includes('quay');
+      if (!isVideo) return;
+
+      const jobDate = new Date(job.date);
+      jobDate.setHours(0, 0, 0, 0);
+      const deadlineDate = new Date(jobDate);
+      deadlineDate.setDate(deadlineDate.getDate() + EDIT_DAYS);
+
+      const diffMs = deadlineDate - today;
+      const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const elapsed = EDIT_DAYS - daysLeft;
+      const progress = Math.max(0, Math.min(100, (elapsed / EDIT_DAYS) * 100));
+
+      const editStatus = s.editStatus || 'Chưa bắt đầu';
+      let stage, stageColor, stageBg, stageIcon, priority;
+      if (editStatus === 'Hoàn thành') {
+        stage = 'HOÀN THÀNH'; stageColor = '#22c55e'; stageBg = 'rgba(34,197,94,0.06)'; stageIcon = '✅'; priority = 99;
+      } else if (daysLeft > 10) {
+        stage = 'THOẢI MÁI'; stageColor = '#22c55e'; stageBg = 'rgba(34,197,94,0.04)'; stageIcon = '🟢'; priority = 3;
+      } else if (daysLeft > 5) {
+        stage = 'CẦN ĐẨY'; stageColor = '#eab308'; stageBg = 'rgba(234,179,8,0.05)'; stageIcon = '🟡'; priority = 2;
+      } else if (daysLeft > 0) {
+        stage = 'GẤP'; stageColor = '#f97316'; stageBg = 'rgba(249,115,22,0.06)'; stageIcon = '🟠'; priority = 1;
+      } else {
+        stage = 'QUÁ HẠN'; stageColor = '#ef4444'; stageBg = 'rgba(239,68,68,0.06)'; stageIcon = '🔴'; priority = 0;
+      }
+
+      // Checklist data
+      const checklist = s.editChecklist || { footage: false, rough: false, color: false, audio: false, export: false };
+
+      videoTasks.push({
+        jobId: job.id, jobNo: job.jobNo, client: job.client, service: s.service, serviceIdx: sIdx,
+        staff: s.staff, editStaff: s.editStaff || '',
+        editStatus, editDriveLink: s.editDriveLink || '',
+        venue: job.venue || '', eventType: job.eventType || 'Wedding',
+        timeline: job.timeline || {}, notes: job.notes || '',
+        linkNAS: job.linkNAS || '', linkDrive: job.linkDrive || '',
+        jobDate: job.date,
+        deadlineDate, deadlineStr: deadlineDate.toLocaleDateString('vi-VN'),
+        daysLeft, progress,
+        stage, stageColor, stageBg, stageIcon, priority, checklist
+      });
+    });
+  });
+
+  // Sort: urgent first, done last
+  videoTasks.sort((a, b) => a.priority - b.priority || a.daysLeft - b.daysLeft);
+
+  // Stats
+  const total = videoTasks.length;
+  const done = videoTasks.filter(t => t.editStatus === 'Hoàn thành').length;
+  const urgent = videoTasks.filter(t => t.priority <= 1).length;
+  const pending = total - done;
+
+  // Workflow grouping for kanban
+  const steps = ['Chưa bắt đầu', 'Đang cắt', 'Demo 1', 'Chỉnh sửa', 'Hoàn thành'];
+  const stepColors = ['#94a3b8', '#3b82f6', '#f97316', '#eab308', '#22c55e'];
+
+  container.innerHTML = `
+    <!-- TOP BAR -->
+    <div style="background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(22,163,74,0.12);
+      padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100">
+      <div style="display: flex; align-items: center; gap: 1rem">
+        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 10px;
+          display: flex; align-items: center; justify-content: center">
+          <span style="color: #fff; font-size: 0.9rem; font-weight: 900">H</span>
+        </div>
+        <div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-main)">Xin chào, ${userName} 👋</div>
+          <div style="font-size: 0.75rem; color: var(--text-dim)">${today.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })} • Edit Video Portal</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1rem">
+        <!-- Month picker mini -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(22,163,74,0.06); padding: 0.4rem 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+          <button onclick="window.state.currentYear--; window.updateUI()" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--text-dim)">←</button>
+          <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary)">${state.currentYear}</span>
+          <button onclick="window.state.currentYear++; window.updateUI()" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--text-dim)">→</button>
+          <select onchange="window.state.currentMonth=parseInt(this.value); window.updateUI()"
+            style="font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.5rem; background: #fff; color: var(--text-main); cursor: pointer">
+            ${months.map((m, i) => `<option value="${i + 1}" ${state.currentMonth === i + 1 ? 'selected' : ''}>${m}</option>`).join('')}
+          </select>
+        </div>
+        <button onclick="window.logout()" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+          color: #ef4444; padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+          cursor: pointer; font-family: inherit">Đăng xuất</button>
+      </div>
+    </div>
+
+    <div style="padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto">
+
+      <!-- STATS -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem">
+        <div style="background: #fff; border: 1.5px solid rgba(59,130,246,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #3b82f6">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Tổng video</div>
+          <div style="font-size: 2.2rem; font-weight: 900; color: #3b82f6; margin-top: 0.2rem">${total}</div>
+        </div>
+        <div style="background: #fff; border: 1.5px solid rgba(239,68,68,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #ef4444">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Cần làm gấp</div>
+          <div style="font-size: 2.2rem; font-weight: 900; color: #ef4444; margin-top: 0.2rem">${urgent}</div>
+        </div>
+        <div style="background: #fff; border: 1.5px solid rgba(249,115,22,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #f97316">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Đang chờ</div>
+          <div style="font-size: 2.2rem; font-weight: 900; color: #f97316; margin-top: 0.2rem">${pending}</div>
+        </div>
+        <div style="background: #fff; border: 1.5px solid rgba(34,197,94,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #22c55e">
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Hoàn thành</div>
+          <div style="font-size: 2.2rem; font-weight: 900; color: #22c55e; margin-top: 0.2rem">${done}</div>
+        </div>
+      </div>
+
+      <!-- KANBAN WORKFLOW OVERVIEW -->
+      <div style="display: flex; gap: 0.3rem; margin-bottom: 2rem; background: #fff; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border)">
+        ${steps.map((step, idx) => {
+    const count = videoTasks.filter(t => t.editStatus === step).length;
+    const pct = total > 0 ? (count / total * 100).toFixed(0) : 0;
+    return `
+          <div style="flex: 1; text-align: center; padding: 0.5rem; ${idx < steps.length - 1 ? 'border-right: 1px solid var(--border)' : ''}">
+            <div style="font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: ${stepColors[idx]}; margin-bottom: 0.3rem">${step}</div>
+            <div style="font-size: 1.3rem; font-weight: 900; color: var(--text-main)">${count}</div>
+            <div style="width: 100%; height: 3px; background: rgba(0,0,0,0.05); border-radius: 2px; margin-top: 0.3rem">
+              <div style="width: ${pct}%; height: 100%; background: ${stepColors[idx]}; border-radius: 2px"></div>
+            </div>
+          </div>`;
+  }).join('')}
+      </div>
+
+      <!-- VIDEO TASK CARDS -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.25rem">
+        ${videoTasks.length > 0 ? videoTasks.map(t => {
+    const progressColor = t.editStatus === 'Hoàn thành' ? '#22c55e' : t.stageColor;
+    const progressPct = t.editStatus === 'Hoàn thành' ? 100 : t.progress;
+    const currentStep = steps.indexOf(t.editStatus);
+    const isDone = t.editStatus === 'Hoàn thành';
+
+    // Timeline info
+    let timelineStr = '';
+    if (t.timeline.le_sang && t.timeline.le) timelineStr += `Lễ: ${t.timeline.le} · `;
+    if (t.timeline.tiec_trua && t.timeline.tiec_trua_time) timelineStr += `Tiệc trưa: ${t.timeline.tiec_trua_time} · `;
+    if (t.timeline.tiec_toi && t.timeline.tiec) timelineStr += `Tiệc tối: ${t.timeline.tiec} · `;
+    if (!timelineStr && t.timeline.le) timelineStr = `Lễ: ${t.timeline.le} · Tiệc: ${t.timeline.tiec || '—'} · `;
+    timelineStr = timelineStr.replace(/ · $/, '');
+
+    return `
+          <div style="background: ${isDone ? 'rgba(34,197,94,0.04)' : '#fff'}; border: 1.5px solid ${t.stageColor}25;
+            border-radius: 16px; padding: 1.25rem; transition: all 0.2s; ${isDone ? 'opacity: 0.75' : ''}; box-shadow: 0 2px 8px rgba(0,0,0,0.03)">
+
+            <!-- Header: Stage + Service -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem">
+              <div style="display: flex; align-items: center; gap: 0.4rem">
+                <span style="font-size: 1rem">${t.stageIcon}</span>
+                <span style="font-size: 0.65rem; font-weight: 900; color: ${t.stageColor}; text-transform: uppercase;
+                  background: ${t.stageColor}12; padding: 0.15rem 0.5rem; border-radius: 4px; letter-spacing: 0.5px">${t.stage}</span>
+                <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-dim); background: rgba(0,0,0,0.04);
+                  padding: 0.15rem 0.4rem; border-radius: 4px">${t.service}</span>
+              </div>
+              <span style="font-size: 0.6rem; font-weight: 800; color: var(--primary); background: var(--accent-soft);
+                padding: 0.15rem 0.5rem; border-radius: 4px">#${t.jobNo || '—'}</span>
+            </div>
+
+            <!-- Client + Event type -->
+            <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.15rem">${t.client}</div>
+            <div style="font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-bottom: 0.6rem">${t.eventType}</div>
+
+            <!-- Progress bar -->
+            <div style="margin-bottom: 0.6rem">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem">
+                <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-dim)">Tiến độ</span>
+                <span style="font-size: 0.75rem; font-weight: 800; color: ${progressColor}">
+                  ${isDone ? '✅ Đã xong' : (t.daysLeft > 0 ? `Còn ${t.daysLeft} ngày` : `Trễ ${Math.abs(t.daysLeft)} ngày!`)}
+                </span>
+              </div>
+              <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden">
+                <div style="width: ${progressPct}%; height: 100%; background: ${progressColor}; border-radius: 3px; transition: width 0.3s"></div>
+              </div>
+            </div>
+
+            <!-- Workflow steps -->
+            <div style="display: flex; gap: 0.2rem; margin-bottom: 0.75rem">
+              ${steps.map((step, idx) => {
+      const isActive = idx === currentStep;
+      const isPast = idx < currentStep;
+      const clr = isPast ? '#22c55e' : isActive ? t.stageColor : 'rgba(0,0,0,0.08)';
+      return `<div style="flex: 1; height: 3px; background: ${clr}; border-radius: 2px" title="${step}"></div>`;
+    }).join('')}
+            </div>
+
+            <!-- Info: context cho editor -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.82rem">
+              <div>
+                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📅 Ngày quay</label>
+                <span style="font-weight: 700; color: var(--text-main)">${new Date(t.jobDate).toLocaleDateString('vi-VN')}</span>
+              </div>
+              <div>
+                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">⏰ Deadline</label>
+                <span style="font-weight: 800; font-family: monospace; color: ${t.stageColor}">${t.deadlineStr}</span>
+              </div>
+              <div style="grid-column: 1 / -1">
+                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📍 Địa điểm</label>
+                <span style="font-weight: 600; color: var(--text-muted)">${t.venue || 'Chưa cập nhật'}</span>
+              </div>
+              ${timelineStr ? `
+              <div style="grid-column: 1 / -1">
+                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">⏱ Timeline</label>
+                <span style="font-weight: 700; color: #f97316">${timelineStr}</span>
+              </div>` : ''}
+              ${t.notes ? `
+              <div style="grid-column: 1 / -1">
+                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📝 Ghi chú</label>
+                <span style="font-weight: 600; color: var(--text-muted); font-size: 0.8rem">${t.notes}</span>
+              </div>` : ''}
+              <div>
+                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📷 Thợ quay</label>
+                <span style="font-weight: 700; color: var(--text-main)">${t.staff}</span>
+              </div>
+              <div>
+                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">🎬 Editor</label>
+                <span style="font-weight: 700; color: var(--accent)">${t.editStaff || 'Chưa gán'}</span>
+              </div>
+            </div>
+
+            <!-- Checklist -->
+            <div style="background: rgba(0,0,0,0.02); padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 0.6rem">
+              <div style="font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.4rem">📋 Checklist Edit</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.4rem">
+                ${[
+        ['footage', '📁 Nhận footage'],
+        ['rough', '✂️ Cut rough'],
+        ['color', '🎨 Color grade'],
+        ['audio', '🎵 Audio mix'],
+        ['export', '📤 Export final']
+      ].map(([key, label]) => `
+                  <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 600;
+                    color: ${t.checklist[key] ? '#22c55e' : 'var(--text-dim)'}; cursor: pointer; padding: 0.2rem 0.4rem;
+                    background: ${t.checklist[key] ? 'rgba(34,197,94,0.08)' : 'rgba(0,0,0,0.02)'}; border-radius: 6px;
+                    border: 1px solid ${t.checklist[key] ? 'rgba(34,197,94,0.2)' : 'transparent'}">
+                    <input type="checkbox" class="ep-checklist" data-job-id="${t.jobId}" data-service="${t.service}" data-key="${key}"
+                      ${t.checklist[key] ? 'checked' : ''} style="accent-color: #22c55e; width: 14px; height: 14px"> ${label}
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Controls: Status + Links -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; background: rgba(255,255,255,0.7); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border)">
+              <!-- Status -->
+              <div style="display: flex; align-items: center; gap: 0.5rem">
+                <label style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; min-width: 60px; white-space: nowrap">📊 Trạng thái</label>
+                <select class="form-control ep-status-select" data-job-id="${t.jobId}" data-service="${t.service}"
+                  style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid ${t.stageColor}30; color: ${t.stageColor}; font-weight: 800">
+                  ${steps.map(step => `<option value="${step}" ${t.editStatus === step ? 'selected' : ''}>${step}</option>`).join('')}
+                </select>
+                ${!isDone ? `<button class="ep-done-btn" data-job-id="${t.jobId}" data-service="${t.service}"
+                  style="background: #22c55e; color: #fff; border: none; padding: 0.35rem 0.7rem; border-radius: 8px;
+                    font-size: 0.72rem; font-weight: 800; cursor: pointer; white-space: nowrap; font-family: inherit">✓ Xong</button>` : ''}
+              </div>
+
+              <!-- NAS source link -->
+              ${t.linkNAS ? `
+              <div style="display: flex; align-items: center; gap: 0.5rem">
+                <label style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; min-width: 60px; white-space: nowrap">📂 NAS</label>
+                <div style="flex: 1; font-size: 0.78rem; color: var(--accent-blue); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${t.linkNAS}</div>
+                <button onclick="navigator.clipboard.writeText('${t.linkNAS.replace(/'/g, "\\'")}')" style="background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.2); color: #2563eb; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.65rem; cursor: pointer; white-space: nowrap">Copy</button>
+              </div>` : ''}
+
+              <!-- Drive output link -->
+              <div style="display: flex; align-items: center; gap: 0.5rem">
+                <label style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; min-width: 60px; white-space: nowrap">🔗 Output</label>
+                <input type="text" class="form-control ep-drive-input" data-job-id="${t.jobId}" data-service="${t.service}"
+                  placeholder="Link sản phẩm hoàn thành…" value="${t.editDriveLink}"
+                  style="flex: 1; font-size: 0.82rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+                ${t.editDriveLink ? `<a href="${t.editDriveLink}" target="_blank" style="background: #22c55e; color: #fff; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-decoration: none; white-space: nowrap">Mở ↗</a>` : ''}
+              </div>
+            </div>
+          </div>`;
+  }).join('') : '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-dim); font-size: 1rem; background: #fff; border-radius: 16px; border: 1.5px dashed var(--border)">Không có video task nào trong tháng này 🎬</div>'}
+      </div>
+    </div>
+  `;
+
+  // Event delegation
+  container.addEventListener('change', function (ev) {
+    const el = ev.target;
+    if (el.classList.contains('ep-status-select')) {
+      window.updateVideoEditStatus(el.dataset.jobId, el.dataset.service, el.value);
+    }
+    if (el.classList.contains('ep-checklist')) {
+      window.updateEditorChecklist(el.dataset.jobId, el.dataset.service, el.dataset.key, el.checked);
+    }
+  });
+
+  container.addEventListener('click', function (ev) {
+    const btn = ev.target.closest('.ep-done-btn');
+    if (btn) {
+      window.updateVideoEditStatus(btn.dataset.jobId, btn.dataset.service, 'Hoàn thành');
+    }
+  });
+
+  container.addEventListener('blur', function (ev) {
+    const el = ev.target;
+    if (el.classList.contains('ep-drive-input')) {
+      window.updateVideoEditLink(el.dataset.jobId, el.dataset.service, el.value);
+    }
+  }, true);
+
+  return container;
+}

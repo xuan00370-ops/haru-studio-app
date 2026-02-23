@@ -3,7 +3,8 @@ import { mockData } from './data.js';
 import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
-  renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory
+  renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory,
+  renderLoginScreen, renderEditorPortal
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
@@ -26,6 +27,7 @@ export const state = {
   searchQuery: '',
   staffViewMode: 'all',
   editVideoFilter: 'TẤT CẢ',
+  currentUser: null, // { username, role, displayName }
   syncLogs: [],
   lastSyncResult: null,
   jobs: [...mockData.jobs],
@@ -36,7 +38,11 @@ export const state = {
     taxRate: 0.1,
     depositPercent: 0.2,
     firebaseConfig: '',
-    rates: mockData.settings?.rates || {}
+    rates: mockData.settings?.rates || {},
+    accounts: [
+      { username: 'admin', password: 'haru2026', role: 'admin', displayName: 'Admin' },
+      { username: 'editor', password: 'edit2026', role: 'editor', displayName: 'Editor' }
+    ]
   },
   clients: [] // Phase 3 CRM
 };
@@ -515,6 +521,16 @@ window.updateVideoEditLink = (jobId, serviceName, link) => {
   }
 };
 
+window.updateEditorChecklist = (jobId, serviceName, key, checked) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  const svc = job.services.find(s => s.service === serviceName);
+  if (!svc) return;
+  if (!svc.editChecklist) svc.editChecklist = { footage: false, rough: false, color: false, audio: false, export: false };
+  svc.editChecklist[key] = checked;
+  saveState();
+};
+
 
 
 // ============================================================
@@ -831,6 +847,49 @@ window.saveFirebaseConfig = () => {
 };
 
 // ============================================================
+// AUTH SYSTEM
+// ============================================================
+const SESSION_KEY = 'haru_session';
+
+// Restore session on boot
+(function restoreSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session && session.username && session.role) {
+        state.currentUser = session;
+      }
+    }
+  } catch (e) { /* ignore */ }
+})();
+
+window.login = (username, password) => {
+  const accounts = state.settings.accounts || [];
+  const account = accounts.find(a => a.username === username && a.password === password);
+  if (!account) {
+    return false;
+  }
+  state.currentUser = { username: account.username, role: account.role, displayName: account.displayName };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(state.currentUser));
+  if (account.role === 'editor') {
+    state.activePage = 'edit_video';
+  } else {
+    state.activePage = 'dashboard';
+  }
+  window.addHistory(`Đăng nhập: ${account.displayName} (${account.role})`);
+  updateUI();
+  return true;
+};
+
+window.logout = () => {
+  window.addHistory(`Đăng xuất: ${state.currentUser?.displayName || 'Unknown'}`);
+  state.currentUser = null;
+  localStorage.removeItem(SESSION_KEY);
+  updateUI();
+};
+
+// ============================================================
 // EXPOSE GLOBALS
 // ============================================================
 window.state = state;
@@ -852,6 +911,33 @@ function updateMonth(month, year) {
 function updateUI() {
   window.updateUI = updateUI;
   app.innerHTML = '';
+
+  // ── Nếu chưa login → hiển thị Login Screen ──
+  if (!state.currentUser) {
+    app.style.display = 'flex';
+    app.style.gridTemplateColumns = 'none';
+    const loginEl = renderLoginScreen();
+    app.appendChild(loginEl);
+    return;
+  }
+
+  // ── Nếu role EDITOR → hiển thị Editor Portal riêng ──
+  if (state.currentUser.role === 'editor') {
+    app.style.display = 'block';
+    app.style.gridTemplateColumns = 'none';
+    const filteredJobs = state.jobs.filter(job => {
+      const jobDate = new Date(job.date);
+      return (jobDate.getMonth() + 1) === state.currentMonth && jobDate.getFullYear() === state.currentYear;
+    });
+    const periodState = { ...state, jobs: filteredJobs };
+    const portal = renderEditorPortal(periodState);
+    app.appendChild(portal);
+    return;
+  }
+
+  // ── Role ADMIN → giao diện đầy đủ ──
+  app.style.display = 'grid';
+  app.style.gridTemplateColumns = '270px 1fr';
 
   const sidebar = renderSidebar(state.activePage, window.navigate);
   app.appendChild(sidebar);
