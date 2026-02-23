@@ -2263,69 +2263,59 @@ export function renderEditorPortal(state) {
   const EDIT_DAYS = 20;
   const userName = state.currentUser?.displayName || 'Editor';
   const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-
-  // Thu thập video tasks
-  const videoTasks = [];
-  state.jobs.forEach(job => {
-    if (job.isTrash) return;
-    job.services.forEach((s, sIdx) => {
-      const isVideo = s.service.toLowerCase().includes('quay');
-      if (!isVideo) return;
-
-      const jobDate = new Date(job.date);
-      jobDate.setHours(0, 0, 0, 0);
-      const deadlineDate = new Date(jobDate);
-      deadlineDate.setDate(deadlineDate.getDate() + EDIT_DAYS);
-
-      const diffMs = deadlineDate - today;
-      const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      const elapsed = EDIT_DAYS - daysLeft;
-      const progress = Math.max(0, Math.min(100, (elapsed / EDIT_DAYS) * 100));
-
-      const editStatus = s.editStatus || 'Chưa bắt đầu';
-      let stage, stageColor, stageBg, stageIcon, priority;
-      if (editStatus === 'Hoàn thành') {
-        stage = 'HOÀN THÀNH'; stageColor = '#22c55e'; stageBg = 'rgba(34,197,94,0.06)'; stageIcon = '✅'; priority = 99;
-      } else if (daysLeft > 10) {
-        stage = 'THOẢI MÁI'; stageColor = '#22c55e'; stageBg = 'rgba(34,197,94,0.04)'; stageIcon = '🟢'; priority = 3;
-      } else if (daysLeft > 5) {
-        stage = 'CẦN ĐẨY'; stageColor = '#eab308'; stageBg = 'rgba(234,179,8,0.05)'; stageIcon = '🟡'; priority = 2;
-      } else if (daysLeft > 0) {
-        stage = 'GẤP'; stageColor = '#f97316'; stageBg = 'rgba(249,115,22,0.06)'; stageIcon = '🟠'; priority = 1;
-      } else {
-        stage = 'QUÁ HẠN'; stageColor = '#ef4444'; stageBg = 'rgba(239,68,68,0.06)'; stageIcon = '🔴'; priority = 0;
-      }
-
-      // Checklist data
-      const checklist = s.editChecklist || { footage: false, rough: false, color: false, audio: false, export: false };
-
-      videoTasks.push({
-        jobId: job.id, jobNo: job.jobNo, client: job.client, service: s.service, serviceIdx: sIdx,
-        staff: s.staff, editStaff: s.editStaff || '',
-        editStatus, editDriveLink: s.editDriveLink || '',
-        venue: job.venue || '', eventType: job.eventType || 'Wedding',
-        timeline: job.timeline || {}, notes: job.notes || '',
-        linkNAS: job.linkNAS || '', linkDrive: job.linkDrive || '',
-        jobDate: job.date,
-        deadlineDate, deadlineStr: deadlineDate.toLocaleDateString('vi-VN'),
-        daysLeft, progress,
-        stage, stageColor, stageBg, stageIcon, priority, checklist
-      });
-    });
-  });
-
-  // Sort: urgent first, done last
-  videoTasks.sort((a, b) => a.priority - b.priority || a.daysLeft - b.daysLeft);
-
-  // Stats
-  const total = videoTasks.length;
-  const done = videoTasks.filter(t => t.editStatus === 'Hoàn thành').length;
-  const urgent = videoTasks.filter(t => t.priority <= 1).length;
-  const pending = total - done;
-
-  // Workflow grouping for kanban
   const steps = ['Chưa bắt đầu', 'Đang cắt', 'Demo 1', 'Chỉnh sửa', 'Hoàn thành'];
   const stepColors = ['#94a3b8', '#3b82f6', '#f97316', '#eab308', '#22c55e'];
+
+  // Thu thập và nhóm theo khách hàng
+  const jobGroups = {};
+  state.jobs.forEach(job => {
+    if (job.isTrash) return;
+    const clips = [];
+    job.services.forEach((s, sIdx) => {
+      if (!s.service.toLowerCase().includes('quay')) return;
+      const jobDate = new Date(job.date); jobDate.setHours(0, 0, 0, 0);
+      const deadlineDate = new Date(jobDate); deadlineDate.setDate(deadlineDate.getDate() + EDIT_DAYS);
+      const daysLeft = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+      const progress = Math.max(0, Math.min(100, ((EDIT_DAYS - daysLeft) / EDIT_DAYS) * 100));
+      const editStatus = s.editStatus || 'Chưa bắt đầu';
+      let stage, stageColor, stageIcon, priority;
+      if (editStatus === 'Hoàn thành') { stage = 'HOÀN THÀNH'; stageColor = '#22c55e'; stageIcon = '✅'; priority = 99; }
+      else if (daysLeft > 10) { stage = 'THOẢI MÁI'; stageColor = '#22c55e'; stageIcon = '🟢'; priority = 3; }
+      else if (daysLeft > 5) { stage = 'CẦN ĐẨY'; stageColor = '#eab308'; stageIcon = '🟡'; priority = 2; }
+      else if (daysLeft > 0) { stage = 'GẤP'; stageColor = '#f97316'; stageIcon = '🟠'; priority = 1; }
+      else { stage = 'QUÁ HẠN'; stageColor = '#ef4444'; stageIcon = '🔴'; priority = 0; }
+      const checklist = s.editChecklist || { footage: false, rough: false, color: false, audio: false, export: false };
+      clips.push({
+        service: s.service, serviceIdx: sIdx, staff: s.staff,
+        editStaff: s.editStaff || '', editStatus, editDriveLink: s.editDriveLink || '',
+        editorNote: s.editorNote || '',
+        deadlineDate, deadlineStr: deadlineDate.toLocaleDateString('vi-VN'),
+        daysLeft, progress, stage, stageColor, stageIcon, priority, checklist
+      });
+    });
+    if (clips.length === 0) return;
+    const worstPriority = Math.min(...clips.map(c => c.priority));
+    const worstColor = clips.find(c => c.priority === worstPriority)?.stageColor || '#22c55e';
+    jobGroups[job.id] = {
+      jobId: job.id, jobNo: job.jobNo, client: job.client,
+      eventType: job.eventType || 'Wedding', jobDate: job.date,
+      timeline: job.timeline || {}, notes: job.notes || '',
+      linkNAS: job.linkNAS || '', linkDrive: job.linkDrive || '',
+      linkFootage: job.linkFootage || '',
+      clips, clipCount: clips.length,
+      allDone: clips.every(c => c.editStatus === 'Hoàn thành'),
+      doneCount: clips.filter(c => c.editStatus === 'Hoàn thành').length,
+      worstPriority, worstColor,
+      worstDaysLeft: Math.min(...clips.map(c => c.daysLeft))
+    };
+  });
+
+  const groups = Object.values(jobGroups).sort((a, b) => a.worstPriority - b.worstPriority || a.worstDaysLeft - b.worstDaysLeft);
+  const allClips = groups.flatMap(g => g.clips);
+  const total = allClips.length;
+  const done = allClips.filter(c => c.editStatus === 'Hoàn thành').length;
+  const urgent = allClips.filter(c => c.priority <= 1).length;
+  const pending = total - done;
 
   container.innerHTML = `
     <!-- TOP BAR -->
@@ -2342,13 +2332,12 @@ export function renderEditorPortal(state) {
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: 1rem">
-        <!-- Month picker mini -->
         <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(22,163,74,0.06); padding: 0.4rem 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
-          <button onclick="window.state.currentYear--; window.updateUI()" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--text-dim)">←</button>
+          <button onclick="window.state.currentYear--; window.updateUI()" style="background:none; border:none; cursor:pointer; font-size:0.85rem; color:var(--text-dim)">←</button>
           <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary)">${state.currentYear}</span>
-          <button onclick="window.state.currentYear++; window.updateUI()" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--text-dim)">→</button>
+          <button onclick="window.state.currentYear++; window.updateUI()" style="background:none; border:none; cursor:pointer; font-size:0.85rem; color:var(--text-dim)">→</button>
           <select onchange="window.state.currentMonth=parseInt(this.value); window.updateUI()"
-            style="font-size: 0.85rem; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.5rem; background: #fff; color: var(--text-main); cursor: pointer">
+            style="font-size:0.85rem; font-weight:700; border:1px solid var(--border); border-radius:6px; padding:0.3rem 0.5rem; background:#fff; color:var(--text-main); cursor:pointer">
             ${months.map((m, i) => `<option value="${i + 1}" ${state.currentMonth === i + 1 ? 'selected' : ''}>${m}</option>`).join('')}
           </select>
         </div>
@@ -2361,190 +2350,197 @@ export function renderEditorPortal(state) {
     <div style="padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto">
 
       <!-- STATS -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem">
-        <div style="background: #fff; border: 1.5px solid rgba(59,130,246,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #3b82f6">
-          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Tổng video</div>
-          <div style="font-size: 2.2rem; font-weight: 900; color: #3b82f6; margin-top: 0.2rem">${total}</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem">
+        <div style="background:#fff; border:1.5px solid rgba(59,130,246,0.15); border-radius:14px; padding:1rem; text-align:center; border-top:3px solid #3b82f6">
+          <div style="font-size:0.62rem; color:var(--text-dim); text-transform:uppercase; font-weight:800">Tổng clip</div>
+          <div style="font-size:2rem; font-weight:900; color:#3b82f6; margin-top:0.2rem">${total}</div>
+          <div style="font-size:0.68rem; color:var(--text-dim)">${groups.length} khách hàng</div>
         </div>
-        <div style="background: #fff; border: 1.5px solid rgba(239,68,68,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #ef4444">
-          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Cần làm gấp</div>
-          <div style="font-size: 2.2rem; font-weight: 900; color: #ef4444; margin-top: 0.2rem">${urgent}</div>
+        <div style="background:#fff; border:1.5px solid rgba(239,68,68,0.15); border-radius:14px; padding:1rem; text-align:center; border-top:3px solid #ef4444">
+          <div style="font-size:0.62rem; color:var(--text-dim); text-transform:uppercase; font-weight:800">Cần làm gấp</div>
+          <div style="font-size:2rem; font-weight:900; color:#ef4444; margin-top:0.2rem">${urgent}</div>
         </div>
-        <div style="background: #fff; border: 1.5px solid rgba(249,115,22,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #f97316">
-          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Đang chờ</div>
-          <div style="font-size: 2.2rem; font-weight: 900; color: #f97316; margin-top: 0.2rem">${pending}</div>
+        <div style="background:#fff; border:1.5px solid rgba(249,115,22,0.15); border-radius:14px; padding:1rem; text-align:center; border-top:3px solid #f97316">
+          <div style="font-size:0.62rem; color:var(--text-dim); text-transform:uppercase; font-weight:800">Đang chờ</div>
+          <div style="font-size:2rem; font-weight:900; color:#f97316; margin-top:0.2rem">${pending}</div>
         </div>
-        <div style="background: #fff; border: 1.5px solid rgba(34,197,94,0.15); border-radius: 14px; padding: 1.25rem; text-align: center; border-top: 3px solid #22c55e">
-          <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Hoàn thành</div>
-          <div style="font-size: 2.2rem; font-weight: 900; color: #22c55e; margin-top: 0.2rem">${done}</div>
+        <div style="background:#fff; border:1.5px solid rgba(34,197,94,0.15); border-radius:14px; padding:1rem; text-align:center; border-top:3px solid #22c55e">
+          <div style="font-size:0.62rem; color:var(--text-dim); text-transform:uppercase; font-weight:800">Hoàn thành</div>
+          <div style="font-size:2rem; font-weight:900; color:#22c55e; margin-top:0.2rem">${done}</div>
         </div>
       </div>
 
-      <!-- KANBAN WORKFLOW OVERVIEW -->
-      <div style="display: flex; gap: 0.3rem; margin-bottom: 2rem; background: #fff; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border)">
+      <!-- KANBAN OVERVIEW -->
+      <div style="display: flex; gap:0.3rem; margin-bottom:2rem; background:#fff; padding:0.6rem 1rem; border-radius:12px; border:1px solid var(--border)">
         ${steps.map((step, idx) => {
-    const count = videoTasks.filter(t => t.editStatus === step).length;
+    const count = allClips.filter(c => c.editStatus === step).length;
     const pct = total > 0 ? (count / total * 100).toFixed(0) : 0;
-    return `
-          <div style="flex: 1; text-align: center; padding: 0.5rem; ${idx < steps.length - 1 ? 'border-right: 1px solid var(--border)' : ''}">
-            <div style="font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: ${stepColors[idx]}; margin-bottom: 0.3rem">${step}</div>
-            <div style="font-size: 1.3rem; font-weight: 900; color: var(--text-main)">${count}</div>
-            <div style="width: 100%; height: 3px; background: rgba(0,0,0,0.05); border-radius: 2px; margin-top: 0.3rem">
-              <div style="width: ${pct}%; height: 100%; background: ${stepColors[idx]}; border-radius: 2px"></div>
+    return `<div style="flex:1; text-align:center; padding:0.4rem; ${idx < steps.length - 1 ? 'border-right:1px solid var(--border)' : ''}">
+            <div style="font-size:0.58rem; font-weight:800; text-transform:uppercase; color:${stepColors[idx]}">${step}</div>
+            <div style="font-size:1.2rem; font-weight:900; color:var(--text-main)">${count}</div>
+            <div style="width:100%; height:3px; background:rgba(0,0,0,0.05); border-radius:2px; margin-top:0.2rem">
+              <div style="width:${pct}%; height:100%; background:${stepColors[idx]}; border-radius:2px"></div>
             </div>
           </div>`;
   }).join('')}
       </div>
 
-      <!-- VIDEO TASK CARDS -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.25rem">
-        ${videoTasks.length > 0 ? videoTasks.map(t => {
-    const progressColor = t.editStatus === 'Hoàn thành' ? '#22c55e' : t.stageColor;
-    const progressPct = t.editStatus === 'Hoàn thành' ? 100 : t.progress;
-    const currentStep = steps.indexOf(t.editStatus);
-    const isDone = t.editStatus === 'Hoàn thành';
-
-    // Timeline info
+      <!-- CLIENT GROUPS -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem">
+        ${groups.length > 0 ? groups.map(g => {
+    const completePct = g.clipCount > 0 ? Math.round((g.doneCount / g.clipCount) * 100) : 0;
     let timelineStr = '';
-    if (t.timeline.le_sang && t.timeline.le) timelineStr += `Lễ: ${t.timeline.le} · `;
-    if (t.timeline.tiec_trua && t.timeline.tiec_trua_time) timelineStr += `Tiệc trưa: ${t.timeline.tiec_trua_time} · `;
-    if (t.timeline.tiec_toi && t.timeline.tiec) timelineStr += `Tiệc tối: ${t.timeline.tiec} · `;
-    if (!timelineStr && t.timeline.le) timelineStr = `Lễ: ${t.timeline.le} · Tiệc: ${t.timeline.tiec || '—'} · `;
-    timelineStr = timelineStr.replace(/ · $/, '');
+    if (g.timeline.le) timelineStr += `Lễ: ${g.timeline.le}`;
+    if (g.timeline.tiec) timelineStr += `${timelineStr ? ' · ' : ''}Tiệc: ${g.timeline.tiec}`;
 
     return `
-          <div style="background: ${isDone ? 'rgba(34,197,94,0.04)' : '#fff'}; border: 1.5px solid ${t.stageColor}25;
-            border-radius: 16px; padding: 1.25rem; transition: all 0.2s; ${isDone ? 'opacity: 0.75' : ''}; box-shadow: 0 2px 8px rgba(0,0,0,0.03)">
+          <div style="background: ${g.allDone ? 'rgba(34,197,94,0.03)' : '#fff'}; border: 1.5px solid ${g.worstColor}20;
+            border-radius: 18px; padding: 1.5rem; ${g.allDone ? 'opacity: 0.7' : ''}; box-shadow: 0 2px 12px rgba(0,0,0,0.03)">
 
-            <!-- Header: Stage + Service -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem">
+            <!-- Client Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border)">
+              <div style="display: flex; align-items: center; gap: 0.75rem">
+                <div style="width: 42px; height: 42px; background: linear-gradient(135deg, ${g.worstColor}20, ${g.worstColor}40);
+                  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+                  font-size: 1.1rem; font-weight: 900; color: ${g.worstColor}">${g.client[0]}</div>
+                <div>
+                  <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-main)">${g.client}</div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: var(--accent)">${g.eventType}</span>
+                    <span style="font-size: 0.68rem; color: var(--text-dim)">•</span>
+                    <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-dim)">${new Date(g.jobDate).toLocaleDateString('vi-VN')}</span>
+                    ${timelineStr ? `<span style="font-size: 0.68rem; color: var(--text-dim)">•</span><span style="font-size: 0.72rem; font-weight: 700; color: #f97316">${timelineStr}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div style="text-align: right">
+                <span style="font-size: 0.6rem; font-weight: 800; color: var(--primary); background: var(--accent-soft); padding: 0.15rem 0.5rem; border-radius: 4px">#${g.jobNo || '—'}</span>
+                <div style="font-size: 0.7rem; font-weight: 800; color: ${g.worstColor}; margin-top: 0.3rem">${g.clipCount} clip${g.clipCount > 1 ? 's' : ''} • ${completePct}%</div>
+                <div style="width: 80px; height: 4px; background: rgba(0,0,0,0.06); border-radius: 2px; margin-top: 0.2rem; margin-left: auto">
+                  <div style="width: ${completePct}%; height: 100%; background: ${completePct === 100 ? '#22c55e' : g.worstColor}; border-radius: 2px"></div>
+                </div>
+              </div>
+            </div>
+
+            ${g.notes ? `<div style="background: rgba(234,179,8,0.06); border: 1px solid rgba(234,179,8,0.15); border-radius: 8px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; font-size: 0.78rem">
+              <span style="color: #eab308; font-weight: 800">📝 Ghi chú:</span> <span style="color: var(--text-muted)">${g.notes}</span>
+            </div>` : ''}
+
+            <!-- Links section (cấp job) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem">
               <div style="display: flex; align-items: center; gap: 0.4rem">
-                <span style="font-size: 1rem">${t.stageIcon}</span>
-                <span style="font-size: 0.65rem; font-weight: 900; color: ${t.stageColor}; text-transform: uppercase;
-                  background: ${t.stageColor}12; padding: 0.15rem 0.5rem; border-radius: 4px; letter-spacing: 0.5px">${t.stage}</span>
-                <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-dim); background: rgba(0,0,0,0.04);
-                  padding: 0.15rem 0.4rem; border-radius: 4px">${t.service}</span>
+                <label style="font-size: 0.6rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; white-space: nowrap; min-width: 55px">📂 Footage</label>
+                <input type="text" class="form-control ep-footage-input" data-job-id="${g.jobId}"
+                  placeholder="Link footage nguồn…" value="${g.linkFootage}"
+                  style="flex:1; font-size:0.78rem; padding:0.3rem 0.5rem; background:#fff; border:1.5px solid var(--border); border-radius: 8px">
+                ${g.linkFootage ? `<a href="${g.linkFootage}" target="_blank" style="font-size:0.6rem; color:#2563eb; font-weight:800; text-decoration:none">Mở↗</a>` : ''}
               </div>
-              <span style="font-size: 0.6rem; font-weight: 800; color: var(--primary); background: var(--accent-soft);
-                padding: 0.15rem 0.5rem; border-radius: 4px">#${t.jobNo || '—'}</span>
-            </div>
-
-            <!-- Client + Event type -->
-            <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.15rem">${t.client}</div>
-            <div style="font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-bottom: 0.6rem">${t.eventType}</div>
-
-            <!-- Progress bar -->
-            <div style="margin-bottom: 0.6rem">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem">
-                <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-dim)">Tiến độ</span>
-                <span style="font-size: 0.75rem; font-weight: 800; color: ${progressColor}">
-                  ${isDone ? '✅ Đã xong' : (t.daysLeft > 0 ? `Còn ${t.daysLeft} ngày` : `Trễ ${Math.abs(t.daysLeft)} ngày!`)}
-                </span>
-              </div>
-              <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden">
-                <div style="width: ${progressPct}%; height: 100%; background: ${progressColor}; border-radius: 3px; transition: width 0.3s"></div>
+              <div style="display: flex; align-items: center; gap: 0.4rem">
+                <label style="font-size: 0.6rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; white-space: nowrap; min-width: 55px">📁 NAS</label>
+                <input type="text" class="form-control ep-nas-input" data-job-id="${g.jobId}"
+                  placeholder="Link NAS video…" value="${g.linkNAS}"
+                  style="flex:1; font-size:0.78rem; padding:0.3rem 0.5rem; background:#fff; border:1.5px solid var(--border); border-radius: 8px">
+                ${g.linkNAS ? `<a href="${g.linkNAS}" target="_blank" style="font-size:0.6rem; color:#2563eb; font-weight:800; text-decoration:none">Mở↗</a>` : ''}
               </div>
             </div>
 
-            <!-- Workflow steps -->
-            <div style="display: flex; gap: 0.2rem; margin-bottom: 0.75rem">
-              ${steps.map((step, idx) => {
-      const isActive = idx === currentStep;
-      const isPast = idx < currentStep;
-      const clr = isPast ? '#22c55e' : isActive ? t.stageColor : 'rgba(0,0,0,0.08)';
-      return `<div style="flex: 1; height: 3px; background: ${clr}; border-radius: 2px" title="${step}"></div>`;
+            <!-- Clips -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 0.75rem">
+              ${g.clips.map(c => {
+      const isDone = c.editStatus === 'Hoàn thành';
+      const progressColor = isDone ? '#22c55e' : c.stageColor;
+      const progressPct = isDone ? 100 : c.progress;
+      const currentStep = steps.indexOf(c.editStatus);
+      const checklistDone = Object.values(c.checklist).filter(Boolean).length;
+      const checklistTotal = 5;
+
+      return `
+                <div style="background: ${c.stageColor}06; border: 1px solid ${c.stageColor}18; border-radius: 12px; padding: 1rem; ${isDone ? 'opacity:0.7' : ''}">
+                  <!-- Clip header -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
+                    <div style="display: flex; align-items: center; gap: 0.35rem">
+                      <span style="font-size: 0.9rem">${c.stageIcon}</span>
+                      <span style="font-size: 0.62rem; font-weight: 900; color: ${c.stageColor}; text-transform: uppercase;
+                        background: ${c.stageColor}12; padding: 0.12rem 0.4rem; border-radius: 4px">${c.stage}</span>
+                      <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-dim); background: rgba(0,0,0,0.04);
+                        padding: 0.12rem 0.4rem; border-radius: 4px">${c.service}</span>
+                    </div>
+                    <span style="font-size: 0.72rem; font-weight: 800; color: ${progressColor}">
+                      ${isDone ? '✅' : (c.daysLeft > 0 ? `${c.daysLeft}d` : `-${Math.abs(c.daysLeft)}d!`)}
+                    </span>
+                  </div>
+
+                  <!-- Progress -->
+                  <div style="display: flex; gap: 0.2rem; margin-bottom: 0.5rem">
+                    ${steps.map((s, idx) => {
+        const clr = idx < currentStep ? '#22c55e' : idx === currentStep ? c.stageColor : 'rgba(0,0,0,0.08)';
+        return `<div style="flex:1; height:3px; background:${clr}; border-radius:2px" title="${s}"></div>`;
+      }).join('')}
+                  </div>
+
+                  <!-- Info row -->
+                  <div style="display: flex; gap: 0.75rem; margin-bottom: 0.5rem; font-size: 0.78rem">
+                    <div><span style="font-size:0.55rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block">📷 Thợ quay</span><span style="font-weight:700">${c.staff}</span></div>
+                    <div><span style="font-size:0.55rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block">⏰ Deadline</span><span style="font-weight:800; font-family:monospace; color:${c.stageColor}">${c.deadlineStr}</span></div>
+                  </div>
+
+                  <!-- Editor dropdown -->
+                  <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem">
+                    <label style="font-size:0.58rem; color:var(--text-dim); font-weight:800; text-transform:uppercase; min-width:45px">🎬 Editor</label>
+                    <select class="form-control ep-editor-select" data-job-id="${g.jobId}" data-service="${c.service}"
+                      style="flex:1; font-size:0.82rem; padding:0.3rem 0.5rem; background:#fff; border:1.5px solid var(--border); font-weight:700; border-radius:8px">
+                      <option value="">— Chưa chọn —</option>
+                      ${state.staff.map(s => `<option value="${s.name}" ${c.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
+                    </select>
+                  </div>
+
+                  <!-- Checklist compact -->
+                  <div style="background: rgba(0,0,0,0.02); padding: 0.4rem 0.5rem; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 0.5rem">
+                    <div style="font-size:0.55rem; font-weight:800; text-transform:uppercase; color:var(--text-dim); margin-bottom:0.3rem">📋 Checklist (${checklistDone}/${checklistTotal})</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem">
+                      ${[['footage', '📁 Footage'], ['rough', '✂️ Cut'], ['color', '🎨 Color'], ['audio', '🎵 Audio'], ['export', '📤 Export']].map(([key, label]) => `
+                        <label style="display:flex; align-items:center; gap:0.2rem; font-size:0.7rem; font-weight:600;
+                          color:${c.checklist[key] ? '#22c55e' : 'var(--text-dim)'}; cursor:pointer; padding:0.15rem 0.3rem;
+                          background:${c.checklist[key] ? 'rgba(34,197,94,0.08)' : 'transparent'}; border-radius:4px">
+                          <input type="checkbox" class="ep-checklist" data-job-id="${g.jobId}" data-service="${c.service}" data-key="${key}"
+                            ${c.checklist[key] ? 'checked' : ''} style="accent-color:#22c55e; width:13px; height:13px"> ${label}
+                        </label>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  <!-- Status + Done -->
+                  <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem">
+                    <select class="form-control ep-status-select" data-job-id="${g.jobId}" data-service="${c.service}"
+                      style="flex:1; font-size:0.82rem; padding:0.3rem 0.5rem; background:#fff; border:1.5px solid ${c.stageColor}30; color:${c.stageColor}; font-weight:800; border-radius:8px">
+                      ${steps.map(step => `<option value="${step}" ${c.editStatus === step ? 'selected' : ''}>${step}</option>`).join('')}
+                    </select>
+                    ${!isDone ? `<button class="ep-done-btn" data-job-id="${g.jobId}" data-service="${c.service}"
+                      style="background:#22c55e; color:#fff; border:none; padding:0.3rem 0.6rem; border-radius:8px;
+                        font-size:0.7rem; font-weight:800; cursor:pointer; white-space:nowrap; font-family:inherit">✓ Xong</button>` : ''}
+                  </div>
+
+                  <!-- Drive output -->
+                  <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem">
+                    <label style="font-size:0.58rem; color:var(--text-dim); font-weight:800; text-transform:uppercase; min-width:45px">🔗 Output</label>
+                    <input type="text" class="form-control ep-drive-input" data-job-id="${g.jobId}" data-service="${c.service}"
+                      placeholder="Link sản phẩm…" value="${c.editDriveLink}"
+                      style="flex:1; font-size:0.78rem; padding:0.3rem 0.5rem; background:#fff; border:1.5px solid var(--border); border-radius:8px">
+                    ${c.editDriveLink ? `<a href="${c.editDriveLink}" target="_blank" style="background:#22c55e; color:#fff; padding:0.2rem 0.4rem; border-radius:5px; font-size:0.6rem; font-weight:800; text-decoration:none; white-space:nowrap">Mở↗</a>` : ''}
+                  </div>
+
+                  <!-- Editor note -->
+                  <div style="display: flex; align-items: center; gap: 0.4rem">
+                    <label style="font-size:0.58rem; color:var(--text-dim); font-weight:800; text-transform:uppercase; min-width:45px">✏️ Note</label>
+                    <input type="text" class="form-control ep-note-input" data-job-id="${g.jobId}" data-service="${c.service}"
+                      placeholder="Ghi chú editor…" value="${c.editorNote}"
+                      style="flex:1; font-size:0.78rem; padding:0.3rem 0.5rem; background:#fff; border:1.5px solid var(--border); border-radius:8px; color:var(--text-muted)">
+                  </div>
+                </div>`;
     }).join('')}
             </div>
-
-            <!-- Info: context cho editor -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.82rem">
-              <div>
-                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📅 Ngày quay</label>
-                <span style="font-weight: 700; color: var(--text-main)">${new Date(t.jobDate).toLocaleDateString('vi-VN')}</span>
-              </div>
-              <div>
-                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">⏰ Deadline</label>
-                <span style="font-weight: 800; font-family: monospace; color: ${t.stageColor}">${t.deadlineStr}</span>
-              </div>
-              <div style="grid-column: 1 / -1">
-                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📍 Địa điểm</label>
-                <span style="font-weight: 600; color: var(--text-muted)">${t.venue || 'Chưa cập nhật'}</span>
-              </div>
-              ${timelineStr ? `
-              <div style="grid-column: 1 / -1">
-                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">⏱ Timeline</label>
-                <span style="font-weight: 700; color: #f97316">${timelineStr}</span>
-              </div>` : ''}
-              ${t.notes ? `
-              <div style="grid-column: 1 / -1">
-                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📝 Ghi chú</label>
-                <span style="font-weight: 600; color: var(--text-muted); font-size: 0.8rem">${t.notes}</span>
-              </div>` : ''}
-              <div>
-                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">📷 Thợ quay</label>
-                <span style="font-weight: 700; color: var(--text-main)">${t.staff}</span>
-              </div>
-              <div>
-                <label style="font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block">🎬 Editor</label>
-                <span style="font-weight: 700; color: var(--accent)">${t.editStaff || 'Chưa gán'}</span>
-              </div>
-            </div>
-
-            <!-- Checklist -->
-            <div style="background: rgba(0,0,0,0.02); padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 0.6rem">
-              <div style="font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.4rem">📋 Checklist Edit</div>
-              <div style="display: flex; flex-wrap: wrap; gap: 0.4rem">
-                ${[
-        ['footage', '📁 Nhận footage'],
-        ['rough', '✂️ Cut rough'],
-        ['color', '🎨 Color grade'],
-        ['audio', '🎵 Audio mix'],
-        ['export', '📤 Export final']
-      ].map(([key, label]) => `
-                  <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 600;
-                    color: ${t.checklist[key] ? '#22c55e' : 'var(--text-dim)'}; cursor: pointer; padding: 0.2rem 0.4rem;
-                    background: ${t.checklist[key] ? 'rgba(34,197,94,0.08)' : 'rgba(0,0,0,0.02)'}; border-radius: 6px;
-                    border: 1px solid ${t.checklist[key] ? 'rgba(34,197,94,0.2)' : 'transparent'}">
-                    <input type="checkbox" class="ep-checklist" data-job-id="${t.jobId}" data-service="${t.service}" data-key="${key}"
-                      ${t.checklist[key] ? 'checked' : ''} style="accent-color: #22c55e; width: 14px; height: 14px"> ${label}
-                  </label>
-                `).join('')}
-              </div>
-            </div>
-
-            <!-- Controls: Status + Links -->
-            <div style="display: flex; flex-direction: column; gap: 0.5rem; background: rgba(255,255,255,0.7); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border)">
-              <!-- Status -->
-              <div style="display: flex; align-items: center; gap: 0.5rem">
-                <label style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; min-width: 60px; white-space: nowrap">📊 Trạng thái</label>
-                <select class="form-control ep-status-select" data-job-id="${t.jobId}" data-service="${t.service}"
-                  style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid ${t.stageColor}30; color: ${t.stageColor}; font-weight: 800">
-                  ${steps.map(step => `<option value="${step}" ${t.editStatus === step ? 'selected' : ''}>${step}</option>`).join('')}
-                </select>
-                ${!isDone ? `<button class="ep-done-btn" data-job-id="${t.jobId}" data-service="${t.service}"
-                  style="background: #22c55e; color: #fff; border: none; padding: 0.35rem 0.7rem; border-radius: 8px;
-                    font-size: 0.72rem; font-weight: 800; cursor: pointer; white-space: nowrap; font-family: inherit">✓ Xong</button>` : ''}
-              </div>
-
-              <!-- NAS source link -->
-              ${t.linkNAS ? `
-              <div style="display: flex; align-items: center; gap: 0.5rem">
-                <label style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; min-width: 60px; white-space: nowrap">📂 NAS</label>
-                <div style="flex: 1; font-size: 0.78rem; color: var(--accent-blue); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${t.linkNAS}</div>
-                <button onclick="navigator.clipboard.writeText('${t.linkNAS.replace(/'/g, "\\'")}')" style="background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.2); color: #2563eb; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.65rem; cursor: pointer; white-space: nowrap">Copy</button>
-              </div>` : ''}
-
-              <!-- Drive output link -->
-              <div style="display: flex; align-items: center; gap: 0.5rem">
-                <label style="font-size: 0.65rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; min-width: 60px; white-space: nowrap">🔗 Output</label>
-                <input type="text" class="form-control ep-drive-input" data-job-id="${t.jobId}" data-service="${t.service}"
-                  placeholder="Link sản phẩm hoàn thành…" value="${t.editDriveLink}"
-                  style="flex: 1; font-size: 0.82rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
-                ${t.editDriveLink ? `<a href="${t.editDriveLink}" target="_blank" style="background: #22c55e; color: #fff; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-decoration: none; white-space: nowrap">Mở ↗</a>` : ''}
-              </div>
-            </div>
           </div>`;
-  }).join('') : '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-dim); font-size: 1rem; background: #fff; border-radius: 16px; border: 1.5px dashed var(--border)">Không có video task nào trong tháng này 🎬</div>'}
+  }).join('') : '<div style="text-align:center; padding:3rem; color:var(--text-dim); font-size:1rem; background:#fff; border-radius:16px; border:1.5px dashed var(--border)">Không có video task nào trong tháng này 🎬</div>'}
       </div>
     </div>
   `;
@@ -2552,27 +2548,24 @@ export function renderEditorPortal(state) {
   // Event delegation
   container.addEventListener('change', function (ev) {
     const el = ev.target;
-    if (el.classList.contains('ep-status-select')) {
-      window.updateVideoEditStatus(el.dataset.jobId, el.dataset.service, el.value);
-    }
-    if (el.classList.contains('ep-checklist')) {
-      window.updateEditorChecklist(el.dataset.jobId, el.dataset.service, el.dataset.key, el.checked);
-    }
+    if (el.classList.contains('ep-status-select')) window.updateVideoEditStatus(el.dataset.jobId, el.dataset.service, el.value);
+    if (el.classList.contains('ep-editor-select')) window.updateVideoEditor(el.dataset.jobId, el.dataset.service, el.value);
+    if (el.classList.contains('ep-checklist')) window.updateEditorChecklist(el.dataset.jobId, el.dataset.service, el.dataset.key, el.checked);
   });
 
   container.addEventListener('click', function (ev) {
     const btn = ev.target.closest('.ep-done-btn');
-    if (btn) {
-      window.updateVideoEditStatus(btn.dataset.jobId, btn.dataset.service, 'Hoàn thành');
-    }
+    if (btn) window.updateVideoEditStatus(btn.dataset.jobId, btn.dataset.service, 'Hoàn thành');
   });
 
   container.addEventListener('blur', function (ev) {
     const el = ev.target;
-    if (el.classList.contains('ep-drive-input')) {
-      window.updateVideoEditLink(el.dataset.jobId, el.dataset.service, el.value);
-    }
+    if (el.classList.contains('ep-drive-input')) window.updateVideoEditLink(el.dataset.jobId, el.dataset.service, el.value);
+    if (el.classList.contains('ep-note-input')) window.updateEditorNote(el.dataset.jobId, el.dataset.service, el.value);
+    if (el.classList.contains('ep-footage-input')) window.updateJobLink(el.dataset.jobId, 'linkFootage', el.value);
+    if (el.classList.contains('ep-nas-input')) window.updateJobLink(el.dataset.jobId, 'linkNAS', el.value);
   }, true);
 
   return container;
 }
+

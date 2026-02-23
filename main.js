@@ -531,6 +531,22 @@ window.updateEditorChecklist = (jobId, serviceName, key, checked) => {
   saveState();
 };
 
+window.updateEditorNote = (jobId, serviceName, note) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  const svc = job.services.find(s => s.service === serviceName);
+  if (!svc) return;
+  svc.editorNote = note;
+  saveState();
+};
+
+window.updateJobLink = (jobId, field, value) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  job[field] = value;
+  saveState();
+  if (value) showPaymentToast('✓ Đã lưu link', 'var(--success)');
+};
 
 
 // ============================================================
@@ -921,15 +937,22 @@ function updateUI() {
     return;
   }
 
-  // ── Nếu role EDITOR → hiển thị Editor Portal riêng ──
+  // ── Nếu role EDITOR → hiển thị Editor Portal riêng (2 tháng liền) ──
   if (state.currentUser.role === 'editor') {
     app.style.display = 'block';
     app.style.gridTemplateColumns = 'none';
-    const filteredJobs = state.jobs.filter(job => {
-      const jobDate = new Date(job.date);
-      return (jobDate.getMonth() + 1) === state.currentMonth && jobDate.getFullYear() === state.currentYear;
+    // Lấy tháng hiện tại + tháng trước
+    const m1 = state.currentMonth;
+    const y1 = state.currentYear;
+    const prevDate = new Date(y1, m1 - 2, 1); // tháng trước
+    const m0 = prevDate.getMonth() + 1;
+    const y0 = prevDate.getFullYear();
+    const twoMonthJobs = state.jobs.filter(job => {
+      const d = new Date(job.date);
+      const jm = d.getMonth() + 1, jy = d.getFullYear();
+      return (jm === m1 && jy === y1) || (jm === m0 && jy === y0);
     });
-    const periodState = { ...state, jobs: filteredJobs };
+    const periodState = { ...state, jobs: twoMonthJobs, prevMonth: m0, prevYear: y0 };
     const portal = renderEditorPortal(periodState);
     app.appendChild(portal);
     return;
