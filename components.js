@@ -2301,10 +2301,14 @@ export function renderEditorPortal(state) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const EDIT_DAYS = 20;
   const userName = state.currentUser?.displayName || 'Editor';
-  const months = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'];
+  const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
   const steps = ['Chưa bắt đầu', 'Đang cắt', 'Demo 1', 'Chỉnh sửa', 'Hoàn thành'];
   const stepIcons = ['⏳', '✂️', '📺', '🔧', '✅'];
   const stepColors = ['#94a3b8', '#3b82f6', '#f97316', '#eab308', '#22c55e'];
+
+  const m1 = state.currentMonth, y1 = state.currentYear;
+  const pm = state.prevMonth || (m1 === 1 ? 12 : m1 - 1), py = state.prevYear || (m1 === 1 ? y1 - 1 : y1);
+  const periodLabel = `${monthNames[pm - 1]} & ${monthNames[m1 - 1]} ${y1}`;
 
   // Nhóm theo khách hàng
   const jobGroups = {};
@@ -2316,27 +2320,28 @@ export function renderEditorPortal(state) {
       const jd = new Date(job.date); jd.setHours(0, 0, 0, 0);
       const dl = new Date(jd); dl.setDate(dl.getDate() + EDIT_DAYS);
       const daysLeft = Math.ceil((dl - today) / (864e5));
-      const pct = Math.max(0, Math.min(100, ((EDIT_DAYS - daysLeft) / EDIT_DAYS) * 100));
       const es = s.editStatus || 'Chưa bắt đầu';
       let stg, sc, si, pri;
       if (es === 'Hoàn thành') { stg = 'XONG'; sc = '#22c55e'; si = '✅'; pri = 99; }
       else if (daysLeft > 10) { stg = 'OK'; sc = '#22c55e'; si = '🟢'; pri = 3; }
-      else if (daysLeft > 5) { stg = 'ĐẨY'; sc = '#eab308'; si = '🟡'; pri = 2; }
+      else if (daysLeft > 5) { stg = 'SẮP'; sc = '#eab308'; si = '🟡'; pri = 2; }
       else if (daysLeft > 0) { stg = 'GẤP'; sc = '#f97316'; si = '🟠'; pri = 1; }
       else { stg = 'TRỄ'; sc = '#ef4444'; si = '🔴'; pri = 0; }
       const cl = s.editChecklist || { footage: false, rough: false, color: false, audio: false, export: false };
       clips.push({
         svc: s.service, sIdx, staff: s.staff, editStaff: s.editStaff || '', es,
         editDriveLink: s.editDriveLink || '', editorNote: s.editorNote || '',
-        dlStr: dl.toLocaleDateString('vi-VN'), daysLeft, pct, stg, sc, si, pri, cl
+        dlStr: dl.toLocaleDateString('vi-VN'), dateStr: jd.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+        daysLeft, stg, sc, si, pri, cl, jobMonth: jd.getMonth() + 1
       });
     });
     if (!clips.length) return;
     const wp = Math.min(...clips.map(c => c.pri));
     const wc = clips.find(c => c.pri === wp)?.sc || '#22c55e';
     let tl = '';
-    if (job.timeline?.le) tl += `Lễ:${job.timeline.le}`;
-    if (job.timeline?.tiec) tl += `${tl ? ' · ' : ''}Tiệc:${job.timeline.tiec}`;
+    if (job.timeline?.le) tl += `Lễ: ${job.timeline.le}`;
+    if (job.timeline?.tiec) tl += `${tl ? ' · ' : ''}Tiệc: ${job.timeline.tiec}`;
+    const jd2 = new Date(job.date);
     jobGroups[job.id] = {
       id: job.id, no: job.jobNo, client: job.client, type: job.eventType || 'Wedding',
       date: job.date, tl, notes: job.notes || '',
@@ -2344,7 +2349,8 @@ export function renderEditorPortal(state) {
       clips, cn: clips.length,
       dn: clips.filter(c => c.es === 'Hoàn thành').length,
       ad: clips.every(c => c.es === 'Hoàn thành'), wp, wc,
-      wdl: Math.min(...clips.map(c => c.daysLeft))
+      wdl: Math.min(...clips.map(c => c.daysLeft)),
+      jobMonth: jd2.getMonth() + 1
     };
   });
 
@@ -2352,182 +2358,220 @@ export function renderEditorPortal(state) {
   const ac = gs.flatMap(g => g.clips);
   const tot = ac.length, don = ac.filter(c => c.es === 'Hoàn thành').length;
   const urg = ac.filter(c => c.pri <= 1).length, pen = tot - don;
+  const pctAll = tot > 0 ? Math.round(don / tot * 100) : 0;
+
+  const gsM0 = gs.filter(g => g.jobMonth === pm);
+  const gsM1 = gs.filter(g => g.jobMonth === m1);
+
+  function renderClipRow(c, g) {
+    const isDone = c.es === 'Hoàn thành';
+    const clDone = Object.values(c.cl).filter(Boolean).length;
+    const cstp = steps.indexOf(c.es);
+    const clItems = [['footage', '📁', 'Footage'], ['rough', '✂️', 'Cut'], ['color', '🎨', 'Color'], ['audio', '🎵', 'Audio'], ['export', '📤', 'Export']];
+    return `
+      <div style="background:${c.sc}04;border:1px solid ${c.sc}15;border-radius:10px;padding:0.6rem 0.75rem;margin-bottom:0.4rem;${isDone ? 'opacity:0.55' : ''}">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;flex-wrap:wrap">
+          <div style="min-width:38px;text-align:center">
+            <span style="font-size:1rem">${c.si}</span>
+            <div style="font-size:0.55rem;font-weight:900;color:${c.sc};letter-spacing:0.5px">${c.stg}</div>
+          </div>
+          <div style="flex:1;min-width:120px">
+            <div style="display:flex;align-items:center;gap:0.4rem">
+              <span style="font-size:0.85rem;font-weight:800;color:var(--text-main)">${c.svc}</span>
+              <span style="font-size:0.6rem;color:var(--text-dim);background:#0001;padding:0.1rem 0.3rem;border-radius:3px">📅 ${c.dateStr}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.15rem">
+              <span style="font-size:0.7rem;color:var(--text-dim)">📷 <b>${c.staff}</b></span>
+              <span style="font-size:0.65rem;color:${c.sc};font-weight:800;font-family:monospace;background:${c.sc}10;padding:0.1rem 0.3rem;border-radius:4px">
+                ⏰ ${isDone ? 'Đã xong' : c.daysLeft > 0 ? c.daysLeft + ' ngày còn' : 'Trễ ' + Math.abs(c.daysLeft) + ' ngày'}
+              </span>
+              <span style="font-size:0.6rem;color:var(--text-dim)">→ DL: ${c.dlStr}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem">
+            <div style="text-align:center">
+              <div style="font-size:0.55rem;color:var(--text-dim);font-weight:700;margin-bottom:0.1rem">Editor</div>
+              <select class="form-control ep-editor-select" data-job-id="${g.id}" data-service="${c.svc}"
+                style="width:90px;font-size:0.75rem;padding:0.25rem 0.3rem;border:1px solid var(--border);border-radius:6px;font-weight:700">
+                <option value="">— Chọn —</option>
+                ${state.staff.map(s => `<option value="${s.name}" ${c.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
+              </select>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:0.55rem;color:var(--text-dim);font-weight:700;margin-bottom:0.1rem">Trạng thái</div>
+              <select class="form-control ep-status-select" data-job-id="${g.id}" data-service="${c.svc}"
+                style="width:105px;font-size:0.75rem;padding:0.25rem 0.3rem;border:1px solid ${c.sc}30;border-radius:6px;font-weight:800;color:${c.sc}">
+                ${steps.map(s => `<option value="${s}" ${c.es === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+            ${!isDone ? `<button class="ep-done-btn" data-job-id="${g.id}" data-service="${c.svc}"
+              style="background:#22c55e;color:#fff;border:none;padding:0.3rem 0.6rem;border-radius:6px;
+                font-size:0.7rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;margin-top:0.8rem">✓ Xong</button>`: ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;padding-left:42px">
+          <div style="display:flex;gap:0.25rem;flex:1">
+            ${clItems.map(([k, ic, lb]) => `
+              <label style="cursor:pointer;display:flex;align-items:center;gap:0.15rem;font-size:0.72rem;
+                padding:0.15rem 0.35rem;border-radius:5px;background:${c.cl[k] ? '#22c55e12' : '#0001'};
+                border:1px solid ${c.cl[k] ? '#22c55e30' : 'transparent'};transition:all 0.15s" title="${lb}">
+                <input type="checkbox" class="ep-checklist" data-job-id="${g.id}" data-service="${c.svc}" data-key="${k}"
+                  ${c.cl[k] ? 'checked' : ''} style="display:none">
+                <span style="opacity:${c.cl[k] ? 1 : 0.4}">${ic}</span>
+                <span style="font-size:0.6rem;font-weight:700;color:${c.cl[k] ? '#22c55e' : 'var(--text-dim)'}">${lb}</span>
+              </label>`).join('')}
+          </div>
+          <div style="display:flex;align-items:center;gap:0.3rem;min-width:70px">
+            <div style="flex:1;height:4px;background:#0001;border-radius:2px">
+              <div style="width:${clDone * 20}%;height:100%;background:${clDone === 5 ? '#22c55e' : '#3b82f6'};border-radius:2px"></div>
+            </div>
+            <span style="font-size:0.65rem;font-weight:800;color:${clDone === 5 ? '#22c55e' : 'var(--text-dim)'}">${clDone}/5</span>
+          </div>
+          <div style="display:flex;gap:2px;min-width:45px">
+            ${steps.map((_, i) => `<div style="flex:1;height:4px;background:${i < cstp ? '#22c55e' : i === cstp ? c.sc : '#e2e8f0'};border-radius:2px"></div>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;gap:0.4rem;padding-left:42px">
+          <div style="flex:1;display:flex;align-items:center;gap:0.25rem">
+            <span style="font-size:0.65rem;font-weight:800;color:var(--text-dim)">🔗 Output</span>
+            <input type="text" class="form-control ep-drive-input" data-job-id="${g.id}" data-service="${c.svc}"
+              placeholder="Link sản phẩm…" value="${c.editDriveLink}"
+              style="flex:1;font-size:0.75rem;padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:6px;background:#fff">
+            ${c.editDriveLink ? `<a href="${c.editDriveLink}" target="_blank" style="font-size:0.65rem;color:#22c55e;font-weight:800;text-decoration:none">Mở ↗</a>` : ''}
+          </div>
+          <div style="flex:1;display:flex;align-items:center;gap:0.25rem">
+            <span style="font-size:0.65rem;font-weight:800;color:var(--text-dim)">✏️ Note</span>
+            <input type="text" class="form-control ep-note-input" data-job-id="${g.id}" data-service="${c.svc}"
+              placeholder="Ghi chú cho editor…" value="${c.editorNote}"
+              style="flex:1;font-size:0.75rem;padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text-muted)">
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderClientCard(g) {
+    const cp = g.cn > 0 ? Math.round(g.dn / g.cn * 100) : 0;
+    return `
+    <div style="background:${g.ad ? '#22c55e06' : '#fff'};border:1px solid ${g.wc}20;border-radius:14px;
+      padding:0.85rem 1rem;margin-bottom:0.7rem;${g.ad ? 'opacity:0.6' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+        <div style="display:flex;align-items:center;gap:0.6rem">
+          <div style="width:36px;height:36px;background:${g.wc}15;border-radius:10px;display:flex;align-items:center;
+            justify-content:center;font-weight:900;color:${g.wc};font-size:0.95rem">${g.client[0]}</div>
+          <div>
+            <div style="font-size:1rem;font-weight:800;color:var(--text-main)">${g.client}</div>
+            <div style="font-size:0.72rem;color:var(--text-dim)">${g.type} · ${new Date(g.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}${g.tl ? ' · ' + g.tl : ''}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.6rem">
+          <span style="font-size:0.65rem;font-weight:800;color:var(--primary);background:var(--accent-soft);padding:0.15rem 0.5rem;border-radius:5px">#${g.no || '—'}</span>
+          <div style="text-align:right">
+            <div style="font-size:0.7rem;font-weight:800;color:${g.wc}">${g.cn} clip · ${cp}%</div>
+            <div style="width:60px;height:4px;background:#0001;border-radius:2px;margin-top:0.2rem">
+              <div style="width:${cp}%;height:100%;background:${cp === 100 ? '#22c55e' : g.wc};border-radius:2px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${g.notes ? `<div style="background:#eab30808;border:1px solid #eab30815;border-radius:8px;padding:0.35rem 0.6rem;margin-bottom:0.5rem;font-size:0.75rem">
+        <b style="color:#eab308">📝 Ghi chú:</b> <span style="color:var(--text-muted)">${g.notes}</span></div>` : ''}
+      <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+        <div style="flex:1;display:flex;align-items:center;gap:0.3rem">
+          <span style="font-size:0.65rem;font-weight:800;color:var(--text-dim)">📂 Footage</span>
+          <input type="text" class="form-control ep-footage-input" data-job-id="${g.id}" placeholder="Link footage nguồn…" value="${g.lFt}"
+            style="flex:1;font-size:0.75rem;padding:0.25rem 0.5rem;border:1px solid var(--border);border-radius:6px;background:#fff">
+          ${g.lFt ? `<a href="${g.lFt}" target="_blank" style="font-size:0.65rem;color:#2563eb;font-weight:800;text-decoration:none">Mở ↗</a>` : ''}
+        </div>
+        <div style="flex:1;display:flex;align-items:center;gap:0.3rem">
+          <span style="font-size:0.65rem;font-weight:800;color:var(--text-dim)">📁 NAS</span>
+          <input type="text" class="form-control ep-nas-input" data-job-id="${g.id}" placeholder="Link NAS video…" value="${g.lNAS}"
+            style="flex:1;font-size:0.75rem;padding:0.25rem 0.5rem;border:1px solid var(--border);border-radius:6px;background:#fff">
+          ${g.lNAS ? `<a href="${g.lNAS}" target="_blank" style="font-size:0.65rem;color:#2563eb;font-weight:800;text-decoration:none">Mở ↗</a>` : ''}
+        </div>
+      </div>
+      ${g.clips.map(c => renderClipRow(c, g)).join('')}
+    </div>`;
+  }
+
+  function renderMonthSection(label, groups) {
+    if (!groups.length) return '';
+    const mc = groups.flatMap(g => g.clips);
+    const md = mc.filter(c => c.es === 'Hoàn thành').length;
+    const mp = mc.length > 0 ? Math.round(md / mc.length * 100) : 0;
+    return `
+    <div style="margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;padding:0.4rem 0;border-bottom:2px solid rgba(22,163,74,0.15)">
+        <span style="font-size:0.95rem;font-weight:900;color:var(--text-main)">${label}</span>
+        <span style="font-size:0.72rem;font-weight:700;color:var(--text-dim)">${mc.length} clip · ${groups.length} khách</span>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:center;gap:0.3rem">
+          <div style="width:80px;height:5px;background:#0001;border-radius:3px">
+            <div style="width:${mp}%;height:100%;background:${mp === 100 ? '#22c55e' : 'var(--primary)'};border-radius:3px"></div>
+          </div>
+          <span style="font-size:0.72rem;font-weight:800;color:${mp === 100 ? '#22c55e' : 'var(--primary)'}">${mp}%</span>
+        </div>
+      </div>
+      ${groups.map(g => renderClientCard(g)).join('')}
+    </div>`;
+  }
 
   container.innerHTML = `
-    <!-- HEADER compact -->
     <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(22,163,74,0.1);
-      padding:0.5rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100">
+      padding:0.6rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100">
       <div style="display:flex;align-items:center;gap:0.6rem">
-        <div style="width:28px;height:28px;background:linear-gradient(135deg,#16a34a,#22c55e);border-radius:8px;
+        <div style="width:30px;height:30px;background:linear-gradient(135deg,#16a34a,#22c55e);border-radius:8px;
           display:flex;align-items:center;justify-content:center">
-          <span style="color:#fff;font-size:0.7rem;font-weight:900">H</span>
+          <span style="color:#fff;font-size:0.75rem;font-weight:900">H</span>
         </div>
-        <span style="font-size:0.95rem;font-weight:800;color:var(--text-main)">Xin chào, ${userName} 👋</span>
-        <span style="font-size:0.7rem;color:var(--text-dim)">${today.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })}</span>
+        <div>
+          <span style="font-size:0.95rem;font-weight:800;color:var(--text-main)">Xin chào, ${userName} 👋</span>
+          <span style="font-size:0.7rem;color:var(--text-dim);margin-left:0.4rem">${today.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:0.6rem">
-        <!-- Stats inline -->
-        <div style="display:flex;gap:0.4rem;font-size:0.72rem;font-weight:800">
-          <span style="background:#3b82f614;color:#3b82f6;padding:0.2rem 0.5rem;border-radius:6px">${tot} clip</span>
-          ${urg > 0 ? `<span style="background:#ef444414;color:#ef4444;padding:0.2rem 0.5rem;border-radius:6px;animation:pulse 2s infinite">🔥${urg} gấp</span>` : ''}
-          <span style="background:#f9731614;color:#f97316;padding:0.2rem 0.5rem;border-radius:6px">${pen} chờ</span>
-          <span style="background:#22c55e14;color:#22c55e;padding:0.2rem 0.5rem;border-radius:6px">✅${don}</span>
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <div style="display:flex;gap:0.35rem;font-size:0.75rem;font-weight:800">
+          <span style="background:#3b82f610;color:#3b82f6;padding:0.2rem 0.5rem;border-radius:6px">${tot} clip</span>
+          ${urg > 0 ? `<span style="background:#ef444410;color:#ef4444;padding:0.2rem 0.5rem;border-radius:6px;animation:pulse 2s infinite">🔥 ${urg} gấp</span>` : ''}
+          <span style="background:#f9731610;color:#f97316;padding:0.2rem 0.5rem;border-radius:6px">${pen} chờ</span>
+          <span style="background:#22c55e10;color:#22c55e;padding:0.2rem 0.5rem;border-radius:6px">✅ ${don}</span>
         </div>
-        <!-- Month -->
-        <div style="display:flex;align-items:center;gap:0.3rem;background:rgba(22,163,74,0.06);padding:0.25rem 0.5rem;border-radius:6px;border:1px solid var(--border)">
-          <button onclick="window.state.currentYear--;window.updateUI()" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--text-dim)">←</button>
-          <span style="font-size:0.75rem;font-weight:800;color:var(--primary)">${state.currentYear}</span>
-          <button onclick="window.state.currentYear++;window.updateUI()" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--text-dim)">→</button>
-          <select onchange="window.state.currentMonth=parseInt(this.value);window.updateUI()"
-            style="font-size:0.75rem;font-weight:700;border:none;background:transparent;color:var(--text-main);cursor:pointer">
-            ${months.map((m, i) => `<option value="${i + 1}" ${state.currentMonth === i + 1 ? 'selected' : ''}>${m}</option>`).join('')}
-          </select>
+        <div style="background:var(--accent-soft);padding:0.25rem 0.6rem;border-radius:6px;border:1px solid rgba(22,163,74,0.15)">
+          <span style="font-size:0.78rem;font-weight:800;color:var(--primary)">${periodLabel}</span>
         </div>
-        <button onclick="window.logout()" style="background:#ef444410;border:1px solid #ef444430;color:#ef4444;
-          padding:0.25rem 0.6rem;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">Thoát</button>
+        <button onclick="window.logout()" style="background:#ef444408;border:1px solid #ef444425;color:#ef4444;
+          padding:0.25rem 0.6rem;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit">🚪 Thoát</button>
       </div>
     </div>
 
-    <div style="padding:0.75rem 1.5rem;max-width:1400px;margin:0 auto">
-      <!-- Kanban pills -->
-      <div style="display:flex;gap:0.3rem;margin-bottom:0.75rem">
+    <div style="padding:0.85rem 1.5rem;max-width:1400px;margin:0 auto">
+      <div style="display:flex;gap:0.35rem;margin-bottom:0.85rem">
         ${steps.map((s, i) => {
     const c = ac.filter(t => t.es === s).length;
-    return `<div style="flex:1;text-align:center;padding:0.3rem;background:${c > 0 ? stepColors[i] + '10' : '#fff'};
+    return `<div style="flex:1;text-align:center;padding:0.35rem;background:${c > 0 ? stepColors[i] + '10' : '#fff'};
             border:1px solid ${c > 0 ? stepColors[i] + '30' : 'var(--border)'};border-radius:8px">
-            <span style="font-size:0.85rem">${stepIcons[i]}</span>
-            <span style="font-size:0.7rem;font-weight:800;color:${stepColors[i]};margin-left:0.2rem">${c}</span>
-            <div style="font-size:0.5rem;color:var(--text-dim);font-weight:700;margin-top:0.1rem">${s}</div>
+            <span style="font-size:0.9rem">${stepIcons[i]}</span>
+            <span style="font-size:0.75rem;font-weight:800;color:${stepColors[i]};margin-left:0.2rem">${c}</span>
+            <div style="font-size:0.58rem;color:var(--text-dim);font-weight:700;margin-top:0.1rem">${s}</div>
           </div>`;
   }).join('')}
       </div>
 
-      <!-- Client cards -->
-      ${gs.length > 0 ? gs.map(g => {
-    const cp = g.cn > 0 ? Math.round(g.dn / g.cn * 100) : 0;
-    return `
-        <div style="background:${g.ad ? '#22c55e08' : '#fff'};border:1px solid ${g.wc}20;border-radius:12px;
-          padding:0.75rem;margin-bottom:0.6rem;${g.ad ? 'opacity:0.65' : ''}">
-          <!-- Client row -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-            <div style="display:flex;align-items:center;gap:0.5rem">
-              <div style="width:32px;height:32px;background:${g.wc}18;border-radius:8px;display:flex;align-items:center;
-                justify-content:center;font-weight:900;color:${g.wc};font-size:0.85rem">${g.client[0]}</div>
-              <div>
-                <div style="font-size:0.95rem;font-weight:800;color:var(--text-main);line-height:1.2">${g.client}</div>
-                <div style="font-size:0.65rem;color:var(--text-dim)">${g.type} · ${new Date(g.date).toLocaleDateString('vi-VN')}${g.tl ? ' · ' + g.tl : ''}</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.5rem">
-              <span style="font-size:0.55rem;font-weight:800;color:var(--primary);background:var(--accent-soft);padding:0.1rem 0.4rem;border-radius:4px">#${g.no || '—'}</span>
-              <div style="text-align:right">
-                <div style="font-size:0.62rem;font-weight:800;color:${g.wc}">${g.cn} clip · ${cp}%</div>
-                <div style="width:50px;height:3px;background:#0001;border-radius:2px;margin-top:0.15rem">
-                  <div style="width:${cp}%;height:100%;background:${cp === 100 ? '#22c55e' : g.wc};border-radius:2px"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.85rem;padding:0.4rem 0.6rem;background:var(--accent-soft);border-radius:8px">
+        <span style="font-size:0.75rem;font-weight:800;color:var(--primary)">📊 Tổng tiến độ</span>
+        <div style="flex:1;height:6px;background:#0002;border-radius:3px">
+          <div style="width:${pctAll}%;height:100%;background:${pctAll === 100 ? '#22c55e' : 'var(--primary)'};border-radius:3px"></div>
+        </div>
+        <span style="font-size:0.8rem;font-weight:900;color:${pctAll === 100 ? '#22c55e' : 'var(--primary)'}">${pctAll}%</span>
+        <span style="font-size:0.7rem;color:var(--text-dim)">(${don}/${tot})</span>
+      </div>
 
-          ${g.notes ? `<div style="background:#eab30808;border:1px solid #eab30815;border-radius:6px;padding:0.3rem 0.5rem;margin-bottom:0.4rem;font-size:0.7rem">
-            <b style="color:#eab308">📝</b> <span style="color:var(--text-muted)">${g.notes}</span></div>` : ''}
-
-          <!-- Links row compact -->
-          <div style="display:flex;gap:0.4rem;margin-bottom:0.4rem">
-            <div style="flex:1;display:flex;align-items:center;gap:0.3rem">
-              <span style="font-size:0.55rem;font-weight:800;color:var(--text-dim)">📂</span>
-              <input type="text" class="form-control ep-footage-input" data-job-id="${g.id}" placeholder="Link footage…" value="${g.lFt}"
-                style="flex:1;font-size:0.72rem;padding:0.2rem 0.4rem;border:1px solid var(--border);border-radius:6px;background:#fff">
-              ${g.lFt ? `<a href="${g.lFt}" target="_blank" style="font-size:0.55rem;color:#2563eb;font-weight:800;text-decoration:none">↗</a>` : ''}
-            </div>
-            <div style="flex:1;display:flex;align-items:center;gap:0.3rem">
-              <span style="font-size:0.55rem;font-weight:800;color:var(--text-dim)">📁</span>
-              <input type="text" class="form-control ep-nas-input" data-job-id="${g.id}" placeholder="Link NAS…" value="${g.lNAS}"
-                style="flex:1;font-size:0.72rem;padding:0.2rem 0.4rem;border:1px solid var(--border);border-radius:6px;background:#fff">
-              ${g.lNAS ? `<a href="${g.lNAS}" target="_blank" style="font-size:0.55rem;color:#2563eb;font-weight:800;text-decoration:none">↗</a>` : ''}
-            </div>
-          </div>
-
-          <!-- Clips compact table-like -->
-          ${g.clips.map(c => {
-      const isDone = c.es === 'Hoàn thành';
-      const clDone = Object.values(c.cl).filter(Boolean).length;
-      const cstp = steps.indexOf(c.es);
-      return `
-            <div style="display:flex;align-items:center;gap:0.4rem;padding:0.4rem;margin-bottom:0.25rem;
-              background:${c.sc}05;border:1px solid ${c.sc}12;border-radius:8px;${isDone ? 'opacity:0.6' : ''}">
-              <!-- Stage badge -->
-              <div style="min-width:36px;text-align:center">
-                <span style="font-size:0.8rem">${c.si}</span>
-                <div style="font-size:0.45rem;font-weight:900;color:${c.sc}">${c.stg}</div>
-              </div>
-              <!-- Service + Deadline -->
-              <div style="min-width:90px">
-                <div style="font-size:0.72rem;font-weight:700;color:var(--text-main)">${c.svc}</div>
-                <div style="font-size:0.58rem;color:${c.sc};font-weight:800;font-family:monospace">
-                  ${isDone ? '✅' : c.daysLeft > 0 ? `${c.daysLeft}d left` : `-${Math.abs(c.daysLeft)}d!`}
-                </div>
-              </div>
-              <!-- Progress steps mini -->
-              <div style="display:flex;gap:1px;min-width:50px">
-                ${steps.map((_, i) => {
-        const clr = i < cstp ? '#22c55e' : i === cstp ? c.sc : '#0001';
-        return `<div style="flex:1;height:3px;background:${clr};border-radius:1px"></div>`;
-      }).join('')}
-              </div>
-              <!-- Cameraman -->
-              <div style="min-width:50px;font-size:0.65rem;color:var(--text-dim)">📷${c.staff}</div>
-              <!-- Editor dropdown compact -->
-              <select class="form-control ep-editor-select" data-job-id="${g.id}" data-service="${c.svc}"
-                style="width:80px;font-size:0.68rem;padding:0.15rem 0.25rem;border:1px solid var(--border);border-radius:5px;font-weight:700">
-                <option value="">—</option>
-                ${state.staff.map(s => `<option value="${s.name}" ${c.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
-              </select>
-              <!-- Checklist icons -->
-              <div style="display:flex;gap:0.15rem;min-width:75px">
-                ${[['footage', '📁'], ['rough', '✂️'], ['color', '🎨'], ['audio', '🎵'], ['export', '📤']].map(([k, ic]) => `
-                  <label style="cursor:pointer;font-size:0.7rem;opacity:${c.cl[k] ? 1 : 0.3};filter:${c.cl[k] ? 'none' : 'grayscale(1)'}" title="${k}">
-                    <input type="checkbox" class="ep-checklist" data-job-id="${g.id}" data-service="${c.svc}" data-key="${k}"
-                      ${c.cl[k] ? 'checked' : ''} style="display:none"> ${ic}
-                  </label>`).join('')}
-                <span style="font-size:0.55rem;font-weight:800;color:${clDone === 5 ? '#22c55e' : 'var(--text-dim)'}">${clDone}/5</span>
-              </div>
-              <!-- Status -->
-              <select class="form-control ep-status-select" data-job-id="${g.id}" data-service="${c.svc}"
-                style="width:90px;font-size:0.68rem;padding:0.15rem 0.25rem;border:1px solid ${c.sc}30;border-radius:5px;font-weight:800;color:${c.sc}">
-                ${steps.map(s => `<option value="${s}" ${c.es === s ? 'selected' : ''}>${s}</option>`).join('')}
-              </select>
-              ${!isDone ? `<button class="ep-done-btn" data-job-id="${g.id}" data-service="${c.svc}"
-                style="background:#22c55e;color:#fff;border:none;padding:0.15rem 0.4rem;border-radius:5px;
-                  font-size:0.6rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap">✓</button>`: ''}
-            </div>
-            <!-- Output + Note row -->
-            <div style="display:flex;gap:0.3rem;margin:0 0 0.3rem 40px">
-              <div style="flex:1;display:flex;align-items:center;gap:0.2rem">
-                <span style="font-size:0.5rem;color:var(--text-dim);font-weight:800">🔗</span>
-                <input type="text" class="form-control ep-drive-input" data-job-id="${g.id}" data-service="${c.svc}"
-                  placeholder="Link output…" value="${c.editDriveLink}"
-                  style="flex:1;font-size:0.68rem;padding:0.15rem 0.3rem;border:1px solid var(--border);border-radius:5px;background:#fff">
-                ${c.editDriveLink ? `<a href="${c.editDriveLink}" target="_blank" style="font-size:0.5rem;color:#22c55e;font-weight:800;text-decoration:none">Mở↗</a>` : ''}
-              </div>
-              <div style="flex:1;display:flex;align-items:center;gap:0.2rem">
-                <span style="font-size:0.5rem;color:var(--text-dim);font-weight:800">✏️</span>
-                <input type="text" class="form-control ep-note-input" data-job-id="${g.id}" data-service="${c.svc}"
-                  placeholder="Ghi chú…" value="${c.editorNote}"
-                  style="flex:1;font-size:0.68rem;padding:0.15rem 0.3rem;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--text-muted)">
-              </div>
-            </div>`;
-    }).join('')}
-        </div>`;
-  }).join('') : `<div style="text-align:center;padding:2rem;color:var(--text-dim);background:#fff;border-radius:12px;border:1.5px dashed var(--border)">Không có video nào 🎬</div>`}
+      ${renderMonthSection(monthNames[pm - 1] + ' ' + py, gsM0)}
+      ${renderMonthSection(monthNames[m1 - 1] + ' ' + y1, gsM1)}
+      ${gs.length === 0 ? `<div style="text-align:center;padding:2.5rem;color:var(--text-dim);background:#fff;border-radius:14px;border:1.5px dashed var(--border)">Không có video nào trong giai đoạn này 🎬</div>` : ''}
     </div>
-
-    <style>
-      @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
-    </style>
+    <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}</style>
   `;
 
-  // Events
   container.addEventListener('change', function (e) {
     const el = e.target;
     if (el.classList.contains('ep-status-select')) window.updateVideoEditStatus(el.dataset.jobId, el.dataset.service, el.value);
