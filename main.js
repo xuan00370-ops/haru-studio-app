@@ -881,8 +881,12 @@ const SESSION_KEY = 'haru_session';
 })();
 
 window.login = (username, password) => {
-  const accounts = state.settings.accounts || [];
-  const account = accounts.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
+  // Luôn dùng accounts hardcoded, không phụ thuộc localStorage
+  const HARDCODED_ACCOUNTS = [
+    { username: 'ADMIN', password: 'ADMIN', role: 'admin', displayName: 'Admin' },
+    { username: 'EDIT', password: 'EDIT', role: 'editor', displayName: 'Editor' }
+  ];
+  const account = HARDCODED_ACCOUNTS.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
   if (!account) {
     return false;
   }
