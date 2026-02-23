@@ -43,6 +43,9 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'analytics' ? 'active' : ''}" onclick="window.navigate('analytics')">
         <span class="icon">📊</span> Analytics
       </div>
+      <div class="nav-item ${activePage === 'watermark' ? 'active' : ''}" onclick="window.navigate('watermark')">
+        <span class="icon">🎬</span> Watermark
+      </div>
 
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Hệ thống</div>
       <div class="nav-item ${activePage === 'sync' ? 'active' : ''}" onclick="window.navigate('sync')">
@@ -1793,6 +1796,168 @@ export function renderSettings(state) {
 // ============================================================
 // KANBAN BOARD
 // ============================================================
+// ============================================================
+// WATERMARK TOOL
+// ============================================================
+export function renderWatermark(state) {
+  const container = document.createElement('div');
+  container.className = 'view-container reveal';
+
+  container.innerHTML = `
+    <header class="section-header">
+      <h1 class="view-title">🎬 Watermark Tool</h1>
+      <span style="font-size:0.85rem;color:var(--text-dim)">Đóng dấu ảnh nhanh chóng</span>
+    </header>
+
+    <div class="glass-panel" style="margin-top:1rem;padding:1.5rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <!-- Upload Area -->
+        <div>
+          <div id="wm-drop-zone" style="border:2px dashed var(--border-bright);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center" onclick="document.getElementById('wm-file-input').click()">
+            <div style="font-size:2.5rem;margin-bottom:0.5rem">📷</div>
+            <div style="font-size:0.85rem;font-weight:700;color:var(--text-main)">Kéo ảnh vào đây</div>
+            <div style="font-size:0.72rem;color:var(--text-dim)">hoặc click để chọn file</div>
+            <input type="file" id="wm-file-input" accept="image/*" style="display:none" />
+          </div>
+
+          <div style="margin-top:1rem">
+            <label style="font-size:0.75rem;font-weight:700;color:var(--text-dim);display:block;margin-bottom:0.3rem">Nội dung watermark:</label>
+            <input id="wm-text" type="text" value="© HARU STUDIO" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:var(--bg-main);color:var(--text-main)" />
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.8rem">
+            <div>
+              <label style="font-size:0.7rem;font-weight:700;color:var(--text-dim);display:block;margin-bottom:0.2rem">Vị trí:</label>
+              <select id="wm-position" style="width:100%;padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:var(--bg-main);color:var(--text-main)">
+                <option value="bottom-right">Dưới phải</option>
+                <option value="bottom-left">Dưới trái</option>
+                <option value="center">Giữa</option>
+                <option value="top-right">Trên phải</option>
+                <option value="tile">Lặp toàn ảnh</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:700;color:var(--text-dim);display:block;margin-bottom:0.2rem">Opacity:</label>
+              <input id="wm-opacity" type="range" min="10" max="80" value="30" style="width:100%" />
+            </div>
+          </div>
+
+          <button id="wm-apply-btn" disabled style="margin-top:1rem;width:100%;background:var(--primary);color:#fff;border:none;padding:0.6rem;border-radius:8px;font-weight:800;cursor:pointer;font-family:inherit;font-size:0.9rem;opacity:0.5">
+            🖊️ Đóng Watermark
+          </button>
+        </div>
+
+        <!-- Preview Area -->
+        <div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-dim);margin-bottom:0.5rem">Preview:</div>
+          <div id="wm-preview" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center;background:var(--accent-soft)">
+            <span style="font-size:0.8rem;color:var(--text-dim)">Chưa có ảnh</span>
+          </div>
+          <button id="wm-download-btn" disabled style="margin-top:0.8rem;width:100%;background:#3b82f6;color:#fff;border:none;padding:0.5rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem;opacity:0.5">
+            💾 Tải ảnh có Watermark
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Watermark logic
+  setTimeout(() => {
+    let loadedImg = null;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const fileInput = container.querySelector('#wm-file-input');
+    const dropZone = container.querySelector('#wm-drop-zone');
+    const applyBtn = container.querySelector('#wm-apply-btn');
+    const downloadBtn = container.querySelector('#wm-download-btn');
+    const preview = container.querySelector('#wm-preview');
+
+    const loadImage = (file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          loadedImg = img;
+          preview.innerHTML = '';
+          const previewImg = document.createElement('img');
+          previewImg.src = e.target.result;
+          previewImg.style.cssText = 'max-width:100%;max-height:400px;display:block';
+          preview.appendChild(previewImg);
+          applyBtn.disabled = false;
+          applyBtn.style.opacity = '1';
+          dropZone.innerHTML = `<div style="font-size:0.8rem;color:var(--primary);font-weight:700">✅ ${file.name}</div>`;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    fileInput.onchange = (e) => { if (e.target.files[0]) loadImage(e.target.files[0]); };
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; };
+    dropZone.ondragleave = () => { dropZone.style.borderColor = 'var(--border-bright)'; };
+    dropZone.ondrop = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--border-bright)'; if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]); };
+
+    applyBtn.onclick = () => {
+      if (!loadedImg) return;
+      canvas.width = loadedImg.width;
+      canvas.height = loadedImg.height;
+      ctx.drawImage(loadedImg, 0, 0);
+
+      const text = container.querySelector('#wm-text').value || '© HARU STUDIO';
+      const pos = container.querySelector('#wm-position').value;
+      const opacity = container.querySelector('#wm-opacity').value / 100;
+      const fontSize = Math.max(16, loadedImg.width * 0.03);
+
+      ctx.font = `bold ${fontSize}px Outfit, sans-serif`;
+      ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+      ctx.strokeStyle = `rgba(0,0,0,${opacity * 0.3})`;
+      ctx.lineWidth = 2;
+
+      if (pos === 'tile') {
+        ctx.save();
+        ctx.rotate(-0.3);
+        for (let y = -loadedImg.height; y < loadedImg.height * 2; y += fontSize * 4) {
+          for (let x = -loadedImg.width; x < loadedImg.width * 2; x += fontSize * text.length * 0.8) {
+            ctx.strokeText(text, x, y);
+            ctx.fillText(text, x, y);
+          }
+        }
+        ctx.restore();
+      } else {
+        let x, y;
+        const m = fontSize * 1.5;
+        switch (pos) {
+          case 'bottom-right': x = canvas.width - ctx.measureText(text).width - m; y = canvas.height - m; break;
+          case 'bottom-left': x = m; y = canvas.height - m; break;
+          case 'top-right': x = canvas.width - ctx.measureText(text).width - m; y = m + fontSize; break;
+          default: x = (canvas.width - ctx.measureText(text).width) / 2; y = canvas.height / 2;
+        }
+        ctx.strokeText(text, x, y);
+        ctx.fillText(text, x, y);
+      }
+
+      preview.innerHTML = '';
+      const resultImg = document.createElement('img');
+      resultImg.src = canvas.toDataURL('image/jpeg', 0.92);
+      resultImg.style.cssText = 'max-width:100%;max-height:400px;display:block';
+      preview.appendChild(resultImg);
+
+      downloadBtn.disabled = false;
+      downloadBtn.style.opacity = '1';
+    };
+
+    downloadBtn.onclick = () => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/jpeg', 0.92);
+      a.download = `haru_watermark_${Date.now()}.jpg`;
+      a.click();
+    };
+  }, 100);
+
+  return container;
+}
+
 export function renderKanban(state) {
   const container = document.createElement('div');
   container.className = 'view-container reveal';
