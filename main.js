@@ -1612,21 +1612,15 @@ function updateUI() {
   }
 
   // Monthly Filter
-  let filteredJobs = state.jobs.filter(job => {
+  const filteredJobs = state.jobs.filter(job => {
     const jobDate = new Date(job.date);
     return (jobDate.getMonth() + 1) === state.currentMonth && jobDate.getFullYear() === state.currentYear;
   });
 
-  // UX fallback: nếu tháng hiện tại không có job thì hiển thị toàn bộ để tránh màn hình trống
-  if (filteredJobs.length === 0) {
-    filteredJobs = state.jobs.filter(job => !job.isTrash);
-  }
-
   const periodState = { ...state, jobs: filteredJobs };
-  const dashboardState = { ...state, jobs: state.jobs.filter(job => !job.isTrash) };
 
   switch (state.activePage) {
-    case 'dashboard': contentArea.appendChild(renderDashboard(dashboardState, window.navigate)); break;
+    case 'dashboard': contentArea.appendChild(renderDashboard(periodState, window.navigate)); break;
     case 'jobs': contentArea.appendChild(renderJobs(periodState)); break;
     case 'clients': contentArea.appendChild(renderClients(state)); break;
     case 'staff': contentArea.appendChild(renderStaff(state)); break;

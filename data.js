@@ -121,7 +121,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -129,7 +129,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP TT",
@@ -137,7 +137,7 @@ export const mockData = {
                                 "cost": 1500000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -145,7 +145,7 @@ export const mockData = {
                                 "cost": 2000000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -153,7 +153,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "QUAY PS",
@@ -161,7 +161,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "QUAY PS",
@@ -169,7 +169,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP TT",
@@ -177,7 +177,7 @@ export const mockData = {
                                 "cost": 1700000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -185,7 +185,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "QUAY PS",
@@ -193,7 +193,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "QUAY PS",
@@ -201,7 +201,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP TT",
@@ -209,7 +209,7 @@ export const mockData = {
                                 "cost": 1700000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -217,7 +217,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "QUAY PS",
@@ -225,7 +225,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "QUAY PS",
@@ -233,7 +233,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP TT",
@@ -241,7 +241,7 @@ export const mockData = {
                                 "cost": 1700000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "QUAY DỌC TIKTOK",
@@ -249,7 +249,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -257,7 +257,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
                         },
                         {
                                 "service": "CHỤP TT",
@@ -265,7 +265,25 @@ export const mockData = {
                                 "cost": 24,
                                 "paid": false,
                                 "edit": 300000,
-                                "date": "2026-01-17"
+                                "date": "2026-01-25"
+                        }
+                ],
+                "eventDays": [
+                        {
+                                "date": "2026-01-17",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
+                        },
+                        {
+                                "date": "2026-01-25",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
                         }
                 ]
         },
@@ -397,7 +415,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": true,
                                 "edit": 500000,
-                                "date": "2026-01-25"
+                                "date": "2026-02-01"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -405,7 +423,25 @@ export const mockData = {
                                 "cost": 2000000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-01-25"
+                                "date": "2026-02-01"
+                        }
+                ],
+                "eventDays": [
+                        {
+                                "date": "2026-01-25",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
+                        },
+                        {
+                                "date": "2026-02-01",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
                         }
                 ]
         },
@@ -861,7 +897,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": false,
                                 "edit": 1500000,
-                                "date": "2026-03-10"
+                                "date": "2026-03-15"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -869,7 +905,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-03-10"
+                                "date": "2026-03-15"
                         },
                         {
                                 "service": "CHỤP TT",
@@ -877,7 +913,25 @@ export const mockData = {
                                 "cost": 1700000,
                                 "paid": false,
                                 "edit": 300000,
-                                "date": "2026-03-10"
+                                "date": "2026-03-15"
+                        }
+                ],
+                "eventDays": [
+                        {
+                                "date": "2026-03-10",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
+                        },
+                        {
+                                "date": "2026-03-15",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
                         }
                 ]
         },
@@ -1657,7 +1711,7 @@ export const mockData = {
                                 "cost": 3000000,
                                 "paid": false,
                                 "edit": 1500000,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "QUAY TT",
@@ -1665,7 +1719,7 @@ export const mockData = {
                                 "cost": 2000000,
                                 "paid": false,
                                 "edit": 1000000,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "CHỤP PS",
@@ -1673,7 +1727,7 @@ export const mockData = {
                                 "cost": 2500000,
                                 "paid": false,
                                 "edit": 500000,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "CHỤP TT",
@@ -1681,7 +1735,7 @@ export const mockData = {
                                 "cost": 1700000,
                                 "paid": false,
                                 "edit": 300000,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
@@ -1689,7 +1743,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "148.900.000,00₫",
@@ -1697,7 +1751,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "80.600.000₫",
@@ -1705,7 +1759,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "16.500.000₫",
@@ -1713,7 +1767,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "11.500.000₫",
@@ -1721,7 +1775,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "20.000.000₫",
@@ -1729,7 +1783,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "0₫",
@@ -1737,7 +1791,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "10.000.000₫",
@@ -1745,7 +1799,7 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
                         },
                         {
                                 "service": "10.300.000₫",
@@ -1753,7 +1807,25 @@ export const mockData = {
                                 "cost": 0,
                                 "paid": false,
                                 "edit": 0,
-                                "date": "2026-07-18"
+                                "date": "2026-07-19"
+                        }
+                ],
+                "eventDays": [
+                        {
+                                "date": "2026-07-18",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
+                        },
+                        {
+                                "date": "2026-07-19",
+                                "timeline": {
+                                        "le": "",
+                                        "tiec": "",
+                                        "type": "both"
+                                }
                         }
                 ]
         }
