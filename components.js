@@ -37,6 +37,10 @@ export function renderSidebar(activePage, navigate) {
         <span class="icon">🎭</span> Nhân sự
       </div>
 
+      <div class="nav-item ${activePage === 'analytics' ? 'active' : ''}" onclick="window.navigate('analytics')">
+        <span class="icon">📊</span> Analytics
+      </div>
+
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Hệ thống</div>
       <div class="nav-item ${activePage === 'sync' ? 'active' : ''}" onclick="window.navigate('sync')">
         <span class="icon">🔄</span> Sync dữ liệu
@@ -1778,6 +1782,157 @@ export function renderSettings(state) {
        <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 1rem">Lưu ý: Tất cả dữ liệu hiện đang lưu trong bộ nhớ. Export JSON để backup.</p>
     </div>
 `;
+  return container;
+}
+
+// ============================================================
+// ANALYTICS DASHBOARD
+// ============================================================
+export function renderAnalytics(state) {
+  const container = document.createElement('div');
+  container.className = 'view-container reveal';
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const txtColor = isDark ? '#a5d6a7' : '#1e4020';
+  const gridColor = isDark ? 'rgba(34,197,94,0.1)' : 'rgba(0,0,0,0.06)';
+
+  // Tính doanh thu theo tháng (12 tháng năm hiện tại)
+  const year = state.currentYear;
+  const monthlyRev = Array(12).fill(0);
+  const monthlyCount = Array(12).fill(0);
+  state.jobs.forEach(j => {
+    const d = new Date(j.date);
+    if (d.getFullYear() === year) {
+      monthlyRev[d.getMonth()] += (j.package || 0);
+      monthlyCount[d.getMonth()]++;
+    }
+  });
+
+  // Tính trạng thái dự án
+  const statusMap = {};
+  state.jobs.forEach(j => {
+    const s = j.status || 'Chưa phân loại';
+    statusMap[s] = (statusMap[s] || 0) + 1;
+  });
+
+  // Tính hiệu suất editor
+  const editorMap = {};
+  state.jobs.forEach(j => {
+    (j.services || []).forEach(svc => {
+      if (svc.staff) {
+        editorMap[svc.staff] = (editorMap[svc.staff] || 0) + 1;
+      }
+    });
+  });
+
+  const monthLabels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+  const statusColors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+
+  container.innerHTML = `
+    <header class="section-header">
+      <h1 class="view-title">📊 Analytics Dashboard</h1>
+      <span style="font-size:0.85rem;color:var(--text-dim)">Năm ${year} — ${state.jobs.length} dự án</span>
+    </header>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+      <div class="glass-panel" style="padding:1.2rem;grid-column:1/3">
+        <h3 style="font-size:0.9rem;font-weight:800;color:var(--text-dim);margin-bottom:0.8rem">💰 Doanh thu theo tháng (${year})</h3>
+        <div style="height:280px;position:relative"><canvas id="chart-revenue"></canvas></div>
+      </div>
+
+      <div class="glass-panel" style="padding:1.2rem">
+        <h3 style="font-size:0.9rem;font-weight:800;color:var(--text-dim);margin-bottom:0.8rem">📋 Trạng thái dự án</h3>
+        <div style="height:250px;position:relative"><canvas id="chart-status"></canvas></div>
+      </div>
+
+      <div class="glass-panel" style="padding:1.2rem">
+        <h3 style="font-size:0.9rem;font-weight:800;color:var(--text-dim);margin-bottom:0.8rem">👥 Khối lượng nhân sự</h3>
+        <div style="height:250px;position:relative"><canvas id="chart-editor"></canvas></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.8rem;margin-top:1rem">
+      <div class="glass-panel" style="padding:1rem;text-align:center">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase">Tổng doanh thu</div>
+        <div style="font-size:1.4rem;font-weight:900;color:#22c55e;margin-top:0.3rem">${(monthlyRev.reduce((a, b) => a + b, 0) / 1e6).toFixed(1)}M</div>
+      </div>
+      <div class="glass-panel" style="padding:1rem;text-align:center">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase">Tổng dự án</div>
+        <div style="font-size:1.4rem;font-weight:900;color:#3b82f6;margin-top:0.3rem">${state.jobs.length}</div>
+      </div>
+      <div class="glass-panel" style="padding:1rem;text-align:center">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase">TB/Tháng</div>
+        <div style="font-size:1.4rem;font-weight:900;color:#f59e0b;margin-top:0.3rem">${(monthlyRev.reduce((a, b) => a + b, 0) / 12 / 1e6).toFixed(1)}M</div>
+      </div>
+      <div class="glass-panel" style="padding:1rem;text-align:center">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase">Nhân sự</div>
+        <div style="font-size:1.4rem;font-weight:900;color:#8b5cf6;margin-top:0.3rem">${Object.keys(editorMap).length}</div>
+      </div>
+    </div>
+  `;
+
+  // Render charts after DOM insert
+  setTimeout(() => {
+    if (typeof Chart === 'undefined') return;
+
+    // Revenue bar chart
+    const revCtx = container.querySelector('#chart-revenue');
+    if (revCtx) new Chart(revCtx, {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          label: 'Doanh thu (VNĐ)',
+          data: monthlyRev,
+          backgroundColor: monthLabels.map((_, i) => i === new Date().getMonth() ? '#22c55e' : 'rgba(34,197,94,0.3)'),
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { color: txtColor, callback: v => (v / 1e6).toFixed(0) + 'M' }, grid: { color: gridColor } },
+          x: { ticks: { color: txtColor }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Status doughnut
+    const statusCtx = container.querySelector('#chart-status');
+    if (statusCtx) new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(statusMap),
+        datasets: [{ data: Object.values(statusMap), backgroundColor: statusColors.slice(0, Object.keys(statusMap).length), borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: txtColor, font: { size: 11 } } } },
+        cutout: '55%'
+      }
+    });
+
+    // Editor performance bar
+    const edCtx = container.querySelector('#chart-editor');
+    if (edCtx) new Chart(edCtx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(editorMap),
+        datasets: [{ label: 'Số dịch vụ', data: Object.values(editorMap), backgroundColor: '#3b82f6', borderRadius: 6 }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: txtColor, stepSize: 1 }, grid: { color: gridColor } },
+          y: { ticks: { color: txtColor }, grid: { display: false } }
+        }
+      }
+    });
+  }, 100);
+
   return container;
 }
 
