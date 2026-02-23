@@ -218,7 +218,17 @@ async function googleSheetScanner(jobs, sheetUrl) {
                 const dayData = eventDaysMap[jobId] || [];
 
                 // Merge all services from all days
-                const allServices = dayData.flatMap(d => d.services || []);
+                let allServices = dayData.flatMap(d => d.services || []);
+
+                // Deduplicate services to fix Google Sheet merged cells parsing bug
+                // Distinct by: service name + staff + cost + date
+                const seenServices = new Set();
+                allServices = allServices.filter(svc => {
+                    const key = `${svc.service}_${svc.staff}_${svc.cost}_${svc.date}`;
+                    if (seenServices.has(key)) return false;
+                    seenServices.add(key);
+                    return true;
+                });
 
                 // Build eventDays (without embedded services)
                 const eventDays = dayData.map(d => ({
@@ -260,7 +270,7 @@ async function googleSheetScanner(jobs, sheetUrl) {
 
                     if (changed) {
                         results.updated++;
-                        addSyncLog('updated', `[Sheet] Cập nhật: ${jobId} ${row.client}`, `${eventDays.length} ngày, ${allServices.length} dịch vụ`);
+                        addSyncLog('updated', `[Sheet] Cập nhật: ${jobId} ${row.client} `, `${eventDays.length} ngày, ${allServices.length} dịch vụ`);
                     } else {
                         results.skipped++;
                     }
@@ -290,7 +300,7 @@ async function googleSheetScanner(jobs, sheetUrl) {
                     };
                     jobs.push(newJob);
                     results.added++;
-                    addSyncLog('added', `[Sheet] Thêm mới: ${jobId} ${row.client}`, `${eventDays.length} ngày, ${allServices.length} dịch vụ`);
+                    addSyncLog('added', `[Sheet] Thêm mới: ${jobId} ${row.client} `, `${eventDays.length} ngày, ${allServices.length} dịch vụ`);
                 }
                 processed++;
             }
@@ -299,7 +309,7 @@ async function googleSheetScanner(jobs, sheetUrl) {
             throw new Error('API format không đúng. Cần trả về { jobs: [...] }');
         }
     } catch (err) {
-        addSyncLog('error', `Sheet Sync Lỗi: ${err.message}`, sheetUrl);
+        addSyncLog('error', `Sheet Sync Lỗi: ${err.message} `, sheetUrl);
         results.errors++;
     }
     return results;

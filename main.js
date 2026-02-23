@@ -318,6 +318,21 @@ async function bootload() {
     if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
   }
 
+  // Deduplicate services for existing jobs (fixes API merged cells bug data retention)
+  if (Array.isArray(state.jobs)) {
+    state.jobs.forEach(job => {
+      if (Array.isArray(job.services)) {
+        const seen = new Set();
+        job.services = job.services.filter(svc => {
+          const key = `${svc.service}_${svc.staff}_${svc.cost}_${svc.date}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
+    });
+  }
+
   // Khởi động UI Component render
   updateUI();
 
@@ -331,7 +346,7 @@ async function bootload() {
       state.lastSyncResult = result;
       const totalAdded = (result.sheetAdded || 0);
       if (totalAdded > 0) {
-        console.log(`📊 Auto-sync: +${totalAdded} dự án mới từ Google Sheet`);
+        console.log(`📊 Auto - sync: +${totalAdded} dự án mới từ Google Sheet`);
         saveState();
         updateUI();
       }
@@ -387,9 +402,9 @@ window.importBackup = () => {
           alert('❌ File backup không hợp lệ (thiếu jobs)');
           return;
         }
-        if (!confirm(`⚠️ Nhập backup sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại!\n\nFile: ${file.name}\nSố jobs: ${imported.jobs.length}\nSố nhân sự: ${(imported.staff || []).length}\n\nBạn chắc chắn?`)) return;
+        if (!confirm(`⚠️ Nhập backup sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại!\n\nFile: ${file.name} \nSố jobs: ${imported.jobs.length} \nSố nhân sự: ${(imported.staff || []).length} \n\nBạn chắc chắn ? `)) return;
         Object.assign(state, imported);
-        state.history.unshift({ time: new Date().toISOString(), action: `Nhập backup từ ${file.name}`, user: 'Admin' });
+        state.history.unshift({ time: new Date().toISOString(), action: `Nhập backup từ ${file.name} `, user: 'Admin' });
         saveState();
         updateUI();
       } catch (err) {
@@ -438,15 +453,15 @@ window.openChat = (jobId) => {
   const inputBg = isDark ? '#0f1f0f' : '#f8fdf8';
 
   const panel = document.createElement('div');
-  panel.style.cssText = `width:380px;max-width:90vw;background:${bg};height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.2);animation:slideIn 0.2s ease`;
+  panel.style.cssText = `width: 380px; max - width: 90vw; background:${bg}; height: 100 %; display: flex; flex - direction: column; box - shadow: -4px 0 24px rgba(0, 0, 0, 0.2); animation:slideIn 0.2s ease`;
   panel.innerHTML = `
-    <div style="padding:1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            < div style = "padding:1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center" >
       <div>
         <h3 style="font-size:1rem;font-weight:800;color:var(--text-main)">💬 ${job.client}</h3>
         <span style="font-size:0.72rem;color:var(--text-dim)">${comments.length} tin nhắn</span>
       </div>
       <button onclick="this.closest('#chat-panel-overlay').remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-dim)">✕</button>
-    </div>
+    </div >
     <div id="chat-messages" style="flex:1;overflow-y:auto;padding:0.8rem;display:flex;flex-direction:column;gap:0.5rem">
       ${comments.length === 0 ? '<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:2rem">Chưa có tin nhắn nào.<br>Gửi ghi chú đầu tiên!</div>' : ''}
       ${comments.map(c => {
@@ -462,7 +477,7 @@ window.openChat = (jobId) => {
       <input id="chat-input" type="text" placeholder="Nhập ghi chú..." style="flex:1;padding:0.5rem 0.8rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;background:${inputBg};color:var(--text-main)" />
       <button id="chat-send-btn" style="background:var(--primary);color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem">Gửi</button>
     </div>
-  `;
+          `;
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
 
@@ -590,7 +605,7 @@ window.toggleJobComplete = (jobId) => {
     job.status = (job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback') ? 'Sắp diễn ra' : 'Đã hoàn thành';
     saveState();
     updateUI();
-    window.addHistory && window.addHistory(`${job.client}: ${job.status}`);
+    window.addHistory && window.addHistory(`${job.client}: ${job.status} `);
   }
 };
 
@@ -796,7 +811,7 @@ window._addDayTab = () => {
   newContent.className = 'day-tab-content';
   newContent.setAttribute('data-day-idx', newIdx);
   newContent.innerHTML = `
-    <div class="day-form-panel">
+          < div class="day-form-panel" >
       <div class="day-header">
         <h4>📋 ${newLabel}</h4>
         <button type="button" class="remove-day-btn" onclick="window._removeDayTab(${newIdx})">✕ Xóa ngày này</button>
@@ -864,8 +879,8 @@ window._addDayTab = () => {
           </label>`).join('')}
         </div>
       </div>
-    </div>
-  `;
+    </div >
+          `;
   contentsWrap.appendChild(newContent);
 
   // Also add remove buttons to day 1 if it didn't have one
@@ -1007,14 +1022,14 @@ function showPaymentToast(msg, color) {
   const toast = document.createElement('div');
   toast.id = 'haru-pay-toast';
   toast.style.cssText = `
-position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
-background: ${color}; color: #fff;
-padding: 0.6rem 1.25rem; border-radius: 100px;
-font-size: 0.9rem; font-weight: 700;
-box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-pointer-events: none;
-`;
+        position: fixed; bottom: 1.5rem; right: 1.5rem; z - index: 9999;
+        background: ${color}; color: #fff;
+        padding: 0.6rem 1.25rem; border - radius: 100px;
+        font - size: 0.9rem; font - weight: 700;
+        box - shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        animation: toastIn 0.25s cubic - bezier(0.16, 1, 0.3, 1);
+        pointer - events: none;
+        `;
   toast.textContent = msg;
   document.body.appendChild(toast);
   setTimeout(() => {
@@ -1041,8 +1056,8 @@ window.updateReportMeta = (monthKey, ads, office) => {
 
 // PA3: Lưu chi phí tháng
 window.saveMonthlyReport = (monthKey) => {
-  const adsEl = document.getElementById(`ads-input-${monthKey}`);
-  const offEl = document.getElementById(`off-input-${monthKey}`);
+  const adsEl = document.getElementById(`ads - input - ${monthKey} `);
+  const offEl = document.getElementById(`off - input - ${monthKey} `);
   if (!adsEl || !offEl) return;
   window.updateReportMeta(monthKey, adsEl.value, offEl.value);
   // Toast
@@ -1109,11 +1124,11 @@ window.updateVideoEditor = (jobId, serviceName, editorName) => {
   if (!svc) return;
   svc.editStaff = editorName;
   saveState();
-  window.addHistory(`Gán editor: ${editorName} cho ${job.client} – ${serviceName}`);
-  showPaymentToast(`✓ Editor: ${editorName || 'Đã xóa'}`, 'var(--primary)');
+  window.addHistory(`Gán editor: ${editorName} cho ${job.client} – ${serviceName} `);
+  showPaymentToast(`✓ Editor: ${editorName || 'Đã xóa'} `, 'var(--primary)');
 };
 
-window.updateVideoEditStatus = (jobId, serviceName, newStatus) => {
+window.updateVideoEditStatus = (jobId, serviceName, newStatus, skipUpdateUI = false) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
   const svc = job.services.find(s => s.service === serviceName);
@@ -1124,10 +1139,12 @@ window.updateVideoEditStatus = (jobId, serviceName, newStatus) => {
     if (allDone) job.status = 'Đã hoàn thành';
   }
   saveState();
-  window.addHistory(`Edit video: ${job.client} – ${serviceName} → ${newStatus}`);
-  showPaymentToast(`✓ ${newStatus}`, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
-  // Delay updateUI so SortableJS drag animation finishes before DOM re-render
-  setTimeout(() => updateUI(), 350);
+  window.addHistory(`Edit video: ${job.client} – ${serviceName} → ${newStatus} `);
+  showPaymentToast(`✓ ${newStatus} `, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
+
+  if (!skipUpdateUI) {
+    updateUI();
+  }
 };
 
 window.deleteVideoClip = (jobId, svcKey) => {
@@ -1137,7 +1154,7 @@ window.deleteVideoClip = (jobId, svcKey) => {
   if (idx === -1) return;
   job.services.splice(idx, 1);
   saveState();
-  window.addHistory(`Xoá clip: ${job.client} – ${svcKey}`);
+  window.addHistory(`Xoá clip: ${job.client} – ${svcKey} `);
   showPaymentToast('🗑️ Đã xoá clip', 'var(--danger)');
   updateUI();
 };
@@ -1151,7 +1168,7 @@ window.updateVideoEditLink = (jobId, serviceName, link) => {
   svc.editDriveLink = link;
   saveState();
   if (link) {
-    window.addHistory(`Thêm link Drive: ${job.client} – ${serviceName}`);
+    window.addHistory(`Thêm link Drive: ${job.client} – ${serviceName} `);
     showPaymentToast('✓ Đã lưu link Drive', 'var(--success)');
   }
 };
@@ -1211,18 +1228,18 @@ window.removeStaff = (name) => {
 };
 
 window.showEditStaff = (name) => {
-  const form = document.getElementById(`edit-form-${name}`);
+  const form = document.getElementById(`edit - form - ${name} `);
   if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 };
 
 window.saveStaffEdit = (originalName) => {
   const member = state.staff.find(s => s.name === originalName);
   if (!member) return;
-  const newName = document.getElementById(`edit-name-${originalName}`)?.value?.trim() || member.name;
-  const newRole = document.getElementById(`edit-role-${originalName}`)?.value || member.role;
-  const newPhone = document.getElementById(`edit-phone-${originalName}`)?.value || member.phone;
-  const newBankNo = document.getElementById(`edit-bankno-${originalName}`)?.value || '';
-  const newBankBank = document.getElementById(`edit-bankname-${originalName}`)?.value || '';
+  const newName = document.getElementById(`edit - name - ${originalName} `)?.value?.trim() || member.name;
+  const newRole = document.getElementById(`edit - role - ${originalName} `)?.value || member.role;
+  const newPhone = document.getElementById(`edit - phone - ${originalName} `)?.value || member.phone;
+  const newBankNo = document.getElementById(`edit - bankno - ${originalName} `)?.value || '';
+  const newBankBank = document.getElementById(`edit - bankname - ${originalName} `)?.value || '';
   if (!newName) { alert('Tên nhân sự không được để trống'); return; }
   member.name = newName;
   member.role = newRole;
@@ -1707,6 +1724,33 @@ function updateUI() {
 
   app.appendChild(contentArea);
 
+  // Helper to visually update kanban column counts instantly
+  const updateKanbanCounts = (fromCol, toCol) => {
+    if (!fromCol || !toCol || fromCol === toCol) return;
+
+    // Look for a header element that has the text containing `(N)`
+    const updateHeader = (col) => {
+      // Find the header element. In our DOM it's usually the previous sibling or first child
+      let header = col.previousElementSibling;
+      if (!header || !header.textContent.includes('(')) {
+        header = col.parentElement?.querySelector('div[style*="font-weight:800"]');
+      }
+
+      if (header) {
+        // Find existing number in parentheses like (5)
+        const match = header.textContent.match(/\((\d+)\)/);
+        if (match) {
+          // Calculate active children excluding the sortable ghost
+          const count = Array.from(col.children).filter(c => !c.classList.contains('sortable-ghost') && !c.classList.contains('kanban-ghost')).length;
+          header.textContent = header.textContent.replace(/\(\d+\)/, `(${count})`);
+        }
+      }
+    };
+
+    updateHeader(fromCol);
+    updateHeader(toCol);
+  };
+
   // ── Initialize SortableJS for ALL kanban views AFTER DOM attach ──
   requestAnimationFrame(() => {
     setTimeout(() => {
@@ -1719,7 +1763,10 @@ function updateUI() {
           onEnd: (evt) => {
             const card = evt.item;
             const newStatus = evt.to.dataset.status;
-            if (window.updateVideoEditStatus) window.updateVideoEditStatus(card.dataset.jobId, card.dataset.svc, newStatus);
+            if (window.updateVideoEditStatus) {
+              window.updateVideoEditStatus(card.dataset.jobId, card.dataset.svc, newStatus, true);
+              updateKanbanCounts(evt.from, evt.to);
+            }
           }
         });
       });
@@ -1735,7 +1782,8 @@ function updateUI() {
             const sIdx = parseInt(card.dataset.sidx);
             const job = state.jobs.find(j => j.id === jobId);
             if (job && job.services[sIdx]) {
-              window.updateVideoEditStatus && window.updateVideoEditStatus(jobId, job.services[sIdx].service, newStatus);
+              if (window.updateVideoEditStatus) window.updateVideoEditStatus(jobId, job.services[sIdx].service, newStatus, true);
+              updateKanbanCounts(evt.from, evt.to);
             }
           }
         });
@@ -1749,10 +1797,10 @@ function updateUI() {
             const card = evt.item;
             const newStatus = evt.to.closest('.ep-col').dataset.status;
             const jobId = card.dataset.jobid;
-            const sIdx = parseInt(card.dataset.sidx);
-            const job = state.jobs.find(j => j.id === jobId);
-            if (job && job.services[sIdx]) {
-              window.updateEditStatus && window.updateEditStatus(jobId, job.services[sIdx].service, newStatus);
+            const svcName = card.dataset.svcname; // Sửa bug Edit Photo: dùng dataset.svcname
+            if (window.updateEditStatus) {
+              window.updateEditStatus(jobId, svcName, newStatus, true);
+              updateKanbanCounts(evt.from.closest('.ep-col'), evt.to.closest('.ep-col'));
             }
           }
         });
@@ -1767,7 +1815,11 @@ function updateUI() {
             const newStatus = evt.to.dataset.status;
             const jobId = card.dataset.jobId;
             const svc = card.dataset.svc;
-            if (window.updateVideoEditStatus) window.updateVideoEditStatus(jobId, svc, newStatus);
+            if (window.updateVideoEditStatus) {
+              window.updateVideoEditStatus(jobId, svc, newStatus, true);
+              // Editor kanban doesn't have explicit count format like ` (N)` by default, but we handles it safely inside helper
+              updateKanbanCounts(evt.from, evt.to);
+            }
           }
         });
       });
