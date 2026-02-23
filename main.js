@@ -1097,8 +1097,8 @@ window.updateEditStatus = (jobId, serviceName, newStatus) => {
   window.addHistory(`Cập nhật trạng thái edit: ${job.client} – ${serviceName} → ${newStatus} `);
   showPaymentToast(`✓ Cập nhật: ${newStatus} `, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
 
-  // Micro-update: always refresh for kanban consistency
-  updateUI();
+  // Delay updateUI so SortableJS drag animation finishes before DOM re-render
+  setTimeout(() => updateUI(), 350);
 };
 
 // ── Video Edit Tab Functions ───────────────────────────────
@@ -1126,7 +1126,8 @@ window.updateVideoEditStatus = (jobId, serviceName, newStatus) => {
   saveState();
   window.addHistory(`Edit video: ${job.client} – ${serviceName} → ${newStatus}`);
   showPaymentToast(`✓ ${newStatus}`, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
-  updateUI();
+  // Delay updateUI so SortableJS drag animation finishes before DOM re-render
+  setTimeout(() => updateUI(), 350);
 };
 
 window.deleteVideoClip = (jobId, svcKey) => {
@@ -1707,51 +1708,71 @@ function updateUI() {
   app.appendChild(contentArea);
 
   // ── Initialize SortableJS for ALL kanban views AFTER DOM attach ──
-  if (typeof Sortable !== 'undefined') {
-    // Main Kanban board
-    document.querySelectorAll('.kanban-list').forEach(list => {
-      new Sortable(list, {
-        group: 'kanban', animation: 150, ghostClass: 'kanban-ghost',
-        onEnd: (evt) => {
-          const card = evt.item;
-          const newStatus = evt.to.dataset.status;
-          if (window.updateVideoEditStatus) window.updateVideoEditStatus(card.dataset.jobId, card.dataset.svc, newStatus);
-        }
-      });
-    });
-    // Edit Video kanban
-    document.querySelectorAll('.ev-col-cards').forEach(col => {
-      new Sortable(col, {
-        group: 'editVideoKanban', animation: 200, ghostClass: 'sortable-ghost',
-        onEnd: (evt) => {
-          const card = evt.item;
-          const newStatus = evt.to.dataset.status;
-          const jobId = card.dataset.jobid;
-          const sIdx = parseInt(card.dataset.sidx);
-          const job = state.jobs.find(j => j.id === jobId);
-          if (job && job.services[sIdx]) {
-            window.updateVideoEditStatus && window.updateVideoEditStatus(jobId, job.services[sIdx].service, newStatus);
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      if (typeof Sortable === 'undefined') return;
+      // Main Kanban board
+      document.querySelectorAll('.kanban-list').forEach(list => {
+        if (list._sortableInstance) list._sortableInstance.destroy();
+        list._sortableInstance = new Sortable(list, {
+          group: 'kanban', animation: 150, ghostClass: 'kanban-ghost',
+          onEnd: (evt) => {
+            const card = evt.item;
+            const newStatus = evt.to.dataset.status;
+            if (window.updateVideoEditStatus) window.updateVideoEditStatus(card.dataset.jobId, card.dataset.svc, newStatus);
           }
-        }
+        });
       });
-    });
-    // Edit Photo kanban
-    document.querySelectorAll('.ep-col-cards').forEach(col => {
-      new Sortable(col, {
-        group: 'editPhoto', animation: 200, ghostClass: 'sortable-ghost',
-        onEnd: (evt) => {
-          const card = evt.item;
-          const newStatus = evt.to.closest('.ep-col').dataset.status;
-          const jobId = card.dataset.jobid;
-          const sIdx = parseInt(card.dataset.sidx);
-          const job = state.jobs.find(j => j.id === jobId);
-          if (job && job.services[sIdx]) {
-            window.updateEditStatus && window.updateEditStatus(jobId, job.services[sIdx].service, newStatus);
+      // Edit Video kanban
+      document.querySelectorAll('.ev-col-cards').forEach(col => {
+        if (col._sortableInstance) col._sortableInstance.destroy();
+        col._sortableInstance = new Sortable(col, {
+          group: 'editVideoKanban', animation: 200, ghostClass: 'sortable-ghost',
+          onEnd: (evt) => {
+            const card = evt.item;
+            const newStatus = evt.to.dataset.status;
+            const jobId = card.dataset.jobid;
+            const sIdx = parseInt(card.dataset.sidx);
+            const job = state.jobs.find(j => j.id === jobId);
+            if (job && job.services[sIdx]) {
+              window.updateVideoEditStatus && window.updateVideoEditStatus(jobId, job.services[sIdx].service, newStatus);
+            }
           }
-        }
+        });
       });
-    });
-  }
+      // Edit Photo kanban
+      document.querySelectorAll('.ep-col-cards').forEach(col => {
+        if (col._sortableInstance) col._sortableInstance.destroy();
+        col._sortableInstance = new Sortable(col, {
+          group: 'editPhoto', animation: 200, ghostClass: 'sortable-ghost',
+          onEnd: (evt) => {
+            const card = evt.item;
+            const newStatus = evt.to.closest('.ep-col').dataset.status;
+            const jobId = card.dataset.jobid;
+            const sIdx = parseInt(card.dataset.sidx);
+            const job = state.jobs.find(j => j.id === jobId);
+            if (job && job.services[sIdx]) {
+              window.updateEditStatus && window.updateEditStatus(jobId, job.services[sIdx].service, newStatus);
+            }
+          }
+        });
+      });
+      // Editor kanban (ep-kanban-list)
+      document.querySelectorAll('.ep-kanban-list').forEach(list => {
+        if (list._sortableInstance) list._sortableInstance.destroy();
+        list._sortableInstance = new Sortable(list, {
+          group: 'editor-kanban', animation: 150, ghostClass: 'kanban-ghost', dragClass: 'kanban-drag',
+          onEnd: (evt) => {
+            const card = evt.item;
+            const newStatus = evt.to.dataset.status;
+            const jobId = card.dataset.jobId;
+            const svc = card.dataset.svc;
+            if (window.updateVideoEditStatus) window.updateVideoEditStatus(jobId, svc, newStatus);
+          }
+        });
+      });
+    }, 100);
+  });
 
   if (state.modal.isOpen) {
     const modalOverlay = renderModalOverlay(state, window.closeModal);

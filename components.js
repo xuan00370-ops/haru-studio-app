@@ -1238,7 +1238,7 @@ export function renderStaff(state) {
             </div>
             <div><div style="color: var(--text-dim); margin-bottom: 0.5rem; font-size: 0.65rem; text-transform: uppercase; font-weight: 800">Job gần đây</div>
                <div style="display: flex; flex-direction: column; gap: 0.4rem">
-                  ${memberJobs.slice(0, 3).map(j => `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.4rem 0.5rem; background: rgba(34,197,94,0.04); border-radius: 6px"><span>${j.client}</span><span style="font-weight: 700; color: var(--success)">+${formatCurrency(j.services.find(s => _staffStr(s.staff).includes(member.name))?.cost)}</span></div>`).join('') || '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center">Chưa có</div>'}}
+                  ${(memberJobs.length > 0 ? memberJobs.slice(0, 3).map(j => `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.4rem 0.5rem; background: rgba(34,197,94,0.04); border-radius: 6px"><span>${j.client}</span><span style="font-weight: 700; color: var(--success)">+${formatCurrency(j.services.find(s => _staffStr(s.staff).includes(member.name))?.cost)}</span></div>`).join('') : '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center">Chưa có</div>')}
                </div>
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: auto">
@@ -1980,30 +1980,7 @@ export function renderEditVideo(state) {
     }
   }, true);
 
-  // SortableJS for kanban view
-  if (isKanban) {
-    setTimeout(() => {
-      if (typeof Sortable === 'undefined') return;
-      container.querySelectorAll('.ev-col-cards').forEach(col => {
-        new Sortable(col, {
-          group: 'editVideoKanban',
-          animation: 200,
-          ghostClass: 'sortable-ghost',
-          onEnd: (evt) => {
-            const card = evt.item;
-            const newStatus = evt.to.dataset.status;
-            const jobId = card.dataset.jobid;
-            const sIdx = parseInt(card.dataset.sidx);
-            const job = state.jobs.find(j => j.id === jobId);
-            if (job && job.services[sIdx]) {
-              const svcName = job.services[sIdx].service;
-              if (window.updateVideoEditStatus) window.updateVideoEditStatus(jobId, svcName, newStatus);
-            }
-          }
-        });
-      });
-    }, 10);
-  }
+  // SortableJS is initialized in main.js updateUI() after DOM attach
 
   return container;
 }
@@ -3445,27 +3422,7 @@ export function renderEditorPortal(state) {
     if (el.classList.contains('ep-nas-input')) window.updateJobLink(el.dataset.jobId, 'linkNAS', el.value);
   }, true);
 
-  // Init SortableJS for editor kanban
-  setTimeout(() => {
-    if (typeof Sortable === 'undefined') return;
-    container.querySelectorAll('.ep-kanban-list').forEach(list => {
-      new Sortable(list, {
-        group: 'editor-kanban',
-        animation: 150,
-        ghostClass: 'kanban-ghost',
-        dragClass: 'kanban-drag',
-        onEnd: (evt) => {
-          const card = evt.item;
-          const newStatus = evt.to.dataset.status;
-          const jobId = card.dataset.jobId;
-          const svc = card.dataset.svc;
-          if (window.updateVideoEditStatus) {
-            window.updateVideoEditStatus(jobId, svc, newStatus);
-          }
-        }
-      });
-    });
-  }, 10);
+  // SortableJS is initialized in main.js updateUI() after DOM attach
 
   return container;
 }
@@ -3658,28 +3615,7 @@ export function renderEditPhoto(state) {
     + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat(' + kanbanCols.length + ',1fr);gap:0.6rem;overflow-x:auto">' + kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="' + col.key + '" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid ' + col.color + '"><div style="font-size:0.72rem;font-weight:800;color:' + col.color + ';margin-bottom:0.4rem;text-align:center">' + col.label + ' (' + colTasks.length + ')</div><div class="ep-col-cards">' + colTasks.map(renderCard).join('') + '</div></div>'; }).join('') + '</div>'
       : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">' + filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid ' + t.sc + '"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + t.client + ' <span style="font-size:0.65rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.6rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</div><select onchange="window.updateEditStatus(\'' + t.jobId + '\',\'' + t.service + '\',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">' + ['Chưa bắt đầu', 'Đang chỉnh sửa', 'Demo', 'Chỉnh sửa lại', 'Hoàn thành'].map(s => '<option value="' + s + '" ' + (t.editStatus === s ? 'selected' : '') + '>' + s + '</option>').join('') + '</select></div></div>').join('') + '</div>');
 
-  // Kanban drag-drop with SortableJS
-  if (isKanban) {
-    setTimeout(() => {
-      const cols = container.querySelectorAll('.ep-col-cards');
-      if (typeof Sortable !== 'undefined') {
-        cols.forEach(col => {
-          new Sortable(col, {
-            group: 'editPhoto',
-            animation: 200,
-            ghostClass: 'sortable-ghost',
-            onEnd: (evt) => {
-              const card = evt.item;
-              const newStatus = evt.to.closest('.ep-col').dataset.status;
-              const jobId = card.dataset.jobid;
-              const svcName = card.dataset.svcname;
-              if (window.updateEditStatus) window.updateEditStatus(jobId, svcName, newStatus);
-            }
-          });
-        });
-      }
-    }, 10);
-  }
+  // SortableJS is initialized in main.js updateUI() after DOM attach
   return container;
 }
 
