@@ -16,6 +16,9 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'edit_video' ? 'active' : ''}" onclick="window.navigate('edit_video')">
         <span class="icon">🎞️</span> Edit Video
       </div>
+      <div class="nav-item ${activePage === 'kanban' ? 'active' : ''}" onclick="window.navigate('kanban')">
+        <span class="icon">📋</span> Kanban
+      </div>
       <div class="nav-item ${activePage === 'calendar' ? 'active' : ''}" onclick="window.navigate('calendar')">
         <span class="icon">📅</span> Lịch / Nhắc việc
       </div>
@@ -1782,6 +1785,97 @@ export function renderSettings(state) {
        <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 1rem">Lưu ý: Tất cả dữ liệu hiện đang lưu trong bộ nhớ. Export JSON để backup.</p>
     </div>
 `;
+  return container;
+}
+
+// ============================================================
+// KANBAN BOARD
+// ============================================================
+export function renderKanban(state) {
+  const container = document.createElement('div');
+  container.className = 'view-container reveal';
+
+  const stages = [
+    { id: 'Chưa bắt đầu', label: 'Chưa bắt đầu', color: '#94a3b8', icon: '⏳' },
+    { id: 'Đang cắt', label: 'Đang cắt', color: '#3b82f6', icon: '✂️' },
+    { id: 'Demo', label: 'Demo', color: '#f59e0b', icon: '🖥️' },
+    { id: 'Chỉnh sửa', label: 'Chỉnh sửa', color: '#8b5cf6', icon: '🔧' },
+    { id: 'Hoàn thành', label: 'Hoàn thành', color: '#22c55e', icon: '✅' }
+  ];
+
+  // Build clips array from jobs
+  const clips = [];
+  (state.filteredJobs || state.jobs).forEach(job => {
+    (job.services || []).forEach(svc => {
+      if (svc.service && svc.service.toLowerCase().includes('quay')) {
+        clips.push({
+          jobId: job.id,
+          svcKey: svc.service,
+          client: job.client,
+          service: svc.service,
+          staff: svc.staff || '—',
+          editor: svc.editor || '—',
+          editStatus: svc.editStatus || 'Chưa bắt đầu',
+          date: job.date
+        });
+      }
+    });
+  });
+
+  container.innerHTML = `
+    <header class="section-header">
+      <h1 class="view-title">📋 Kanban Board</h1>
+      <span style="font-size:0.85rem;color:var(--text-dim)">${clips.length} clip</span>
+    </header>
+
+    <div class="kanban-board" style="display:flex;gap:0.6rem;margin-top:1rem;overflow-x:auto;padding-bottom:1rem;min-height:400px">
+      ${stages.map(s => `
+        <div class="kanban-column" style="flex:1;min-width:200px;background:var(--bg-card);border-radius:12px;padding:0.6rem;border:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.8rem;padding-bottom:0.5rem;border-bottom:2px solid ${s.color}">
+            <span>${s.icon}</span>
+            <span style="font-size:0.78rem;font-weight:800;color:${s.color}">${s.label}</span>
+            <span style="font-size:0.65rem;background:${s.color}20;color:${s.color};padding:0.1rem 0.4rem;border-radius:10px;font-weight:800;margin-left:auto">${clips.filter(c => c.editStatus === s.id).length}</span>
+          </div>
+          <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
+            ${clips.filter(c => c.editStatus === s.id).map(c => `
+              <div class="kanban-card" data-job-id="${c.jobId}" data-svc="${c.svcKey}"
+                style="background:var(--bg-main);border:1px solid var(--border);border-radius:8px;padding:0.5rem;cursor:grab;transition:all 0.15s;border-left:3px solid ${s.color}">
+                <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.2rem">${c.client}</div>
+                <div style="font-size:0.65rem;color:var(--text-dim)">${c.service}</div>
+                <div style="display:flex;justify-content:space-between;margin-top:0.3rem">
+                  <span style="font-size:0.6rem;color:var(--text-muted)">📹 ${c.staff}</span>
+                  <span style="font-size:0.6rem;color:var(--text-muted)">✏️ ${c.editor}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // Initialize SortableJS after DOM
+  setTimeout(() => {
+    if (typeof Sortable === 'undefined') return;
+    container.querySelectorAll('.kanban-list').forEach(list => {
+      new Sortable(list, {
+        group: 'kanban',
+        animation: 150,
+        ghostClass: 'kanban-ghost',
+        dragClass: 'kanban-drag',
+        onEnd: (evt) => {
+          const card = evt.item;
+          const newStatus = evt.to.dataset.status;
+          const jobId = card.dataset.jobId;
+          const svcKey = card.dataset.svc;
+          if (window.updateVideoEditStatus) {
+            window.updateVideoEditStatus(jobId, svcKey, newStatus);
+          }
+        }
+      });
+    });
+  }, 100);
+
   return container;
 }
 

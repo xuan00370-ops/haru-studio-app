@@ -4,7 +4,7 @@ import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory,
-  renderLoginScreen, renderEditorPortal, renderAnalytics
+  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
@@ -1111,6 +1111,7 @@ function updateUI() {
     case 'settings': contentArea.appendChild(renderSettings(state)); break;
     case 'sync': contentArea.appendChild(renderSync(state)); break;
     case 'nas': contentArea.appendChild(renderNAS(state)); break;
+    case 'kanban': contentArea.appendChild(renderKanban(state)); break;
     case 'analytics': contentArea.appendChild(renderAnalytics(state)); break;
     case 'history': contentArea.appendChild(renderHistory(state)); break;
     default: contentArea.appendChild(renderDashboard(periodState, window.navigate));

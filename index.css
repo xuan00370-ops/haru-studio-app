@@ -1376,6 +1376,21 @@ tr.paid-row {
     padding: 0.5rem;
   }
 
+  /* ============ KANBAN BOARD ============ */
+  .kanban-ghost {
+    opacity: 0.4;
+  }
+
+  .kanban-drag {
+    opacity: 0.9;
+    transform: rotate(2deg);
+  }
+
+  .kanban-card:hover {
+    border-color: var(--primary) !important;
+    box-shadow: 0 2px 8px var(--primary-glow);
+  }
+
   /* ============ EDITOR PORTAL MOBILE ============ */
   /* Header wrap */
   [style*="position:sticky"][style*="z-index:100"] {
