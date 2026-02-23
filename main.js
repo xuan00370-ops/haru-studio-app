@@ -207,6 +207,88 @@ window.importBackup = () => {
   input.click();
 };
 
+// ============================================================
+// CHAT / COMMENT SYSTEM
+// ============================================================
+window.addComment = (jobId, text, service = null) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job || !text.trim()) return;
+  if (!job.comments) job.comments = [];
+  const session = JSON.parse(localStorage.getItem('haru_session') || '{}');
+  job.comments.push({
+    user: session.displayName || 'Admin',
+    text: text.trim(),
+    time: new Date().toISOString(),
+    service: service || null
+  });
+  saveState();
+};
+
+window.openChat = (jobId) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+
+  // Remove existing chat panel
+  const existing = document.getElementById('chat-panel-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'chat-panel-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:flex-end';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  const comments = job.comments || [];
+  const session = JSON.parse(localStorage.getItem('haru_session') || '{}');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const bg = isDark ? '#162816' : '#fff';
+  const inputBg = isDark ? '#0f1f0f' : '#f8fdf8';
+
+  const panel = document.createElement('div');
+  panel.style.cssText = `width:380px;max-width:90vw;background:${bg};height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.2);animation:slideIn 0.2s ease`;
+  panel.innerHTML = `
+    <div style="padding:1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h3 style="font-size:1rem;font-weight:800;color:var(--text-main)">💬 ${job.client}</h3>
+        <span style="font-size:0.72rem;color:var(--text-dim)">${comments.length} tin nhắn</span>
+      </div>
+      <button onclick="this.closest('#chat-panel-overlay').remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-dim)">✕</button>
+    </div>
+    <div id="chat-messages" style="flex:1;overflow-y:auto;padding:0.8rem;display:flex;flex-direction:column;gap:0.5rem">
+      ${comments.length === 0 ? '<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:2rem">Chưa có tin nhắn nào.<br>Gửi ghi chú đầu tiên!</div>' : ''}
+      ${comments.map(c => {
+    const isMe = c.user === (session.displayName || 'Admin');
+    return `<div style="display:flex;flex-direction:column;align-items:${isMe ? 'flex-end' : 'flex-start'};max-width:85%${isMe ? ';align-self:flex-end' : ''}">
+          <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.15rem">${c.user} · ${new Date(c.time).toLocaleString('vi-VN')}</div>
+          <div style="background:${isMe ? 'var(--primary-glow)' : 'var(--accent-soft)'};padding:0.5rem 0.8rem;border-radius:${isMe ? '12px 12px 0 12px' : '12px 12px 12px 0'};font-size:0.82rem;color:var(--text-main);line-height:1.4">${c.text}</div>
+          ${c.service ? `<span style="font-size:0.55rem;color:var(--text-dim);margin-top:0.1rem">📹 ${c.service}</span>` : ''}
+        </div>`;
+  }).join('')}
+    </div>
+    <div style="padding:0.6rem;border-top:1px solid var(--border);display:flex;gap:0.4rem">
+      <input id="chat-input" type="text" placeholder="Nhập ghi chú..." style="flex:1;padding:0.5rem 0.8rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;background:${inputBg};color:var(--text-main)" />
+      <button id="chat-send-btn" style="background:var(--primary);color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem">Gửi</button>
+    </div>
+  `;
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+
+  // Scroll to bottom
+  const msgBox = document.getElementById('chat-messages');
+  if (msgBox) msgBox.scrollTop = msgBox.scrollHeight;
+
+  // Send handler
+  const sendMsg = () => {
+    const input = document.getElementById('chat-input');
+    if (input && input.value.trim()) {
+      window.addComment(jobId, input.value);
+      overlay.remove();
+      window.openChat(jobId); // Re-render
+    }
+  };
+  document.getElementById('chat-send-btn').onclick = sendMsg;
+  document.getElementById('chat-input').onkeydown = (e) => { if (e.key === 'Enter') sendMsg(); };
+};
+
 function showValidationError(errors) {
   const errDiv = document.getElementById('form-validation-errors');
   if (errDiv) {
