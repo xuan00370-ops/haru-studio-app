@@ -1768,6 +1768,31 @@ export function renderEditVideo(state) {
     }
   }, true);
 
+  // SortableJS for kanban view
+  if (isKanban) {
+    setTimeout(() => {
+      if (typeof Sortable === 'undefined') return;
+      container.querySelectorAll('.ev-col-cards').forEach(col => {
+        new Sortable(col, {
+          group: 'editVideoKanban',
+          animation: 200,
+          ghostClass: 'sortable-ghost',
+          onEnd: (evt) => {
+            const card = evt.item;
+            const newStatus = evt.to.dataset.status;
+            const jobId = card.dataset.jobid;
+            const sIdx = parseInt(card.dataset.sidx);
+            const job = state.jobs.find(j => j.id === jobId);
+            if (job && job.services[sIdx]) {
+              const svcName = job.services[sIdx].service;
+              if (window.updateVideoEditStatus) window.updateVideoEditStatus(jobId, svcName, newStatus);
+            }
+          }
+        });
+      });
+    }, 200);
+  }
+
   return container;
 }
 
@@ -3427,7 +3452,11 @@ export function renderEditPhoto(state) {
               const newStatus = evt.to.closest('.ep-col').dataset.status;
               const jobId = card.dataset.jobid;
               const sIdx = parseInt(card.dataset.sidx);
-              if (window.updateEditStatus) window.updateEditStatus(jobId, sIdx, newStatus);
+              const job = state.jobs.find(j => j.id === jobId);
+              if (job && job.services[sIdx]) {
+                const svcName = job.services[sIdx].service;
+                if (window.updateEditStatus) window.updateEditStatus(jobId, svcName, newStatus);
+              }
             }
           });
         });
