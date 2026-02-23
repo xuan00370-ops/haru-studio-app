@@ -451,7 +451,11 @@ function renderJobCard(job) {
             <span class="value" style="font-size: 0.85rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(profit)}</span>
          </div>
          `}
-         <div class="view-detail-link" style="font-size: 0.82rem; text-align: center; margin-top: 0.5rem; opacity: 0.7">Xem chi tiết &rarr;</div>
+         <div style="display:flex;gap:0.4rem;justify-content:flex-end;align-items:center;margin-top:0.5rem" onclick="event.stopPropagation()">
+            ${job.linkNAS ? `<a href="${job.linkNAS}" target="_blank" class="btn btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:#2563eb15;color:#2563eb;border:1px solid #2563eb30;border-radius:6px;text-decoration:none">📁 NAS</a>` : ''}
+            ${job.linkDrive ? `<a href="${job.linkDrive}" target="_blank" class="btn btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:#16a34a15;color:#15803d;border:1px solid #16a34a30;border-radius:6px;text-decoration:none">🔗 Drive</a>` : ''}
+         </div>
+         <div class="view-detail-link" style="font-size: 0.82rem; text-align: center; margin-top: 0.35rem; opacity: 0.7">Xem chi tiết &rarr;</div>
          <div onclick="event.stopPropagation()" style="margin-top:0.5rem"><button onclick="window.toggleJobComplete&&window.toggleJobComplete('${job.id}')" style="width:100%;padding:0.35rem;border-radius:6px;font-size:0.72rem;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s;${isCompleted ? 'background:#22c55e;color:#fff' : 'background:#22c55e15;color:#22c55e;border:1px solid #22c55e30'}">${isCompleted ? '✅ Đã hoàn thành' : '⭕ Đánh dấu hoàn thành'}</button></div>
       </div>
 

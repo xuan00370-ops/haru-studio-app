@@ -24,6 +24,14 @@ export function clearSyncLogs() {
     syncLogs.length = 0;
 }
 
+function updateCustomerLink(job) {
+    // Ưu tiên Drive cho khách; fallback NAS nếu chưa có Drive
+    const next = (job.linkDrive && String(job.linkDrive).trim()) || (job.linkNAS && String(job.linkNAS).trim()) || '';
+    if (next && job.linkCustomer !== next) {
+        job.linkCustomer = next;
+    }
+}
+
 /**
  * NAS Scanner Service
  * Scans NAS folder structure for project folders matching CD-CR pattern
@@ -57,6 +65,7 @@ export function nasScanner(jobs, nasRootPath = '/Volumes/HARUwedding') {
                 addSyncLog('updated', `${job.id} ${job.client} — NAS path updated`, `${oldPath} → ${expectedPath}`);
             }
         }
+        updateCustomerLink(job);
         results.items.push({ job: job.id, client: job.client, nasPath: expectedPath });
     }
 
@@ -88,6 +97,7 @@ export function driveScanner(jobs, driveFolders = []) {
                 results.added++;
                 addSyncLog('added', `${job.id} ${job.client} — Drive search link generated`, fallbackLink);
             }
+            updateCustomerLink(job);
             results.items.push({ job: job.id, client: job.client, driveLink: job.linkDrive || fallbackLink });
         }
     } else {
@@ -124,6 +134,7 @@ export function driveScanner(jobs, driveFolders = []) {
                         addSyncLog('updated', `${matched.id} ${matched.client} — Drive updated`, driveLink);
                     }
                 }
+                updateCustomerLink(matched);
                 results.items.push({ job: matched.id, client: matched.client, folder: folderName, driveLink });
             } else {
                 results.errors++;
