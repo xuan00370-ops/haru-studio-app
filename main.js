@@ -192,6 +192,30 @@ window.closeModal = () => {
 };
 
 // ============================================================
+// CLIENT RATING & TAGS
+// ============================================================
+window.updateClientRating = (jobId, rating) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (job) {
+    job.clientRating = parseInt(rating);
+    saveState();
+    updateUI();
+  }
+};
+
+window.toggleClientTag = (jobId, tag) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (job) {
+    if (!job.clientTags) job.clientTags = [];
+    const idx = job.clientTags.indexOf(tag);
+    if (idx >= 0) job.clientTags.splice(idx, 1);
+    else job.clientTags.push(tag);
+    saveState();
+    updateUI();
+  }
+};
+
+// ============================================================
 // VALIDATION (dùng chung cho addJob + saveJobDetail)
 // ============================================================
 function validateJobData(jobData, services = []) {

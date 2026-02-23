@@ -299,7 +299,14 @@ function renderJobCard(job) {
       <div class="job-card-header" style="margin-bottom: 0.5rem">
         <div style="display: flex; flex-direction: column; gap: 0.1rem">
           <h3 class="job-card-title" style="font-size: 1.08rem; color: var(--text-main)">${job.client}</h3>
-          <span style="font-size: 0.85rem; color: var(--text-dim)">${new Date(job.date).toLocaleDateString('vi-VN')}</span>
+          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap">
+            <span style="font-size: 0.85rem; color: var(--text-dim)">${new Date(job.date).toLocaleDateString('vi-VN')}</span>
+            ${job.clientRating ? `<span style="font-size: 0.7rem; letter-spacing: 1px">${'⭐'.repeat(job.clientRating)}${'☆'.repeat(5 - job.clientRating)}</span>` : ''}
+            ${(job.clientTags || []).map(t => {
+    const tc = { VIP: '#eab308', ['Khó tính']: '#ef4444', ['Dễ thương']: '#22c55e', ['Quay lại']: '#3b82f6', ['Mới']: '#8b5cf6' };
+    return `<span style="font-size:0.55rem;font-weight:800;padding:0.1rem 0.35rem;border-radius:4px;background:${(tc[t] || '#64748b')}15;color:${tc[t] || '#64748b'};border:1px solid ${(tc[t] || '#64748b')}25">${t}</span>`;
+  }).join('')}
+          </div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem">
            <div style="display: flex; gap: 0.3rem">
@@ -375,6 +382,20 @@ function renderJobCard(job) {
             <span class="value" style="font-size: 0.85rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(profit)}</span>
          </div>
          <div class="view-detail-link" style="font-size: 0.82rem; text-align: center; margin-top: 0.5rem; opacity: 0.7">Xem chi tiết &rarr;</div>
+      </div>
+
+      <div onclick="event.stopPropagation()" style="border-top:1px solid var(--border);padding-top:0.4rem;margin-top:0.3rem">
+        <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.3rem">
+          <span style="font-size:0.65rem;color:var(--text-dim);font-weight:700">Đánh giá:</span>
+          ${[1, 2, 3, 4, 5].map(i => `<span onclick="window.updateClientRating('${job.id}',${i})" style="cursor:pointer;font-size:0.85rem;opacity:${(job.clientRating || 0) >= i ? 1 : 0.3}">${(job.clientRating || 0) >= i ? '⭐' : '☆'}</span>`).join('')}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.2rem">
+          ${['VIP', 'Khó tính', 'Dễ thương', 'Quay lại', 'Mới'].map(t => {
+      const active = (job.clientTags || []).includes(t);
+      const tc = { VIP: '#eab308', 'Khó tính': '#ef4444', 'Dễ thương': '#22c55e', 'Quay lại': '#3b82f6', 'Mới': '#8b5cf6' };
+      return `<span onclick="window.toggleClientTag('${job.id}','${t}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.35rem;border-radius:4px;border:1px solid ${tc[t]}${active ? '' : '30'};background:${tc[t]}${active ? '20' : '05'};color:${tc[t]};opacity:${active ? 1 : 0.5};transition:all 0.2s">${t}</span>`;
+    }).join('')}
+        </div>
       </div>
     </div>
   `;
