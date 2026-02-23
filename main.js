@@ -98,6 +98,88 @@ window.getThemeIcon = function () {
 
 initTheme();
 
+// ============================================================
+// PUSH NOTIFICATIONS
+// ============================================================
+window.requestNotifPermission = async () => {
+  if (!('Notification' in window)) return 'unsupported';
+  if (Notification.permission === 'granted') return 'granted';
+  const result = await Notification.requestPermission();
+  return result;
+};
+
+window.sendNotification = (title, body, icon = '🔔') => {
+  // Browser notification
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '/vite.svg', badge: '/vite.svg', tag: title });
+  }
+  // In-app toast
+  showToast(`${icon} ${title}: ${body}`);
+};
+
+function showToast(message) {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:99999;display:flex;flex-direction:column;gap:0.5rem;max-width:360px';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.style.cssText = 'background:var(--bg-card,#fff);border:1px solid var(--border);border-left:4px solid #f59e0b;padding:0.6rem 1rem;border-radius:8px;font-size:0.82rem;color:var(--text-main);box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:slideIn 0.3s ease;cursor:pointer';
+  toast.textContent = message;
+  toast.onclick = () => toast.remove();
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 8000);
+}
+
+window.checkDeadlines = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const notified = JSON.parse(localStorage.getItem('haru_notified') || '{}');
+  const todayKey = today.toISOString().split('T')[0];
+
+  // Clear old notified entries
+  Object.keys(notified).forEach(k => { if (k < todayKey) delete notified[k]; });
+
+  state.jobs.forEach(job => {
+    if (job.status === 'Đã hoàn thành') return;
+    const jDate = new Date(job.date);
+    jDate.setHours(0, 0, 0, 0);
+
+    // Photo deadline = event + 15 days, Video = event + 30 days
+    const photoDeadline = new Date(jDate); photoDeadline.setDate(photoDeadline.getDate() + 15);
+    const videoDeadline = new Date(jDate); videoDeadline.setDate(videoDeadline.getDate() + 30);
+
+    const photoDays = Math.ceil((photoDeadline - today) / (1000 * 60 * 60 * 24));
+    const videoDays = Math.ceil((videoDeadline - today) / (1000 * 60 * 60 * 24));
+
+    const nKey = `${job.id}_${todayKey}`;
+    if (notified[nKey]) return;
+
+    if (photoDays <= 0) {
+      window.sendNotification('⚠️ TRỄ Photo', `${job.client} — trễ ${Math.abs(photoDays)} ngày!`, '🚨');
+      notified[nKey] = true;
+    } else if (photoDays <= 3) {
+      window.sendNotification('📸 Sắp hết hạn Photo', `${job.client} — còn ${photoDays} ngày`, '⏰');
+      notified[nKey] = true;
+    }
+
+    if (videoDays <= 0) {
+      window.sendNotification('⚠️ TRỄ Video', `${job.client} — trễ ${Math.abs(videoDays)} ngày!`, '🚨');
+      notified[nKey] = true;
+    } else if (videoDays <= 5) {
+      window.sendNotification('🎬 Sắp hết hạn Video', `${job.client} — còn ${videoDays} ngày`, '⏰');
+      notified[nKey] = true;
+    }
+  });
+
+  localStorage.setItem('haru_notified', JSON.stringify(notified));
+};
+
+// Auto-check every 30 minutes
+setInterval(() => { if (state.currentUser) window.checkDeadlines(); }, 30 * 60 * 1000);
+
 async function bootload() {
   // 1. Cố gắng Load từ LocalStorage trước cho nhanh
   let localData = null;
