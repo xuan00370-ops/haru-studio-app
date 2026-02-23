@@ -2176,6 +2176,13 @@ export function renderLoginScreen() {
     font-family: 'Outfit', sans-serif;
   `;
 
+  // Đọc thông tin đã lưu (ghi nhớ đăng nhập)
+  let savedUser = '', savedPass = '', savedRemember = false;
+  try {
+    const saved = JSON.parse(localStorage.getItem('haru_remember') || '{}');
+    if (saved.remember) { savedUser = saved.username || ''; savedPass = saved.password || ''; savedRemember = true; }
+  } catch (e) { }
+
   container.innerHTML = `
     <div style="width: 400px; max-width: 92vw; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
       border: 1.5px solid rgba(22,163,74,0.2); border-radius: 24px; padding: 2.5rem;
@@ -2199,6 +2206,7 @@ export function renderLoginScreen() {
         <div style="text-align: left">
           <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #3d6b40; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem">Tài khoản</label>
           <input type="text" id="login-username" placeholder="username" required autocomplete="username"
+            value="${savedUser}"
             style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid rgba(20,83,45,0.15); border-radius: 12px;
               font-size: 1rem; font-family: inherit; background: #fff; color: #0f1f0f; outline: none;
               transition: border-color 0.2s; box-sizing: border-box"
@@ -2207,12 +2215,22 @@ export function renderLoginScreen() {
         </div>
         <div style="text-align: left">
           <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #3d6b40; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem">Mật khẩu</label>
-          <input type="password" id="login-password" placeholder="••••••" required autocomplete="current-password"
-            style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid rgba(20,83,45,0.15); border-radius: 12px;
-              font-size: 1rem; font-family: inherit; background: #fff; color: #0f1f0f; outline: none;
-              transition: border-color 0.2s; box-sizing: border-box"
-            onfocus="this.style.borderColor='#22c55e'; this.style.boxShadow='0 0 0 3px rgba(34,197,94,0.12)'"
-            onblur="this.style.borderColor='rgba(20,83,45,0.15)'; this.style.boxShadow='none'">
+          <div style="position: relative">
+            <input type="password" id="login-password" placeholder="••••••" required autocomplete="current-password"
+              value="${savedPass}"
+              style="width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem; border: 1.5px solid rgba(20,83,45,0.15); border-radius: 12px;
+                font-size: 1rem; font-family: inherit; background: #fff; color: #0f1f0f; outline: none;
+                transition: border-color 0.2s; box-sizing: border-box"
+              onfocus="this.style.borderColor='#22c55e'; this.style.boxShadow='0 0 0 3px rgba(34,197,94,0.12)'"
+              onblur="this.style.borderColor='rgba(20,83,45,0.15)'; this.style.boxShadow='none'">
+            <button type="button" id="toggle-pw-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+              background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #6b8f6e; padding: 0.2rem" title="Hiện/ẩn mật khẩu">👁</button>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.2rem">
+          <input type="checkbox" id="login-remember" ${savedRemember ? 'checked' : ''}
+            style="accent-color: #22c55e; width: 16px; height: 16px; cursor: pointer">
+          <label for="login-remember" style="font-size: 0.82rem; color: #3d6b40; font-weight: 600; cursor: pointer">Ghi nhớ đăng nhập</label>
         </div>
         <button type="submit" style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #16a34a, #15803d);
           color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 800; font-family: inherit;
@@ -2227,14 +2245,33 @@ export function renderLoginScreen() {
     </div>
   `;
 
-  // Form submit handler
   setTimeout(() => {
+    // Toggle hiện/ẩn mật khẩu
+    const toggleBtn = container.querySelector('#toggle-pw-btn');
+    const pwInput = container.querySelector('#login-password');
+    if (toggleBtn && pwInput) {
+      toggleBtn.onclick = () => {
+        if (pwInput.type === 'password') { pwInput.type = 'text'; toggleBtn.textContent = '🙈'; }
+        else { pwInput.type = 'password'; toggleBtn.textContent = '👁'; }
+      };
+    }
+
+    // Form submit
     const form = container.querySelector('#login-form');
     if (form) {
       form.onsubmit = (e) => {
         e.preventDefault();
         const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
+        const remember = document.getElementById('login-remember').checked;
+
+        // Lưu hoặc xóa ghi nhớ
+        if (remember) {
+          localStorage.setItem('haru_remember', JSON.stringify({ remember: true, username, password }));
+        } else {
+          localStorage.removeItem('haru_remember');
+        }
+
         const success = window.login(username, password);
         if (!success) {
           const errEl = document.getElementById('login-error');
@@ -2246,6 +2283,7 @@ export function renderLoginScreen() {
 
   return container;
 }
+
 
 // ============================================================
 // EDITOR PORTAL — Giao diện chuyên dụng cho Editor

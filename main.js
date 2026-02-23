@@ -40,8 +40,8 @@ export const state = {
     firebaseConfig: '',
     rates: mockData.settings?.rates || {},
     accounts: [
-      { username: 'admin', password: 'haru2026', role: 'admin', displayName: 'Admin' },
-      { username: 'editor', password: 'edit2026', role: 'editor', displayName: 'Editor' }
+      { username: 'ADMIN', password: 'ADMIN', role: 'admin', displayName: 'Admin' },
+      { username: 'EDIT', password: 'EDIT', role: 'editor', displayName: 'Editor' }
     ]
   },
   clients: [] // Phase 3 CRM
