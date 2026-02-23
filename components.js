@@ -55,6 +55,9 @@ export function renderSidebar(activePage, navigate) {
       </div>
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border)">
+        <div class="nav-item" onclick="window.toggleTheme();window.updateUI()" style="cursor:pointer">
+          <span class="icon">${document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</span> ${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}
+        </div>
         <div class="nav-item" onclick="window.logout()" style="color: #ef4444">
           <span class="icon">🚪</span> Đăng xuất
         </div>
@@ -2546,6 +2549,7 @@ export function renderEditorPortal(state) {
         <div style="background:var(--accent-soft);padding:0.25rem 0.6rem;border-radius:6px;border:1px solid rgba(22,163,74,0.15)">
           <span style="font-size:0.78rem;font-weight:800;color:var(--primary)">${periodLabel}</span>
         </div>
+        <button onclick="window.toggleTheme();window.updateUI()" class="theme-toggle">${document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</button>
         <button onclick="window.logout()" style="background:#ef444408;border:1px solid #ef444425;color:#ef4444;
           padding:0.25rem 0.6rem;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit">🚪 Thoát</button>
       </div>

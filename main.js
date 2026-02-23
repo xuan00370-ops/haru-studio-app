@@ -73,6 +73,31 @@ export function saveState() {
   }
 }
 
+// ============================================================
+// DARK MODE
+// ============================================================
+function initTheme() {
+  const saved = localStorage.getItem('haru_theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+}
+
+window.toggleTheme = function () {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('haru_theme', next);
+};
+
+window.getThemeIcon = function () {
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+};
+
+initTheme();
+
 async function bootload() {
   // 1. Cố gắng Load từ LocalStorage trước cho nhanh
   let localData = null;
