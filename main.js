@@ -283,6 +283,23 @@ async function bootload() {
 
   // Khởi động UI Component render
   updateUI();
+
+  // 3. Auto-sync từ Google Sheet (background, không block UI)
+  const sheetUrl = state.settings?.sheetSyncUrl || '';
+  if (sheetUrl && (sheetUrl.includes('script.google.com') || sheetUrl.includes('script.googleusercontent.com'))) {
+    try {
+      const { runFullSync, getSyncLogs } = await import('./sync.js');
+      const result = await runFullSync(state.jobs, '/Volumes/HARUwedding', [], sheetUrl);
+      state.syncLogs = getSyncLogs();
+      state.lastSyncResult = result;
+      const totalAdded = (result.sheetAdded || 0);
+      if (totalAdded > 0) {
+        console.log(`📊 Auto-sync: +${totalAdded} dự án mới từ Google Sheet`);
+        saveState();
+        updateUI();
+      }
+    } catch (e) { console.warn('Auto-sync Sheet error:', e.message); }
+  }
 }
 
 // Bắt đầu boot
@@ -562,22 +579,51 @@ window.saveJobDetail = (jobId) => {
   const phone = document.getElementById('edit-job-phone')?.value || job.phone;
   const packageVal = parseInt(document.getElementById('edit-job-package')?.value) || job.package;
   const depositVal = parseInt(document.getElementById('edit-job-deposit')?.value) || job.deposit || 0;
-  const venue = document.getElementById('edit-job-venue')?.value || job.venue;
   const notes = document.getElementById('edit-job-notes')?.value || job.notes;
   const linkCustomer = document.getElementById('edit-job-link-customer')?.value || job.linkCustomer;
   const linkNAS = document.getElementById('edit-job-link-nas')?.value || job.linkNAS;
   const linkDrive = document.getElementById('edit-job-link-drive')?.value || job.linkDrive;
 
-  // Đọc timeline — tách riêng tiệc trưa và tiệc tối
+  // ── Đọc eventDays từ multi-day tabs ──
   const modal = document.querySelector('.modal-container');
-  const timeline = {
-    le_sang: modal?.querySelector('input[name="le_sang"]')?.checked || false,
-    tiec_trua: modal?.querySelector('input[name="tiec_trua"]')?.checked || false,
-    tiec_toi: modal?.querySelector('input[name="tiec_toi"]')?.checked || false,
-    le: modal?.querySelector('input[name="le_time"]')?.value || job.timeline?.le || '05:00',
-    tiec_trua_time: modal?.querySelector('input[name="tiec_time_trua"]')?.value || job.timeline?.tiec_trua_time || '11:00',
-    tiec: modal?.querySelector('input[name="tiec_time_toi"]')?.value || job.timeline?.tiec || '18:00'
-  };
+  const dayContents = modal?.querySelectorAll('.day-tab-content') || [];
+  const eventDays = [];
+  dayContents.forEach((dayEl, idx) => {
+    const dayLabel = dayEl.querySelector('.day-label-input')?.value || '';
+    const dayDate = dayEl.querySelector('.day-date-input')?.value || '';
+    const boyHouse = dayEl.querySelector('.day-boy-house-input')?.value || '';
+    const girlHouse = dayEl.querySelector('.day-girl-house-input')?.value || '';
+    const venue = dayEl.querySelector('.day-venue-input')?.value || '';
+
+    // Timeline checkboxes & times
+    const tlChecks = dayEl.querySelectorAll('.day-tl-check');
+    const tlTimes = dayEl.querySelectorAll('.day-tl-time');
+    const timeline = { le_sang: false, le: '05:00', tiec_trua: false, tiec_trua_time: '11:00', tiec_toi: false, tiec: '18:00' };
+    tlChecks.forEach(chk => {
+      const tlName = chk.getAttribute('data-tl');
+      if (tlName) timeline[tlName] = chk.checked;
+    });
+    tlTimes.forEach(inp => {
+      const tlTimeName = inp.getAttribute('data-tl-time');
+      if (tlTimeName) timeline[tlTimeName] = inp.value;
+    });
+
+    // Categories
+    const catChecks = dayEl.querySelectorAll('.day-cat-check');
+    const categories = [];
+    catChecks.forEach(chk => { if (chk.checked) categories.push(chk.value); });
+
+    eventDays.push({ dayLabel, date: dayDate, boyHouse, girlHouse, venue, timeline, categories });
+  });
+
+  // Fallback: nếu không đọc được tabs, dùng legacy
+  const finalEventDays = eventDays.length > 0 ? eventDays : (job.eventDays || []);
+
+  // Legacy compatibility: lấy dữ liệu ngày đầu tiên cho các field cũ
+  const firstDay = finalEventDays[0] || {};
+  const finalDate = firstDay.date || date;
+  const finalVenue = firstDay.venue || job.venue || '';
+  const finalTimeline = firstDay.timeline || job.timeline || {};
 
   // Đọc service rows từ table
   const table = document.getElementById('services-table-edit');
@@ -593,25 +639,25 @@ window.saveJobDetail = (jobId) => {
         const inp2 = cells[2].querySelector('input');
         const inp3 = cells[3].querySelector('input');
         const chk4 = cells[4].querySelector('input[type=checkbox]');
-        // Row tĩnh (text)
         const svc = select0 ? select0.value : cells[0].textContent.trim();
         const stf = select1 ? select1.value : cells[1].textContent.trim();
         const cst = parseInt(inp2 ? inp2.value : 0) || parseInt(job.services[idx]?.cost) || 0;
         const edt = parseInt(inp3 ? inp3.value : 0) || parseInt(job.services[idx]?.edit) || 0;
         const paid = chk4 ? chk4.checked : (job.services[idx]?.paid || false);
-        if (svc && stf) parsedServices.push({ service: svc, staff: stf, cost: cst, edit: edt, paid, date });
+        if (svc && stf) parsedServices.push({ service: svc, staff: stf, cost: cst, edit: edt, paid, date: finalDate });
       }
     });
     if (parsedServices.length > 0) services = parsedServices;
   }
 
   // Validate
-  const errors = validateJobData({ client, date, package: packageVal }, services);
+  const errors = validateJobData({ client, date: finalDate, package: packageVal }, services);
   if (errors.length > 0) { showValidationError(errors); return; }
 
   window.updateJob(jobId, {
-    client, status, date, eventType, phone, package: packageVal, deposit: depositVal,
-    venue, notes, linkCustomer, linkNAS, linkDrive, timeline, services
+    client, status, date: finalDate, eventType, phone, package: packageVal, deposit: depositVal,
+    venue: finalVenue, notes, linkCustomer, linkNAS, linkDrive,
+    timeline: finalTimeline, services, eventDays: finalEventDays
   });
   window.closeModal();
   // Toast thành công
@@ -620,6 +666,161 @@ window.saveJobDetail = (jobId) => {
   toast.textContent = '✓ Đã lưu thay đổi';
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
+};
+
+// ============================================================
+// MULTI-DAY TAB HELPERS (for renderJobDetailModal)
+// ============================================================
+window._switchDayTab = (idx) => {
+  const tabs = document.querySelectorAll('#event-day-tabs .day-tab-btn:not(.add-day-btn)');
+  const contents = document.querySelectorAll('#event-day-contents .day-tab-content');
+  tabs.forEach(t => t.classList.remove('active'));
+  contents.forEach(c => c.classList.remove('active'));
+  if (tabs[idx]) tabs[idx].classList.add('active');
+  if (contents[idx]) contents[idx].classList.add('active');
+};
+
+window._addDayTab = () => {
+  const contentsWrap = document.getElementById('event-day-contents');
+  const tabsWrap = document.getElementById('event-day-tabs');
+  if (!contentsWrap || !tabsWrap) return;
+
+  const existingCount = contentsWrap.querySelectorAll('.day-tab-content').length;
+  const newIdx = existingCount;
+  const newLabel = 'Ngày ' + (newIdx + 1);
+
+  // Add tab button before the "+ Thêm ngày" button
+  const addBtn = tabsWrap.querySelector('.add-day-btn');
+  const newTabBtn = document.createElement('button');
+  newTabBtn.type = 'button';
+  newTabBtn.className = 'day-tab-btn';
+  newTabBtn.setAttribute('data-day-idx', newIdx);
+  newTabBtn.textContent = newLabel;
+  newTabBtn.onclick = () => window._switchDayTab(newIdx);
+  tabsWrap.insertBefore(newTabBtn, addBtn);
+
+  // Add tab content
+  const newContent = document.createElement('div');
+  newContent.className = 'day-tab-content';
+  newContent.setAttribute('data-day-idx', newIdx);
+  newContent.innerHTML = `
+    <div class="day-form-panel">
+      <div class="day-header">
+        <h4>📋 ${newLabel}</h4>
+        <button type="button" class="remove-day-btn" onclick="window._removeDayTab(${newIdx})">✕ Xóa ngày này</button>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem">
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Tên nhãn ngày</label>
+          <input type="text" class="form-control day-label-input" data-day="${newIdx}" value="${newLabel}" placeholder="VD: Lễ gia tiên, Tiệc cưới..."
+            style="font-size: 0.92rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--primary); font-weight: 700">
+        </div>
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Ngày tổ chức</label>
+          <input type="date" class="form-control day-date-input" data-day="${newIdx}"
+            style="font-size: 0.92rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem">
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">🏠 Nhà Trai</label>
+          <input type="text" class="form-control day-boy-house-input" data-day="${newIdx}" placeholder="Địa chỉ nhà trai"
+            style="font-size: 0.88rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+        </div>
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">🏠 Nhà Gái</label>
+          <input type="text" class="form-control day-girl-house-input" data-day="${newIdx}" placeholder="Địa chỉ nhà gái"
+            style="font-size: 0.88rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+        </div>
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">🏨 Venue / Tiệc</label>
+          <input type="text" class="form-control day-venue-input" data-day="${newIdx}" placeholder="Nhà hàng / địa điểm"
+            style="font-size: 0.88rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--accent); font-weight: 700">
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.4rem">⏰ Lịch trình</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem">
+          <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 0.6rem">
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--text-dim); margin-bottom: 0.35rem; cursor: pointer">
+              <input type="checkbox" class="day-tl-check" data-day="${newIdx}" data-tl="le_sang"> Lễ sáng
+            </label>
+            <input type="time" class="form-control day-tl-time" data-day="${newIdx}" data-tl-time="le" value="05:00"
+              style="padding: 0.25rem 0.4rem; font-size: 0.85rem; font-weight: 700; background: #fff; border: 1px solid var(--border); color: #f97316">
+          </div>
+          <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 0.6rem">
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--text-dim); margin-bottom: 0.35rem; cursor: pointer">
+              <input type="checkbox" class="day-tl-check" data-day="${newIdx}" data-tl="tiec_trua"> Tiệc trưa
+            </label>
+            <input type="time" class="form-control day-tl-time" data-day="${newIdx}" data-tl-time="tiec_trua_time" value="11:00"
+              style="padding: 0.25rem 0.4rem; font-size: 0.85rem; font-weight: 700; background: #fff; border: 1px solid var(--border); color: #22c55e">
+          </div>
+          <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 0.6rem">
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--text-dim); margin-bottom: 0.35rem; cursor: pointer">
+              <input type="checkbox" class="day-tl-check" data-day="${newIdx}" data-tl="tiec_toi"> Tiệc tối
+            </label>
+            <input type="time" class="form-control day-tl-time" data-day="${newIdx}" data-tl-time="tiec" value="18:00"
+              style="padding: 0.25rem 0.4rem; font-size: 0.85rem; font-weight: 700; background: #fff; border: 1px solid var(--border); color: #3b82f6">
+          </div>
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.4rem">🎬 Hạng mục quay/chụp</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem">
+          ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT'].map(cat => `<label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.65rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--text-dim); transition: all 0.2s">
+            <input type="checkbox" class="day-cat-check" data-day="${newIdx}" value="${cat}" style="display:none"> ${cat}
+          </label>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  contentsWrap.appendChild(newContent);
+
+  // Also add remove buttons to day 1 if it didn't have one
+  const firstDayHeader = contentsWrap.querySelector('.day-tab-content[data-day-idx="0"] .day-header');
+  if (firstDayHeader && !firstDayHeader.querySelector('.remove-day-btn')) {
+    const rmBtn = document.createElement('button');
+    rmBtn.type = 'button';
+    rmBtn.className = 'remove-day-btn';
+    rmBtn.textContent = '✕ Xóa ngày này';
+    rmBtn.onclick = () => window._removeDayTab(0);
+    firstDayHeader.appendChild(rmBtn);
+  }
+
+  // Switch to new tab
+  window._switchDayTab(newIdx);
+};
+
+window._removeDayTab = (idx) => {
+  const contentsWrap = document.getElementById('event-day-contents');
+  const tabsWrap = document.getElementById('event-day-tabs');
+  if (!contentsWrap || !tabsWrap) return;
+
+  const contents = contentsWrap.querySelectorAll('.day-tab-content');
+  const tabs = tabsWrap.querySelectorAll('.day-tab-btn:not(.add-day-btn)');
+  if (contents.length <= 1) { alert("Không thể xóa ngày cuối cùng"); return; }
+  if (!confirm('Xóa ngày này khỏi lịch trình?')) return;
+
+  if (contents[idx]) contents[idx].remove();
+  if (tabs[idx]) tabs[idx].remove();
+
+  // Re-index remaining tabs and contents
+  const remainingContents = contentsWrap.querySelectorAll('.day-tab-content');
+  const remainingTabs = tabsWrap.querySelectorAll('.day-tab-btn:not(.add-day-btn)');
+  remainingContents.forEach((c, i) => c.setAttribute('data-day-idx', i));
+  remainingTabs.forEach((t, i) => {
+    t.setAttribute('data-day-idx', i);
+    t.onclick = () => window._switchDayTab(i);
+  });
+
+  // If only 1 day left, remove its delete button
+  if (remainingContents.length === 1) {
+    const rmBtn = remainingContents[0].querySelector('.remove-day-btn');
+    if (rmBtn) rmBtn.remove();
+  }
+
+  // Activate first tab
+  window._switchDayTab(0);
 };
 
 window.toggleTrash = (jobId) => {
@@ -1113,6 +1314,12 @@ window.runSync = async () => {
     }
 
     const result = await runFullSync(state.jobs, nasRoot, driveFolders, sheetUrl);
+
+    // Lưu sheet URL vào settings để auto-sync lần sau
+    if (sheetUrl) {
+      if (!state.settings) state.settings = {};
+      state.settings.sheetSyncUrl = sheetUrl;
+    }
 
     document.body.style.cursor = 'default';
     if (sheetUrlInput) sheetUrlInput.disabled = false;

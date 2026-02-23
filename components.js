@@ -308,12 +308,20 @@ function renderJobCard(job) {
         <div style="display: flex; flex-direction: column; gap: 0.1rem">
           <h3 class="job-card-title" style="font-size: 1.08rem; color: var(--text-main)">${job.client}</h3>
           <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap">
-            <span style="font-size: 0.85rem; color: var(--text-dim)">${new Date(job.date).toLocaleDateString('vi-VN')}</span>
+            <span style="font-size: 0.85rem; color: var(--text-dim)">${(() => {
+      const days = job.eventDays && job.eventDays.length > 1 ? job.eventDays : null;
+      if (days) {
+        const dates = days.map(d => d.date).filter(Boolean).sort();
+        return dates.length > 1 ? new Date(dates[0]).toLocaleDateString('vi-VN') + ' → ' + new Date(dates[dates.length - 1]).toLocaleDateString('vi-VN') : new Date(job.date).toLocaleDateString('vi-VN');
+      }
+      return new Date(job.date).toLocaleDateString('vi-VN');
+    })()}</span>
+            ${job.eventDays && job.eventDays.length > 1 ? `<span class="multi-day-badge">📅 ${job.eventDays.length} ngày</span>` : ''}
             ${job.clientRating ? `<span style="font-size: 0.7rem; letter-spacing: 1px">${'⭐'.repeat(job.clientRating)}${'☆'.repeat(5 - job.clientRating)}</span>` : ''}
             ${(job.clientTags || []).map(t => {
-    const tc = { VIP: '#eab308', ['Khó tính']: '#ef4444', ['Dễ thương']: '#22c55e', ['Quay lại']: '#3b82f6', ['Mới']: '#8b5cf6' };
-    return `<span style="font-size:0.55rem;font-weight:800;padding:0.1rem 0.35rem;border-radius:4px;background:${(tc[t] || '#64748b')}15;color:${tc[t] || '#64748b'};border:1px solid ${(tc[t] || '#64748b')}25">${t}</span>`;
-  }).join('')}
+      const tc = { VIP: '#eab308', ['Khó tính']: '#ef4444', ['Dễ thương']: '#22c55e', ['Quay lại']: '#3b82f6', ['Mới']: '#8b5cf6' };
+      return `<span style="font-size:0.55rem;font-weight:800;padding:0.1rem 0.35rem;border-radius:4px;background:${(tc[t] || '#64748b')}15;color:${tc[t] || '#64748b'};border:1px solid ${(tc[t] || '#64748b')}25">${t}</span>`;
+    }).join('')}
           </div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem">
@@ -340,14 +348,17 @@ function renderJobCard(job) {
         </div>
 
         <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; background: rgba(255,255,255,0.02); padding: 0.5rem; border-radius: 6px">
-           <div style="flex: 1">
+           ${(() => {
+      const tl = (job.eventDays && job.eventDays.length > 0) ? job.eventDays[0].timeline : job.timeline;
+      return `<div style="flex: 1">
               <label style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); font-weight:700; display: block">Lễ Ceremony</label>
-              <span style="font-size: 0.9rem; font-weight: 800; color: #f97316">${job.timeline?.le || '--:--'}</span>
+              <span style="font-size: 0.9rem; font-weight: 800; color: #f97316">${tl?.le || '--:--'}</span>
            </div>
            <div style="flex: 1">
               <label style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); font-weight:700; display: block">Tiệc Party</label>
-              <span style="font-size: 0.9rem; font-weight: 800; color: #f97316">${job.timeline?.tiec || '--:--'}</span>
-           </div>
+              <span style="font-size: 0.9rem; font-weight: 800; color: #f97316">${tl?.tiec || '--:--'}</span>
+           </div>`;
+    })()}
         </div>
 
         <div class="job-details-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
@@ -538,38 +549,122 @@ function renderJobDetailModal(state) {
             </div>
           </div>
 
-          <!-- Row 3: venue + ghi chú -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem">
-            <div>
-              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Địa điểm / Venue</label>
-              <textarea id="edit-job-venue" class="form-control" rows="2"
-                style="font-size: 0.92rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border); resize: vertical; color: var(--text-main)">${job.venue || ''}</textarea>
-            </div>
-            <div>
-              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Ghi chú nội bộ</label>
-              <textarea id="edit-job-notes" class="form-control" rows="2"
-                style="font-size: 0.92rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border); resize: vertical; color: var(--text-main)">${job.notes || ''}</textarea>
-            </div>
+          <!-- Row 3: ghi chú -->
+          <div>
+            <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Ghi chú nội bộ</label>
+            <textarea id="edit-job-notes" class="form-control" rows="2"
+              style="font-size: 0.92rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border); resize: vertical; color: var(--text-main)">${job.notes || ''}</textarea>
           </div>
 
-          <!-- Row 4: timeline -->
+          <!-- Row 4: MULTI-DAY EVENT MANAGEMENT -->
           <div>
-            <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.5rem">⏰ Lịch trình</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem">
-              ${[
-      ['le_sang', 'Lễ sáng', job.timeline?.le_sang, 'le_time', job.timeline?.le || '05:00', '#f97316'],
-      ['tiec_trua', 'Tiệc trưa', job.timeline?.tiec_trua, 'tiec_time_trua', job.timeline?.tiec_trua_time || '11:00', '#22c55e'],
-      ['tiec_toi', 'Tiệc tối', job.timeline?.tiec_toi, 'tiec_time_toi', job.timeline?.tiec || '18:00', '#3b82f6']
-    ].map(([name, label, checked, timeName, timeVal, color]) => `
-                <div style="background: ${checked ? color + '0d' : '#fff'}; border: 1.5px solid ${checked ? color + '40' : 'var(--border)'}; border-radius: 10px; padding: 0.75rem">
-                  <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 700; color: ${checked ? color : 'var(--text-dim)'}; margin-bottom: 0.5rem; cursor: pointer">
-                    <input type="checkbox" name="${name}" ${checked ? 'checked' : ''}> ${label}
-                  </label>
-                  <input type="time" class="form-control" name="${timeName}" value="${timeVal}"
-                    style="padding: 0.3rem 0.5rem; font-size: 0.92rem; font-weight: 700; background: #fff; border: 1px solid var(--border); color: ${color}">
-                </div>
-              `).join('')}
+            <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.5rem">📅 Lịch trình sự kiện (theo ngày)</label>
+            ${(() => {
+      // Backward-compatible migration: create eventDays from legacy fields
+      const eventDays = job.eventDays && job.eventDays.length > 0 ? job.eventDays : [{
+        dayLabel: 'Ngày chính',
+        date: job.date || '',
+        boyHouse: job.boyHouse || '',
+        girlHouse: job.girlHouse || '',
+        venue: job.venue || '',
+        timeline: job.timeline || { le_sang: false, le: '05:00', tiec_trua: false, tiec_trua_time: '11:00', tiec_toi: false, tiec: '18:00' },
+        categories: (job.services || []).map(s => s.service).filter((v, i, a) => a.indexOf(v) === i)
+      }];
+
+      // Tab buttons
+      const tabBtns = eventDays.map((day, idx) => `
+        <button type="button" class="day-tab-btn ${idx === 0 ? 'active' : ''}" data-day-idx="${idx}" onclick="window._switchDayTab(${idx})">
+          ${day.dayLabel || ('Ngày ' + (idx + 1))}
+        </button>
+      `).join('');
+
+      // Tab contents
+      const tabContents = eventDays.map((day, idx) => {
+        const tl = day.timeline || {};
+        return `
+        <div class="day-tab-content ${idx === 0 ? 'active' : ''}" data-day-idx="${idx}">
+          <div class="day-form-panel">
+            <div class="day-header">
+              <h4>📋 ${day.dayLabel || ('Ngày ' + (idx + 1))}</h4>
+              ${eventDays.length > 1 ? `<button type="button" class="remove-day-btn" onclick="window._removeDayTab(${idx})">✕ Xóa ngày này</button>` : ''}
             </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem">
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Tên nhãn ngày</label>
+                <input type="text" class="form-control day-label-input" data-day="${idx}" value="${day.dayLabel || ''}" placeholder="VD: Lễ gia tiên, Tiệc cưới..."
+                  style="font-size: 0.92rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--primary); font-weight: 700">
+              </div>
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Ngày tổ chức</label>
+                <input type="date" class="form-control day-date-input" data-day="${idx}" value="${day.date || ''}"
+                  style="font-size: 0.92rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem">
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">🏠 Nhà Trai</label>
+                <input type="text" class="form-control day-boy-house-input" data-day="${idx}" value="${day.boyHouse || ''}" placeholder="Địa chỉ nhà trai"
+                  style="font-size: 0.88rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+              </div>
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">🏠 Nhà Gái</label>
+                <input type="text" class="form-control day-girl-house-input" data-day="${idx}" value="${day.girlHouse || ''}" placeholder="Địa chỉ nhà gái"
+                  style="font-size: 0.88rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
+              </div>
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">🏨 Venue / Tiệc</label>
+                <input type="text" class="form-control day-venue-input" data-day="${idx}" value="${day.venue || ''}" placeholder="Nhà hàng / địa điểm"
+                  style="font-size: 0.88rem; padding: 0.45rem 0.7rem; background: #fff; border: 1.5px solid var(--border); color: var(--accent); font-weight: 700">
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.4rem">⏰ Lịch trình</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem">
+                ${[
+            ['le_sang', 'Lễ sáng', tl.le_sang, 'le', tl.le || '05:00', '#f97316'],
+            ['tiec_trua', 'Tiệc trưa', tl.tiec_trua, 'tiec_trua_time', tl.tiec_trua_time || '11:00', '#22c55e'],
+            ['tiec_toi', 'Tiệc tối', tl.tiec_toi, 'tiec', tl.tiec || '18:00', '#3b82f6']
+          ].map(([name, label, checked, timeName, timeVal, color]) => `
+                  <div style="background: ${checked ? color + '0d' : '#fff'}; border: 1.5px solid ${checked ? color + '40' : 'var(--border)'}; border-radius: 10px; padding: 0.6rem">
+                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: ${checked ? color : 'var(--text-dim)'}; margin-bottom: 0.35rem; cursor: pointer">
+                      <input type="checkbox" class="day-tl-check" data-day="${idx}" data-tl="${name}" ${checked ? 'checked' : ''}> ${label}
+                    </label>
+                    <input type="time" class="form-control day-tl-time" data-day="${idx}" data-tl-time="${timeName}" value="${timeVal}"
+                      style="padding: 0.25rem 0.4rem; font-size: 0.85rem; font-weight: 700; background: #fff; border: 1px solid var(--border); color: ${color}">
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.4rem">🎬 Hạng mục quay/chụp</label>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.35rem">
+                ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT'].map(cat => {
+            const active = (day.categories || []).includes(cat);
+            return `<label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.65rem; border-radius: 8px; cursor: pointer; border: 1.5px solid ${active ? 'var(--primary-light)' : 'var(--border)'}; background: ${active ? 'rgba(22,163,74,0.08)' : '#fff'}; color: ${active ? 'var(--primary)' : 'var(--text-dim)'}; transition: all 0.2s">
+                    <input type="checkbox" class="day-cat-check" data-day="${idx}" value="${cat}" ${active ? 'checked' : ''} style="display:none"> ${cat}
+                  </label>`;
+          }).join('')}
+              </div>
+            </div>
+
+          </div>
+        </div>`;
+      }).join('');
+
+      return `
+        <div class="day-tabs" id="event-day-tabs">
+          ${tabBtns}
+          <button type="button" class="day-tab-btn add-day-btn" onclick="window._addDayTab()">+ Thêm ngày</button>
+        </div>
+        <div id="event-day-contents">
+          ${tabContents}
+        </div>
+      `;
+    })()}
           </div>
 
           <!-- Row 5: Links -->

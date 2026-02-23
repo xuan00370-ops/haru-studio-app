@@ -154,42 +154,136 @@ async function googleSheetScanner(jobs, sheetUrl) {
         if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
         const data = await response.json();
 
+        // ─── NEW FORMAT: { jobs: [...], eventDays: [...] } ───
         if (data.jobs && Array.isArray(data.jobs)) {
+            // Build eventDays lookup by job ID
+            const eventDaysMap = {};
+            if (data.eventDays && Array.isArray(data.eventDays)) {
+                for (const day of data.eventDays) {
+                    if (!day.jobId) continue;
+                    const key = String(day.jobId);
+                    if (!eventDaysMap[key]) eventDaysMap[key] = [];
+
+                    // Parse services from comma-separated strings
+                    const svcNames = (day.services || '').split(',').map(s => s.trim()).filter(Boolean);
+                    const svcStaffs = (day.staff || '').split(',').map(s => s.trim());
+                    const svcCosts = (day.costs || '').split(',').map(s => parseInt(s.trim()) || 0);
+
+                    const services = svcNames.map((name, i) => ({
+                        service: name,
+                        staff: svcStaffs[i] || 'Chưa xếp',
+                        cost: svcCosts[i] || 0,
+                        edit: 0,
+                        paid: false,
+                        date: day.date || ''
+                    }));
+
+                    eventDaysMap[key].push({
+                        dayLabel: day.dayLabel || '',
+                        date: day.date || '',
+                        boyHouse: day.boyHouse || '',
+                        girlHouse: day.girlHouse || '',
+                        venue: day.venue || '',
+                        timeline: {
+                            le_sang: !!(day.leSang),
+                            le: day.leSang || '05:00',
+                            tiec_trua: !!(day.tiecTrua),
+                            tiec_trua_time: day.tiecTrua || '11:00',
+                            tiec_toi: !!(day.tiecToi),
+                            tiec: day.tiecToi || '18:00'
+                        },
+                        categories: svcNames.filter((v, i, a) => a.indexOf(v) === i),
+                        services: services
+                    });
+                }
+            }
+
             let processed = 0;
             for (const row of data.jobs) {
                 if (!row.id || !row.client) continue;
+                const jobId = String(row.id);
 
-                const exists = jobs.find(j => j.id === String(row.id));
+                const exists = jobs.find(j => j.id === jobId);
+                const dayData = eventDaysMap[jobId] || [];
+
+                // Merge all services from all days
+                const allServices = dayData.flatMap(d => d.services || []);
+
+                // Build eventDays (without embedded services)
+                const eventDays = dayData.map(d => ({
+                    dayLabel: d.dayLabel,
+                    date: d.date,
+                    boyHouse: d.boyHouse,
+                    girlHouse: d.girlHouse,
+                    venue: d.venue,
+                    timeline: d.timeline,
+                    categories: d.categories
+                }));
+
                 if (exists) {
                     let changed = false;
+                    // Update fields from sheet if provided
+                    if (row.client && row.client !== exists.client) { exists.client = row.client; changed = true; }
+                    if (row.phone && row.phone !== exists.phone) { exists.phone = String(row.phone); changed = true; }
+                    if (row.eventType && row.eventType !== exists.eventType) { exists.eventType = row.eventType; changed = true; }
+                    if (row.package && parseInt(row.package) !== exists.package) { exists.package = parseInt(row.package) || 0; changed = true; }
+                    if (row.deposit !== undefined && parseInt(row.deposit) !== exists.deposit) { exists.deposit = parseInt(row.deposit) || 0; changed = true; }
+                    if (row.status && row.status !== exists.status) { exists.status = row.status; changed = true; }
                     if (row.linkDrive && row.linkDrive !== exists.linkDrive) { exists.linkDrive = row.linkDrive; changed = true; }
                     if (row.linkNAS && row.linkNAS !== exists.linkNAS) { exists.linkNAS = row.linkNAS; changed = true; }
+
+                    // Update eventDays if sheet has them
+                    if (eventDays.length > 0) {
+                        exists.eventDays = eventDays;
+                        exists.date = eventDays[0].date || exists.date;
+                        exists.venue = eventDays[0].venue || exists.venue;
+                        exists.timeline = eventDays[0].timeline || exists.timeline;
+                        changed = true;
+                    }
+
+                    // Update services if sheet has them
+                    if (allServices.length > 0) {
+                        exists.services = allServices;
+                        changed = true;
+                    }
+
                     if (changed) {
                         results.updated++;
-                        addSyncLog('updated', `[Sheet] Cập nhật link cho ${row.id}`, `${exists.linkNAS || ''} | ${exists.linkDrive || ''}`);
+                        addSyncLog('updated', `[Sheet] Cập nhật: ${jobId} ${row.client}`, `${eventDays.length} ngày, ${allServices.length} dịch vụ`);
                     } else {
                         results.skipped++;
                     }
                 } else {
-                    jobs.push({
-                        id: String(row.id),
+                    // Create new job
+                    const firstDay = eventDays[0] || {};
+                    const newJob = {
+                        id: jobId,
+                        jobNo: jobs.filter(j => !j.isTrash).length + 1,
                         client: row.client,
-                        date: row.date || new Date().toISOString().split('T')[0],
+                        date: firstDay.date || row.date || new Date().toISOString().split('T')[0],
+                        phone: String(row.phone || ''),
+                        eventType: row.eventType || 'Wedding',
                         package: parseInt(row.package) || 0,
                         deposit: parseInt(row.deposit) || 0,
                         status: row.status || 'Chưa gửi',
-                        venue: row.venue || '',
-                        services: row.services || [],
-                        timeline: row.timeline || { le: '', tiec: '' },
+                        isTrash: false,
+                        visibility: true,
+                        venue: firstDay.venue || row.venue || '',
+                        timeline: firstDay.timeline || { le_sang: false, le: '05:00', tiec_trua: false, tiec_trua_time: '11:00', tiec_toi: false, tiec: '18:00' },
+                        eventDays: eventDays.length > 0 ? eventDays : [],
+                        services: allServices.length > 0 ? allServices : (row.services || []),
                         linkNAS: row.linkNAS || '',
-                        linkDrive: row.linkDrive || ''
-                    });
+                        linkDrive: row.linkDrive || '',
+                        linkCustomer: '',
+                        notes: row.notes || ''
+                    };
+                    jobs.push(newJob);
                     results.added++;
-                    addSyncLog('added', `[Sheet] Đã thêm dự án mới: ${row.id}`, row.client);
+                    addSyncLog('added', `[Sheet] Thêm mới: ${jobId} ${row.client}`, `${eventDays.length} ngày, ${allServices.length} dịch vụ`);
                 }
                 processed++;
             }
-            addSyncLog('info', `Đã xử lý ${processed} dòng từ Google Sheet.`);
+            addSyncLog('info', `Đã xử lý ${processed} dự án từ Google Sheet.`);
         } else {
             throw new Error('API format không đúng. Cần trả về { jobs: [...] }');
         }
