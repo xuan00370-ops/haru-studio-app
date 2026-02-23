@@ -964,9 +964,15 @@ function updateUI() {
   }
 
   // ── Role ADMIN → giao diện đầy đủ ──
-  document.body.style.overflow = window.innerWidth <= 900 ? 'auto' : 'hidden';
-  app.style.display = 'grid';
-  app.style.gridTemplateColumns = '270px 1fr';
+  const isMobile = window.innerWidth <= 900;
+  document.body.style.overflow = isMobile ? 'auto' : 'hidden';
+  if (isMobile) {
+    app.style.display = 'block';
+    app.style.gridTemplateColumns = 'none';
+  } else {
+    app.style.display = 'grid';
+    app.style.gridTemplateColumns = '270px 1fr';
+  }
 
   const sidebar = renderSidebar(state.activePage, window.navigate);
   app.appendChild(sidebar);
