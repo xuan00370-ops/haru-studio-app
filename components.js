@@ -93,10 +93,10 @@ export function renderBottomNav(activePage, navigate) {
   // Chỉ hiện các nút quan trọng nhất cho Mobile
   const items = [
     { id: 'dashboard', icon: '📊', label: 'Dự án' },
+    { id: 'staff', icon: '🎭', label: 'Nhân sự' },
     { id: 'edit_video', icon: '🎞️', label: 'Edit' },
     { id: 'calendar', icon: '📅', label: 'Lịch' },
-    { id: 'finance', icon: '📒', label: 'Tiền' },
-    { id: 'jobs', icon: '📁', label: 'Lưu trữ' }
+    { id: 'finance', icon: '📒', label: 'Tiền' }
   ];
 
   nav.innerHTML = items.map(item => `
@@ -156,11 +156,29 @@ export function renderDashboard(state, navigate) {
 
   // Apply filters
   let monthJobs = state.jobs.filter(j => !j.isTrash);
+
+  const isOverdueJob = (job) => {
+    if (!job?.date) return false;
+    if ((job.status || '').toLowerCase().includes('hoàn thành')) return false;
+    const eventDate = new Date(job.date);
+    if (Number.isNaN(eventDate.getTime())) return false;
+    const deadline = new Date(eventDate);
+    deadline.setDate(deadline.getDate() + 30);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    deadline.setHours(0, 0, 0, 0);
+    return deadline < today;
+  };
+
   if (state.staffFilter && state.staffFilter !== 'TẤT CẢ') {
     monthJobs = monthJobs.filter(j => j.services.some(s => s.staff === state.staffFilter));
   }
   if (state.statusFilter && state.statusFilter !== 'TẤT CẢ') {
-    monthJobs = monthJobs.filter(j => j.status === state.statusFilter);
+    if (state.statusFilter === 'QUÁ HẠN') {
+      monthJobs = monthJobs.filter(isOverdueJob);
+    } else {
+      monthJobs = monthJobs.filter(j => j.status === state.statusFilter);
+    }
   }
   if (state.searchQuery) {
     const q = state.searchQuery.toLowerCase();
@@ -179,8 +197,9 @@ export function renderDashboard(state, navigate) {
   const totalCost = staffCosts + editCosts + (meta.ads || 0) + (meta.office || 0);
   const netProfit = revenue - totalCost;
 
-  // Unique statuses for dropdown
+  // Unique statuses for dropdown + smart status
   const allStatuses = [...new Set(state.jobs.map(j => j.status))].sort();
+  const overdueCount = state.jobs.filter(j => !j.isTrash).filter(isOverdueJob).length;
 
   container.innerHTML = `
     <header class="section-header">
@@ -195,6 +214,7 @@ export function renderDashboard(state, navigate) {
          <select onchange="window.setStatusFilter(this.value)"
            style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-main); background: #fff; padding: 0.4rem 0.5rem; border-radius: 6px; font-size: 0.7rem">
            <option value="TẤT CẢ" ${state.statusFilter === 'TẤT CẢ' ? 'selected' : ''}>Tất cả trạng thái</option>
+           <option value="QUÁ HẠN" ${state.statusFilter === 'QUÁ HẠN' ? 'selected' : ''}>Quá hạn (${overdueCount})</option>
            ${allStatuses.map(s => `<option value="${s}" ${state.statusFilter === s ? 'selected' : ''}>${s}</option>`).join('')}
          </select>
 

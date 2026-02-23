@@ -12,7 +12,8 @@ import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
 // ============================================================
 // STATE INITIALIZATION & FIREBASE
 // ============================================================
-const STORAGE_KEY = 'haru_state_v1';
+const STORAGE_KEY = 'haru_state_v2';
+const RESET_FLAG_KEY = 'haru_hotfix_20260223';
 
 // Mặc định ban đầu
 export const state = {
@@ -47,6 +48,32 @@ export const state = {
   clients: [] // Phase 3 CRM
 };
 
+// Auto-focus month/year theo dữ liệu thật (job mới nhất)
+(function initMonthYearFromData() {
+  const dated = (state.jobs || [])
+    .map(j => new Date(j.date))
+    .filter(d => !Number.isNaN(d.getTime()))
+    .sort((a, b) => b - a);
+  if (dated.length) {
+    state.currentMonth = dated[0].getMonth() + 1;
+    state.currentYear = dated[0].getFullYear();
+  }
+})();
+
+// One-time hotfix: clear stale client cache from older builds
+(function oneTimeCacheReset() {
+  try {
+    if (!localStorage.getItem(RESET_FLAG_KEY)) {
+      localStorage.removeItem('haru_state_v1');
+      localStorage.removeItem('haru_state_v2');
+      localStorage.removeItem('haru_theme');
+      localStorage.setItem(RESET_FLAG_KEY, '1');
+    }
+  } catch (e) {
+    console.warn('Cache reset skipped:', e.message);
+  }
+})();
+
 // ============================================================
 // PERSISTENCE — localStorage + Firebase
 // ============================================================
@@ -74,26 +101,21 @@ export function saveState() {
 }
 
 // ============================================================
-// DARK MODE
+// THEME (force light mode)
 // ============================================================
 function initTheme() {
-  const saved = localStorage.getItem('haru_theme');
-  if (saved) {
-    document.documentElement.setAttribute('data-theme', saved);
-  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
+  document.documentElement.setAttribute('data-theme', 'light');
+  localStorage.setItem('haru_theme', 'light');
 }
 
 window.toggleTheme = function () {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('haru_theme', next);
+  // Dark mode disabled by request.
+  document.documentElement.setAttribute('data-theme', 'light');
+  localStorage.setItem('haru_theme', 'light');
 };
 
 window.getThemeIcon = function () {
-  return document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+  return '🌤️';
 };
 
 initTheme();
@@ -246,22 +268,31 @@ async function bootload() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed.jobs) && Array.isArray(parsed.staff)) {
-        localData = parsed;
-        Object.assign(state, {
-          jobs: localData.jobs,
-          staff: localData.staff,
-          financeMetadata: localData.financeMetadata || state.financeMetadata,
-          manualTransactions: localData.manualTransactions || [],
-          settings: localData.settings || state.settings,
-          history: localData.history || state.history,
-          clients: localData.clients || []
-        });
+        // Guard: bỏ cache cũ nếu số job quá ít hơn data gốc đã sync
+        const parsedJobs = parsed.jobs.length;
+        const baselineJobs = Array.isArray(mockData.jobs) ? mockData.jobs.length : 0;
+        const shouldUseLocal = parsedJobs >= Math.min(5, baselineJobs || 5);
+
+        if (shouldUseLocal) {
+          localData = parsed;
+          Object.assign(state, {
+            jobs: localData.jobs,
+            staff: localData.staff,
+            financeMetadata: localData.financeMetadata || state.financeMetadata,
+            manualTransactions: localData.manualTransactions || [],
+            settings: localData.settings || state.settings,
+            history: localData.history || state.history,
+            clients: localData.clients || []
+          });
+        } else {
+          console.warn('[Haru] Bỏ qua local cache vì dữ liệu quá ít:', parsedJobs);
+        }
       }
     }
   } catch (e) { console.warn('Local Load Err:', e); }
 
-  // 2. Kích hoạt Firebase nếu có config
-  if (state.settings.firebaseConfig) {
+  // 2. Kích hoạt Firebase nếu có config (opt-in only)
+  if (state.settings.firebaseConfig && state.settings.enableFirebaseSync === true) {
     const isOk = initFirebase(state.settings.firebaseConfig);
     if (isOk) {
       // Fetch latest từ Firebase đè lên
@@ -279,6 +310,12 @@ async function bootload() {
         console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase!");
       }
     }
+  }
+
+  // Fallback an toàn: nếu dữ liệu rỗng thì khôi phục từ mockData đã sync
+  if (!Array.isArray(state.jobs) || state.jobs.length === 0) {
+    state.jobs = [...mockData.jobs];
+    if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
   }
 
   // Khởi động UI Component render
@@ -1575,15 +1612,21 @@ function updateUI() {
   }
 
   // Monthly Filter
-  const filteredJobs = state.jobs.filter(job => {
+  let filteredJobs = state.jobs.filter(job => {
     const jobDate = new Date(job.date);
     return (jobDate.getMonth() + 1) === state.currentMonth && jobDate.getFullYear() === state.currentYear;
   });
 
+  // UX fallback: nếu tháng hiện tại không có job thì hiển thị toàn bộ để tránh màn hình trống
+  if (filteredJobs.length === 0) {
+    filteredJobs = state.jobs.filter(job => !job.isTrash);
+  }
+
   const periodState = { ...state, jobs: filteredJobs };
+  const dashboardState = { ...state, jobs: state.jobs.filter(job => !job.isTrash) };
 
   switch (state.activePage) {
-    case 'dashboard': contentArea.appendChild(renderDashboard(periodState, window.navigate)); break;
+    case 'dashboard': contentArea.appendChild(renderDashboard(dashboardState, window.navigate)); break;
     case 'jobs': contentArea.appendChild(renderJobs(periodState)); break;
     case 'clients': contentArea.appendChild(renderClients(state)); break;
     case 'staff': contentArea.appendChild(renderStaff(state)); break;

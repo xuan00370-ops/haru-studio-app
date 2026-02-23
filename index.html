@@ -31,12 +31,9 @@
   <div id="app"></div>
   <script type="module" src="/main.js"></script>
   <script>
+    // Disable SW to avoid stale cached UI/data during active development.
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('[PWA] SW registered:', reg.scope))
-          .catch(err => console.warn('[PWA] SW failed:', err));
-      });
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
     }
   </script>
 </body>
