@@ -1389,6 +1389,53 @@ function updateUI() {
 
   app.appendChild(contentArea);
 
+  // ── Initialize SortableJS for ALL kanban views AFTER DOM attach ──
+  if (typeof Sortable !== 'undefined') {
+    // Main Kanban board
+    document.querySelectorAll('.kanban-list').forEach(list => {
+      new Sortable(list, {
+        group: 'kanban', animation: 150, ghostClass: 'kanban-ghost',
+        onEnd: (evt) => {
+          const card = evt.item;
+          const newStatus = evt.to.dataset.status;
+          if (window.updateVideoEditStatus) window.updateVideoEditStatus(card.dataset.jobId, card.dataset.svc, newStatus);
+        }
+      });
+    });
+    // Edit Video kanban
+    document.querySelectorAll('.ev-col-cards').forEach(col => {
+      new Sortable(col, {
+        group: 'editVideoKanban', animation: 200, ghostClass: 'sortable-ghost',
+        onEnd: (evt) => {
+          const card = evt.item;
+          const newStatus = evt.to.dataset.status;
+          const jobId = card.dataset.jobid;
+          const sIdx = parseInt(card.dataset.sidx);
+          const job = state.jobs.find(j => j.id === jobId);
+          if (job && job.services[sIdx]) {
+            window.updateVideoEditStatus && window.updateVideoEditStatus(jobId, job.services[sIdx].service, newStatus);
+          }
+        }
+      });
+    });
+    // Edit Photo kanban
+    document.querySelectorAll('.ep-col-cards').forEach(col => {
+      new Sortable(col, {
+        group: 'editPhoto', animation: 200, ghostClass: 'sortable-ghost',
+        onEnd: (evt) => {
+          const card = evt.item;
+          const newStatus = evt.to.closest('.ep-col').dataset.status;
+          const jobId = card.dataset.jobid;
+          const sIdx = parseInt(card.dataset.sidx);
+          const job = state.jobs.find(j => j.id === jobId);
+          if (job && job.services[sIdx]) {
+            window.updateEditStatus && window.updateEditStatus(jobId, job.services[sIdx].service, newStatus);
+          }
+        }
+      });
+    });
+  }
+
   if (state.modal.isOpen) {
     const modalOverlay = renderModalOverlay(state, window.closeModal);
     app.appendChild(modalOverlay);

@@ -1637,7 +1637,10 @@ export function renderEditVideo(state) {
               <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.2rem">${t.service}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
                 <span style="font-size:0.6rem;font-weight:700;background:#3b82f620;color:#3b82f6;padding:0.1rem 0.25rem;border-radius:4px">📹 ${t.staff}</span>
-                <span style="font-size:0.6rem;font-weight:700;background:#a855f720;color:#a855f7;padding:0.1rem 0.25rem;border-radius:4px">✏️ ${t.editStaff || '—'}</span>
+                <select onchange="event.stopPropagation();window.updateVideoEditor&&window.updateVideoEditor('${t.jobId}','${t.service}',this.value)" style="font-size:0.58rem;padding:0.1rem 0.2rem;border-radius:4px;border:1px solid #a855f740;background:#a855f710;color:#a855f7;font-weight:700;font-family:inherit;cursor:pointer;max-width:90px">
+                  <option value="">✏️ ${t.editStaff || 'Chọn'}</option>
+                  ${state.staff.map(s => `<option value="${s.name}" ${t.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
+                </select>
               </div>
               <div style="font-size:0.58rem;font-weight:700;color:${t.daysLeft > 5 ? '#22c55e' : t.daysLeft > 0 ? '#f97316' : '#ef4444'};text-align:center;background:${t.daysLeft > 5 ? '#22c55e10' : t.daysLeft > 0 ? '#f9731610' : '#ef444410'};padding:0.1rem;border-radius:4px">⏰ ${t.deadlineStr} ${t.daysLeft > 0 ? '(còn ' + t.daysLeft + 'd)' : '(trễ ' + Math.abs(t.daysLeft) + 'd!)'}</div>
             </div>`).join('')}
