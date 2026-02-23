@@ -13,7 +13,7 @@ import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
 // STATE INITIALIZATION & FIREBASE
 // ============================================================
 const STORAGE_KEY = 'haru_state_v2';
-const RESET_FLAG_KEY = 'haru_reset_2026_sync_v1';
+const RESET_FLAG_KEY = 'haru_reset_2026_sync_v2';
 
 // Mặc định ban đầu
 export const state = {
