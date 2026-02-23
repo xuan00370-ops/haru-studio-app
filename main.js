@@ -4,7 +4,7 @@ import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory,
-  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban, renderWatermark, renderStaffPortal
+  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban, renderWatermark, renderStaffPortal, renderEditPhoto
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
@@ -929,6 +929,9 @@ window.setStaffFilter = (staff) => { state.staffFilter = staff; updateUI(); };
 window.setStatusFilter = (status) => { state.statusFilter = status; updateUI(); };
 window.setSearchQuery = (query) => { state.searchQuery = query; updateUI(); };
 window.setEditVideoFilter = (filter) => { state.editVideoFilter = filter; updateUI(); };
+window.setEditPhotoFilter = (filter) => { state.editPhotoFilter = filter; updateUI(); };
+window.setEditPhotoStatusFilter = (filter) => { state.editPhotoStatusFilter = filter; updateUI(); };
+window.toggleEditPhotoView = (view) => { state.editPhotoView = view; updateUI(); };
 window.setEditVideoStatusFilter = (filter) => { state.editVideoStatusFilter = filter; updateUI(); };
 
 // ============================================================
@@ -1360,6 +1363,7 @@ function updateUI() {
     case 'tax': contentArea.appendChild(renderTax(periodState)); break;
     case 'edit': contentArea.appendChild(renderDeadlineEdit(periodState)); break;
     case 'edit_video': contentArea.appendChild(renderEditVideo(periodState)); break;
+    case 'edit_photo': contentArea.appendChild(renderEditPhoto(periodState)); break;
     case 'calendar': contentArea.appendChild(renderCalendar(state)); break;
     case 'trash': contentArea.appendChild(renderTrash(state)); break;
     case 'settings': contentArea.appendChild(renderSettings(state)); break;

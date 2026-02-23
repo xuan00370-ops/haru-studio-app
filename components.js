@@ -16,6 +16,9 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'edit_video' ? 'active' : ''}" onclick="window.navigate('edit_video')">
         <span class="icon">🎞️</span> Edit Video
       </div>
+      <div class="nav-item ${activePage === 'edit_photo' ? 'active' : ''}" onclick="window.navigate('edit_photo')">
+        <span class="icon">📸</span> Edit Photo
+      </div>
       <div class="nav-item ${activePage === 'kanban' ? 'active' : ''}" onclick="window.navigate('kanban')">
         <span class="icon">📋</span> Kanban
       </div>
@@ -3183,7 +3186,7 @@ export function renderStaffPortal(state) {
   container.style.cssText = `min-height:100vh;background:var(--bg-deep);font-family:'Outfit',sans-serif;`;
 
   const staffName = state.currentUser?.staffName || state.currentUser?.displayName || 'Nhân sự';
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
   const myJobs = [];
@@ -3213,9 +3216,9 @@ export function renderStaffPortal(state) {
     });
   });
 
-  myJobs.sort((a,b) => new Date(a.date) - new Date(b.date));
-  const totalEarnings = myJobs.reduce((s,j) => s + j.cost, 0);
-  const paidEarnings = myJobs.filter(j => j.paid).reduce((s,j) => s + j.cost, 0);
+  myJobs.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const totalEarnings = myJobs.reduce((s, j) => s + j.cost, 0);
+  const paidEarnings = myJobs.filter(j => j.paid).reduce((s, j) => s + j.cost, 0);
   const unpaidEarnings = totalEarnings - paidEarnings;
   const upcomingJobs = myJobs.filter(j => !j.isPast);
   const pastJobs = myJobs.filter(j => j.isPast);
@@ -3230,16 +3233,16 @@ export function renderStaffPortal(state) {
         </div>
         <div>
           <span style="font-size:1rem;font-weight:800;color:var(--text-main)">👋 ${staffName}</span>
-          <div style="font-size:0.68rem;color:var(--text-dim)">${today.toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</div>
+          <div style="font-size:0.68rem;color:var(--text-dim)">${today.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:0.5rem">
         <div style="display:flex;gap:0.3rem;font-size:0.72rem;font-weight:800">
           <span style="background:#3b82f610;color:#3b82f6;padding:0.15rem 0.45rem;border-radius:6px">${myJobs.length} job</span>
           <span style="background:#22c55e10;color:#22c55e;padding:0.15rem 0.45rem;border-radius:6px">${fmt(totalEarnings)}</span>
-          ${unpaidEarnings > 0 ? '<span style="background:#ef444410;color:#ef4444;padding:0.15rem 0.45rem;border-radius:6px">Nợ '+fmt(unpaidEarnings)+'</span>' : ''}
+          ${unpaidEarnings > 0 ? '<span style="background:#ef444410;color:#ef4444;padding:0.15rem 0.45rem;border-radius:6px">Nợ ' + fmt(unpaidEarnings) + '</span>' : ''}
         </div>
-        <button onclick="window.toggleTheme();window.updateUI()" class="theme-toggle">${isDark?'☀️':'🌙'}</button>
+        <button onclick="window.toggleTheme();window.updateUI()" class="theme-toggle">${isDark ? '☀️' : '🌙'}</button>
         <button onclick="window.logout()" style="background:#ef444408;border:1px solid #ef444425;color:#ef4444;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">🚪 Thoát</button>
       </div>
     </div>
@@ -3265,20 +3268,20 @@ export function renderStaffPortal(state) {
       </div>
 
       <div style="display:flex;gap:0.25rem;margin-bottom:0.8rem;background:var(--accent-soft);border-radius:10px;padding:0.2rem;border:1px solid var(--border)">
-        <button class="sp-tab" data-tab="jobs" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;${activeTab==='jobs'?'background:var(--primary);color:#fff':'background:transparent;color:var(--text-dim)'}">📋 Công việc (${myJobs.length})</button>
-        <button class="sp-tab" data-tab="payment" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;${activeTab==='payment'?'background:var(--primary);color:#fff':'background:transparent;color:var(--text-dim)'}">💰 Thanh toán</button>
-        ${myClips.length > 0 ? '<button class="sp-tab" data-tab="clips" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;'+(activeTab==='clips'?'background:var(--primary);color:#fff':'background:transparent;color:var(--text-dim)')+'">🎬 Clips ('+myClips.length+')</button>' : ''}
+        <button class="sp-tab" data-tab="jobs" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;${activeTab === 'jobs' ? 'background:var(--primary);color:#fff' : 'background:transparent;color:var(--text-dim)'}">📋 Công việc (${myJobs.length})</button>
+        <button class="sp-tab" data-tab="payment" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;${activeTab === 'payment' ? 'background:var(--primary);color:#fff' : 'background:transparent;color:var(--text-dim)'}">💰 Thanh toán</button>
+        ${myClips.length > 0 ? '<button class="sp-tab" data-tab="clips" style="flex:1;padding:0.35rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:0.78rem;font-family:inherit;' + (activeTab === 'clips' ? 'background:var(--primary);color:#fff' : 'background:transparent;color:var(--text-dim)') + '">🎬 Clips (' + myClips.length + ')</button>' : ''}
       </div>
 
-      <div id="sp-jobs" style="${activeTab==='jobs'?'':'display:none'}">
-        ${upcomingJobs.length?'<div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:0.4rem">🔜 Sắp tới ('+upcomingJobs.length+')</div>':''}
-        ${upcomingJobs.map(j => '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;border-left:3px solid '+(j.isToday?'#f97316':'var(--primary)')+'"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">'+j.client+'</span>'+(j.isToday?' <span style="font-size:0.55rem;background:#f97316;color:#fff;padding:0.1rem 0.3rem;border-radius:4px;font-weight:800">HÔM NAY</span>':'')+'</div><span style="font-size:0.72rem;font-weight:700;color:var(--text-dim)">'+j.dateStr+'</span></div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.15rem">'+j.service+' · '+j.eventType+(j.address?' · 📍 '+j.address:'')+'</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem"><span style="font-size:0.72rem;font-weight:800;color:var(--primary)">'+fmt(j.cost)+'</span><span style="font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;'+(j.paid?'background:#22c55e15;color:#22c55e':'background:#f9731615;color:#f97316')+'">'+(j.paid?'✅ Đã TT':'⏳ Chưa TT')+'</span></div></div>').join('')}
-        ${pastJobs.length?'<div style="font-size:0.75rem;font-weight:800;color:var(--text-dim);margin:0.6rem 0 0.4rem">✅ Đã làm ('+pastJobs.length+')</div>':''}
-        ${pastJobs.map(j => '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;opacity:0.7"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:0.85rem;font-weight:800;color:var(--text-main)">'+j.client+'</span><span style="font-size:0.72rem;font-weight:700;color:var(--text-dim)">'+j.dateStr+'</span></div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.15rem">'+j.service+' · '+j.eventType+'</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem"><span style="font-size:0.72rem;font-weight:800;color:var(--primary)">'+fmt(j.cost)+'</span><span style="font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;'+(j.paid?'background:#22c55e15;color:#22c55e':'background:#f9731615;color:#f97316')+'">'+(j.paid?'✅ Đã TT':'⏳ Chưa TT')+'</span></div></div>').join('')}
-        ${myJobs.length===0?'<div style="text-align:center;padding:2rem;color:var(--text-dim);font-size:0.85rem">Chưa có công việc nào 🎬</div>':''}
+      <div id="sp-jobs" style="${activeTab === 'jobs' ? '' : 'display:none'}">
+        ${upcomingJobs.length ? '<div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:0.4rem">🔜 Sắp tới (' + upcomingJobs.length + ')</div>' : ''}
+        ${upcomingJobs.map(j => '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;border-left:3px solid ' + (j.isToday ? '#f97316' : 'var(--primary)') + '"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + j.client + '</span>' + (j.isToday ? ' <span style="font-size:0.55rem;background:#f97316;color:#fff;padding:0.1rem 0.3rem;border-radius:4px;font-weight:800">HÔM NAY</span>' : '') + '</div><span style="font-size:0.72rem;font-weight:700;color:var(--text-dim)">' + j.dateStr + '</span></div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.15rem">' + j.service + ' · ' + j.eventType + (j.address ? ' · 📍 ' + j.address : '') + '</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem"><span style="font-size:0.72rem;font-weight:800;color:var(--primary)">' + fmt(j.cost) + '</span><span style="font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;' + (j.paid ? 'background:#22c55e15;color:#22c55e' : 'background:#f9731615;color:#f97316') + '">' + (j.paid ? '✅ Đã TT' : '⏳ Chưa TT') + '</span></div></div>').join('')}
+        ${pastJobs.length ? '<div style="font-size:0.75rem;font-weight:800;color:var(--text-dim);margin:0.6rem 0 0.4rem">✅ Đã làm (' + pastJobs.length + ')</div>' : ''}
+        ${pastJobs.map(j => '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;opacity:0.7"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:0.85rem;font-weight:800;color:var(--text-main)">' + j.client + '</span><span style="font-size:0.72rem;font-weight:700;color:var(--text-dim)">' + j.dateStr + '</span></div><div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.15rem">' + j.service + ' · ' + j.eventType + '</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem"><span style="font-size:0.72rem;font-weight:800;color:var(--primary)">' + fmt(j.cost) + '</span><span style="font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;' + (j.paid ? 'background:#22c55e15;color:#22c55e' : 'background:#f9731615;color:#f97316') + '">' + (j.paid ? '✅ Đã TT' : '⏳ Chưa TT') + '</span></div></div>').join('')}
+        ${myJobs.length === 0 ? '<div style="text-align:center;padding:2rem;color:var(--text-dim);font-size:0.85rem">Chưa có công việc nào 🎬</div>' : ''}
       </div>
 
-      <div id="sp-payment" style="${activeTab==='payment'?'':'display:none'}">
+      <div id="sp-payment" style="${activeTab === 'payment' ? '' : 'display:none'}">
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.8rem;margin-bottom:0.6rem">
           <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.5rem">💰 Tổng kết</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem">
@@ -3287,12 +3290,12 @@ export function renderStaffPortal(state) {
             <div style="text-align:center;padding:0.4rem;background:#f9731608;border-radius:8px"><div style="font-size:0.5rem;font-weight:800;color:#f97316;text-transform:uppercase">Còn nợ</div><div style="font-size:1rem;font-weight:900;color:#f97316">${fmt(unpaidEarnings)}</div></div>
           </div>
         </div>
-        ${myJobs.map(j => '<div style="background:var(--bg-card);border:1px solid '+(j.paid?'#22c55e':'#f97316')+'20;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.35rem;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:0.82rem;font-weight:700;color:var(--text-main)">'+j.client+'</div><div style="font-size:0.62rem;color:var(--text-dim)">'+j.dateStr+' · '+j.service+'</div></div><div style="text-align:right"><div style="font-size:0.85rem;font-weight:800;color:'+(j.paid?'#22c55e':'#f97316')+'">'+fmt(j.cost)+'</div><div style="font-size:0.55rem;font-weight:700;color:'+(j.paid?'#22c55e':'#f97316')+'">'+(j.paid?'✅ Đã thanh toán':'⏳ Chờ thanh toán')+'</div></div></div>').join('')}
+        ${myJobs.map(j => '<div style="background:var(--bg-card);border:1px solid ' + (j.paid ? '#22c55e' : '#f97316') + '20;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.35rem;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:0.82rem;font-weight:700;color:var(--text-main)">' + j.client + '</div><div style="font-size:0.62rem;color:var(--text-dim)">' + j.dateStr + ' · ' + j.service + '</div></div><div style="text-align:right"><div style="font-size:0.85rem;font-weight:800;color:' + (j.paid ? '#22c55e' : '#f97316') + '">' + fmt(j.cost) + '</div><div style="font-size:0.55rem;font-weight:700;color:' + (j.paid ? '#22c55e' : '#f97316') + '">' + (j.paid ? '✅ Đã thanh toán' : '⏳ Chờ thanh toán') + '</div></div></div>').join('')}
       </div>
 
-      <div id="sp-clips" style="${activeTab==='clips'?'':'display:none'}">
-        ${myClips.length===0?'<div style="text-align:center;padding:2rem;color:var(--text-dim)">Không có clip nào 🎬</div>':''}
-        ${myClips.map(c => '<div style="background:var(--bg-card);border:1px solid '+c.sc+'25;border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;border-left:3px solid '+c.sc+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">'+c.client+'</span><span style="font-size:0.65rem;font-weight:800;color:'+c.sc+';background:'+c.sc+'12;padding:0.15rem 0.4rem;border-radius:5px">'+c.editStatus+'</span></div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.3rem">'+c.service+' · �� '+c.dateStr+'</div><div style="background:'+c.sc+'10;border:1px solid '+c.sc+'20;border-radius:8px;padding:0.3rem 0.5rem;display:flex;justify-content:space-between;align-items:center;'+(c.daysLeft<=0&&c.editStatus!=='Hoàn thành'?'animation:pulse 2s infinite':'')+'"><span style="font-size:0.68rem;font-weight:800;color:'+c.sc+'">⏰ DL: '+c.deadlineStr+'</span><span style="font-size:0.68rem;font-weight:800;color:'+c.sc+'">'+(c.editStatus==='Hoàn thành'?'✅ Đã xong':c.daysLeft>0?'⏳ '+c.daysLeft+' ngày':'🚨 Trễ '+Math.abs(c.daysLeft)+' ngày!')+'</span></div>'+(c.editorNote?'<div style="font-size:0.62rem;color:var(--text-muted);margin-top:0.25rem;background:#3b82f608;padding:0.2rem 0.4rem;border-radius:5px">✏️ '+c.editorNote+'</div>':'')+(c.editDriveLink?'<div style="margin-top:0.2rem"><a href="'+c.editDriveLink+'" target="_blank" style="font-size:0.62rem;color:#3b82f6;font-weight:700">🔗 Mở link sản phẩm</a></div>':'')+'</div>').join('')}
+      <div id="sp-clips" style="${activeTab === 'clips' ? '' : 'display:none'}">
+        ${myClips.length === 0 ? '<div style="text-align:center;padding:2rem;color:var(--text-dim)">Không có clip nào 🎬</div>' : ''}
+        ${myClips.map(c => '<div style="background:var(--bg-card);border:1px solid ' + c.sc + '25;border-radius:10px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;border-left:3px solid ' + c.sc + '"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + c.client + '</span><span style="font-size:0.65rem;font-weight:800;color:' + c.sc + ';background:' + c.sc + '12;padding:0.15rem 0.4rem;border-radius:5px">' + c.editStatus + '</span></div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.3rem">' + c.service + ' · �� ' + c.dateStr + '</div><div style="background:' + c.sc + '10;border:1px solid ' + c.sc + '20;border-radius:8px;padding:0.3rem 0.5rem;display:flex;justify-content:space-between;align-items:center;' + (c.daysLeft <= 0 && c.editStatus !== 'Hoàn thành' ? 'animation:pulse 2s infinite' : '') + '"><span style="font-size:0.68rem;font-weight:800;color:' + c.sc + '">⏰ DL: ' + c.deadlineStr + '</span><span style="font-size:0.68rem;font-weight:800;color:' + c.sc + '">' + (c.editStatus === 'Hoàn thành' ? '✅ Đã xong' : c.daysLeft > 0 ? '⏳ ' + c.daysLeft + ' ngày' : '🚨 Trễ ' + Math.abs(c.daysLeft) + ' ngày!') + '</span></div>' + (c.editorNote ? '<div style="font-size:0.62rem;color:var(--text-muted);margin-top:0.25rem;background:#3b82f608;padding:0.2rem 0.4rem;border-radius:5px">✏️ ' + c.editorNote + '</div>' : '') + (c.editDriveLink ? '<div style="margin-top:0.2rem"><a href="' + c.editDriveLink + '" target="_blank" style="font-size:0.62rem;color:#3b82f6;font-weight:700">🔗 Mở link sản phẩm</a></div>' : '') + '</div>').join('')}
       </div>
     </div>
     <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}</style>
@@ -3303,5 +3306,88 @@ export function renderStaffPortal(state) {
     if (tabBtn) { state.staffPortalTab = tabBtn.dataset.tab; window.updateUI(); }
   });
 
+  return container;
+}
+
+// ============ EDIT PHOTO TRACKER (with Kanban) ============
+export function renderEditPhoto(state) {
+  const container = document.createElement('div');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const EDIT_DAYS = 7;
+  const photoTasks = [];
+  state.jobs.forEach(job => {
+    if (job.isTrash) return;
+    job.services.forEach((s, sIdx) => {
+      const isPhoto = s.service.toLowerCase().includes('chụp');
+      if (!isPhoto) return;
+      const jobDate = new Date(job.date); jobDate.setHours(0,0,0,0);
+      const dl = new Date(jobDate); dl.setDate(dl.getDate() + EDIT_DAYS);
+      const daysLeft = Math.ceil((dl - today) / 864e5);
+      const editStatus = s.editStatus || 'Chưa bắt đầu';
+      let stage, sc;
+      if (editStatus === 'Hoàn thành') { stage = 'HOÀN THÀNH'; sc = '#22c55e'; }
+      else if (daysLeft > 5) { stage = 'THOẢI MÁI'; sc = '#22c55e'; }
+      else if (daysLeft > 2) { stage = 'CẦN ĐẨY'; sc = '#eab308'; }
+      else if (daysLeft > 0) { stage = 'GẤP'; sc = '#f97316'; }
+      else { stage = 'QUÁ HẠN'; sc = '#ef4444'; }
+      photoTasks.push({ jobId: job.id, jobNo: job.jobNo, client: job.client, service: s.service, serviceIdx: sIdx, staff: s.staff, editStaff: s.editStaff || '', editStatus, editDriveLink: s.editDriveLink || '', deadlineStr: dl.toLocaleDateString('vi-VN'), daysLeft, stage, sc, jobDate: job.date });
+    });
+  });
+
+  const stageOrder = {'QUÁ HẠN':0,'GẤP':1,'CẦN ĐẨY':2,'THOẢI MÁI':3,'HOÀN THÀNH':4};
+  photoTasks.sort((a,b) => (stageOrder[a.stage]??5) - (stageOrder[b.stage]??5) || a.daysLeft - b.daysLeft);
+
+  const editFilter = state.editPhotoFilter || 'TẤT CẢ';
+  const allEditors = [...new Set(photoTasks.map(t => t.editStaff || t.staff).filter(Boolean))].sort();
+  let filtered = editFilter === 'TẤT CẢ' ? photoTasks : photoTasks.filter(t => (t.editStaff || t.staff) === editFilter);
+  const statusFilter = state.editPhotoStatusFilter || 'ALL';
+  if (statusFilter === 'DONE') filtered = filtered.filter(t => t.editStatus === 'Hoàn thành');
+  else if (statusFilter === 'PENDING') filtered = filtered.filter(t => t.editStatus !== 'Hoàn thành');
+
+  const total = photoTasks.length;
+  const done = photoTasks.filter(t => t.editStatus === 'Hoàn thành').length;
+  const overdue = photoTasks.filter(t => t.stage === 'QUÁ HẠN').length;
+  const isKanban = (state.editPhotoView || 'kanban') === 'kanban';
+  const staffOpts = state.staff.map(s => '<option value="'+s.name+'">'+s.name+'</option>').join('');
+  const statusOpts = ['Chưa bắt đầu','Đang chỉnh sửa','Demo','Chỉnh sửa lại','Hoàn thành'].map(s => '<option value="'+s+'">'+s+'</option>').join('');
+
+  const kanbanCols = [
+    { key: 'Chưa bắt đầu', label: '📥 Chưa bắt đầu', color: '#94a3b8' },
+    { key: 'Đang chỉnh sửa', label: '🎨 Đang chỉnh sửa', color: '#3b82f6' },
+    { key: 'Demo', label: '👁️ Demo', color: '#a855f7' },
+    { key: 'Chỉnh sửa lại', label: '🔄 Chỉnh sửa lại', color: '#f97316' },
+    { key: 'Hoàn thành', label: '✅ Hoàn thành', color: '#22c55e' }
+  ];
+
+  const renderCard = (t) => '<div class="ep-card" data-jobid="'+t.jobId+'" data-sidx="'+t.serviceIdx+'" style="background:var(--bg-card);border:1px solid '+t.sc+'25;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;border-left:3px solid '+t.sc+';cursor:grab"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.82rem;font-weight:800;color:var(--text-main)">'+(t.client)+' <span style="font-size:0.6rem;color:var(--text-dim)">#'+t.jobNo+'</span></span><span style="font-size:0.58rem;font-weight:800;color:'+t.sc+';background:'+t.sc+'12;padding:0.1rem 0.3rem;border-radius:4px">'+t.stage+'</span></div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.2rem">'+t.service+' · '+(t.editStaff||t.staff||'—')+'</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:0.62rem"><span style="font-weight:700;color:'+t.sc+'">⏰ '+t.deadlineStr+'</span><span style="font-weight:700;color:'+t.sc+'">'+(t.editStatus==='Hoàn thành'?'✅ Xong':t.daysLeft>0?t.daysLeft+'d còn':'🚨 Trễ '+Math.abs(t.daysLeft)+'d')+'</span></div></div>';
+
+  container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline '+EDIT_DAYS+' ngày</p></div></header>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">'+total+'</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">'+done+'</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">'+(total-done)+'</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">'+overdue+'</div></div></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem"><div style="display:flex;gap:0.3rem;flex-wrap:wrap"><button onclick="window.setEditPhotoFilter(\'TẤT CẢ\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(editFilter==='TẤT CẢ'?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">Tất cả</button>'+allEditors.map(n => '<button onclick="window.setEditPhotoFilter(\''+n+'\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(editFilter===n?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">'+n+'</button>').join('')+'</div><div style="display:flex;gap:0.3rem"><button onclick="window.toggleEditPhotoView(\'kanban\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(isKanban?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">📋 Kanban</button><button onclick="window.toggleEditPhotoView(\'list\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;'+(!isKanban?'background:var(--primary);color:#fff;border:none':'background:#fff;color:var(--text-dim);border:1px solid var(--border)')+'">📝 List</button></div></div>'
+    + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat('+kanbanCols.length+',1fr);gap:0.6rem;overflow-x:auto">'+kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="'+col.key+'" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid '+col.color+'"><div style="font-size:0.72rem;font-weight:800;color:'+col.color+';margin-bottom:0.4rem;text-align:center">'+col.label+' ('+colTasks.length+')</div><div class="ep-col-cards">'+colTasks.map(renderCard).join('')+'</div></div>'; }).join('')+'</div>'
+    : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">'+filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid '+t.sc+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">'+t.client+' <span style="font-size:0.65rem;color:var(--text-dim)">#'+t.jobNo+'</span></span><span style="font-size:0.6rem;font-weight:800;color:'+t.sc+';background:'+t.sc+'12;padding:0.1rem 0.3rem;border-radius:4px">'+t.stage+'</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">'+t.service+' · '+(t.editStaff||t.staff||'—')+'</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:'+t.sc+'">⏰ '+t.deadlineStr+'</div><select onchange="window.updateEditStatus(\''+t.jobId+'\','+t.serviceIdx+',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">'+['Chưa bắt đầu','Đang chỉnh sửa','Demo','Chỉnh sửa lại','Hoàn thành'].map(s => '<option value="'+s+'" '+(t.editStatus===s?'selected':'')+'>'+s+'</option>').join('')+'</select></div></div>').join('')+'</div>');
+
+  // Kanban drag-drop with SortableJS
+  if (isKanban) {
+    setTimeout(() => {
+      const cols = container.querySelectorAll('.ep-col-cards');
+      if (typeof Sortable !== 'undefined') {
+        cols.forEach(col => {
+          new Sortable(col, {
+            group: 'editPhoto',
+            animation: 200,
+            ghostClass: 'sortable-ghost',
+            onEnd: (evt) => {
+              const card = evt.item;
+              const newStatus = evt.to.closest('.ep-col').dataset.status;
+              const jobId = card.dataset.jobid;
+              const sIdx = parseInt(card.dataset.sidx);
+              if (window.updateEditStatus) window.updateEditStatus(jobId, sIdx, newStatus);
+            }
+          });
+        });
+      }
+    }, 300);
+  }
   return container;
 }
