@@ -1,5 +1,11 @@
 import { normalizeServiceName, calculateDeadlines, formatCurrency, generateId } from './logic.js';
 
+// Helper: staff field có thể là string hoặc array (từ sync). Normalize về string.
+function _staffStr(staff) {
+  if (Array.isArray(staff)) return staff.join(', ');
+  return staff || '';
+}
+
 export function renderSidebar(activePage, navigate) {
   const aside = document.createElement('aside');
   aside.className = 'sidebar';
@@ -207,8 +213,8 @@ export function renderDashboard(state, navigate) {
 
     ${state.staffFilter && state.staffFilter !== 'TẤT CẢ' ? (() => {
       const sName = state.staffFilter;
-      const totalEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && s.staff.includes(sName)).reduce((s, ser) => s + ser.cost, 0), 0);
-      const paidEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && s.staff.includes(sName) && s.paid).reduce((s, ser) => s + ser.cost, 0), 0);
+      const totalEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && _staffStr(s.staff).includes(sName)).reduce((s, ser) => s + ser.cost, 0), 0);
+      const paidEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && _staffStr(s.staff).includes(sName) && s.paid).reduce((s, ser) => s + ser.cost, 0), 0);
       const unpaidEarnings = totalEarnings - paidEarnings;
       return `
         <div class="staff-quick-view reveal" style="margin-top: 1.5rem; padding: 1.25rem 1.5rem; background: rgba(22,163,74,0.05); border: 1px solid rgba(22,163,74,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.02)">
@@ -1056,7 +1062,7 @@ export function renderStaff(state) {
     return state.jobs.some(j => {
       if (j.isTrash) return false;
       const d = new Date(j.date);
-      return (d.getMonth() + 1) === state.currentMonth && d.getFullYear() === state.currentYear && j.services.some(s => s.staff.includes(m.name));
+      return (d.getMonth() + 1) === state.currentMonth && d.getFullYear() === state.currentYear && j.services.some(s => _staffStr(s.staff).includes(m.name));
     });
   });
 
@@ -1094,9 +1100,9 @@ export function renderStaff(state) {
 
     <div class="staff-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem">
       ${filteredStaff.map(member => {
-    const memberJobs = state.jobs.filter(j => !j.isTrash && j.services.some(s => s.staff.includes(member.name)));
-    const totalEarnings = memberJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff.includes(member.name)).reduce((ss, s) => ss + (s.cost || 0), 0), 0);
-    const paidEarnings = memberJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff.includes(member.name) && s.paid).reduce((ss, s) => ss + (s.cost || 0), 0), 0);
+    const memberJobs = state.jobs.filter(j => !j.isTrash && j.services.some(s => _staffStr(s.staff).includes(member.name)));
+    const totalEarnings = memberJobs.reduce((sum, j) => sum + j.services.filter(s => _staffStr(s.staff).includes(member.name)).reduce((ss, s) => ss + (s.cost || 0), 0), 0);
+    const paidEarnings = memberJobs.reduce((sum, j) => sum + j.services.filter(s => _staffStr(s.staff).includes(member.name) && s.paid).reduce((ss, s) => ss + (s.cost || 0), 0), 0);
     const unpaidEarnings = totalEarnings - paidEarnings;
     const escapedName = member.name.replace(/'/g, "\\'");
     return `
@@ -1146,7 +1152,7 @@ export function renderStaff(state) {
             </div>
             <div><div style="color: var(--text-dim); margin-bottom: 0.5rem; font-size: 0.65rem; text-transform: uppercase; font-weight: 800">Job gần đây</div>
                <div style="display: flex; flex-direction: column; gap: 0.4rem">
-                  ${memberJobs.slice(0, 3).map(j => `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.4rem 0.5rem; background: rgba(34,197,94,0.04); border-radius: 6px"><span>${j.client}</span><span style="font-weight: 700; color: var(--success)">+${formatCurrency(j.services.find(s => s.staff.includes(member.name))?.cost)}</span></div>`).join('') || '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center">Chưa có</div>'}
+                  ${memberJobs.slice(0, 3).map(j => `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.4rem 0.5rem; background: rgba(34,197,94,0.04); border-radius: 6px"><span>${j.client}</span><span style="font-weight: 700; color: var(--success)">+${formatCurrency(j.services.find(s => _staffStr(s.staff).includes(member.name))?.cost)}</span></div>`).join('') || '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center">Chưa có</div>'}}
                </div>
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: auto">
@@ -2654,7 +2660,7 @@ function renderPA3ReportModal(state) {
 function renderStaffChips(job) {
   return (job.services || []).map(function (s, idx) {
     var paid = s.paid;
-    var label = (s.staff || '').split(' ')[0] + ' - ' + (s.service || '');
+    var label = _staffStr(s.staff).split(' ')[0] + ' - ' + (s.service || '');
     var bg = paid ? 'rgba(21,128,61,0.10)' : 'rgba(0,0,0,0.035)';
     var clr = paid ? '#15803d' : '#3d6b40';
     var bdr = paid ? 'rgba(21,128,61,0.22)' : 'rgba(20,83,45,0.10)';

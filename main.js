@@ -892,9 +892,9 @@ window.toggleServicePaid = (jobId, serviceIndex, newPaidState, checkboxEl) => {
 // Micro-update staff card payment metrics in DOM (no full re-render)
 function _updateStaffPaymentMetrics(staffName) {
   if (!staffName) return;
-  const memberJobs = state.jobs.filter(j => !j.isTrash && j.services.some(s => s.staff.includes(staffName)));
-  const total = memberJobs.reduce((s, j) => s + j.services.filter(sv => sv.staff.includes(staffName)).reduce((ss, sv) => ss + (sv.cost || 0), 0), 0);
-  const paid = memberJobs.reduce((s, j) => s + j.services.filter(sv => sv.staff.includes(staffName) && sv.paid).reduce((ss, sv) => ss + (sv.cost || 0), 0), 0);
+  const memberJobs = state.jobs.filter(j => !j.isTrash && j.services.some(s => (Array.isArray(s.staff) ? s.staff.join(', ') : (s.staff || '')).includes(staffName)));
+  const total = memberJobs.reduce((s, j) => s + j.services.filter(sv => (Array.isArray(sv.staff) ? sv.staff.join(', ') : (sv.staff || '')).includes(staffName)).reduce((ss, sv) => ss + (sv.cost || 0), 0), 0);
+  const paid = memberJobs.reduce((s, j) => s + j.services.filter(sv => (Array.isArray(sv.staff) ? sv.staff.join(', ') : (sv.staff || '')).includes(staffName) && sv.paid).reduce((ss, sv) => ss + (sv.cost || 0), 0), 0);
   const unpaid = total - paid;
   const fmt = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
@@ -1183,7 +1183,7 @@ window.exportCSV = () => {
   const rows = [['Ngày', 'Dự án', 'Khách hàng', 'Nội dung', 'Loại', 'Số tiền', 'Trạng thái']];
   state.jobs.filter(j => !j.isTrash).forEach(job => {
     job.services.forEach(s => {
-      rows.push([job.date, job.id, job.client, `${s.service} - ${s.staff} `, 'Chi thợ', s.cost, s.paid ? 'Đã trả' : 'Chưa trả']);
+      rows.push([job.date, job.id, job.client, `${s.service} - ${Array.isArray(s.staff) ? s.staff.join(', ') : s.staff} `, 'Chi thợ', s.cost, s.paid ? 'Đã trả' : 'Chưa trả']);
     });
     rows.push([job.date, job.id, job.client, 'Gói dịch vụ', 'Thu', job.package, 'Đã ký']);
   });
