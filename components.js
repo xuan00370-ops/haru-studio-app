@@ -2411,7 +2411,10 @@ export function renderEditorPortal(state) {
             </div>
             ${!isDone ? `<button class="ep-done-btn" data-job-id="${g.id}" data-service="${c.svc}"
               style="background:#22c55e;color:#fff;border:none;padding:0.3rem 0.6rem;border-radius:6px;
-                font-size:0.7rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;margin-top:0.8rem">✓ Xong</button>`: ''}
+                font-size:0.7rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;margin-top:0.8rem">✓ Xong</button>`
+        : `<button class="ep-reopen-btn" data-job-id="${g.id}" data-service="${c.svc}"
+              style="background:#f97316;color:#fff;border:none;padding:0.3rem 0.6rem;border-radius:6px;
+                font-size:0.7rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;margin-top:0.8rem">✏️ Edit lại</button>`}
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;padding-left:42px">
@@ -2586,6 +2589,8 @@ export function renderEditorPortal(state) {
   container.addEventListener('click', function (e) {
     const btn = e.target.closest('.ep-done-btn');
     if (btn) window.updateVideoEditStatus(btn.dataset.jobId, btn.dataset.service, 'Hoàn thành');
+    const reopen = e.target.closest('.ep-reopen-btn');
+    if (reopen) window.updateVideoEditStatus(reopen.dataset.jobId, reopen.dataset.service, 'Chỉnh sửa');
   });
   container.addEventListener('blur', function (e) {
     const el = e.target;
