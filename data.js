@@ -283,20 +283,142 @@ export const mockData = {
                 { service: 'QUAY PS', staff: 'XUÂN', cost: 3000000, paid: false, edit: 1000000, date: '2026-03-29' },
                 { service: 'CHỤP PS', staff: 'NGỌC TUYỀN', cost: 2500000, paid: false, edit: 500000, date: '2026-03-29' }
             ]
+        },
+        // --- APRIL 2026 ---
+        {
+            id: '009T2',
+            jobNo: 9,
+            client: 'Hoàng Nam',
+            date: '2026-04-26',
+            phone: '0932813131',
+            venue: '49 tổ 2, ấp 3, Vĩnh Cửu, Đồng Nai, Việt Nam',
+            address: '49 tổ 2, ấp 3, Vĩnh Cửu, Đồng Nai',
+            package: 18500000,
+            deposit: 5000000,
+            status: 'Sắp diễn ra',
+            eventType: 'Lễ cưới',
+            isTrash: false,
+            visibility: true,
+            timeline: { le: '07:00', tiec: '11:00', type: 'both' },
+            notes: 'CD: Trần Thị Minh Ngọc 0762722931 · CR: Nguyễn Hoàng Nam 0932813131 · xe thống 500k · l2: 10 củ · gửi demo',
+            services: [
+                { service: 'QUAY PS', staff: 'THỐNG', cost: 3000000, paid: false, edit: 800000, date: '2026-04-26' },
+                { service: 'CHỤP PS', staff: 'XUÂN', cost: 2500000, paid: false, edit: 500000, date: '2026-04-26' },
+                { service: 'CHỤP TT', staff: 'BÌNH', cost: 1500000, paid: false, edit: 0, date: '2026-04-26' }
+            ]
+        },
+        // --- MAY 2026 ---
+        {
+            id: '73T9',
+            jobNo: 10,
+            client: 'Thu Minh',
+            date: '2026-05-16',
+            phone: '0335276418',
+            venue: '162/88 Nguyễn Văn Lượng, P17, Q.Gò Vấp / NHÀ HÀNG HƯƠNG PHỐ, A12 Phan Văn Trị, P.Hạnh Thông',
+            address: '162/88 Nguyễn Văn Lượng, P17, Q.Gò Vấp',
+            package: 20000000,
+            deposit: 4000000,
+            status: 'Sắp diễn ra',
+            eventType: 'Lễ sáng tiệc trưa',
+            isTrash: false,
+            visibility: true,
+            timeline: { le: '06:00', tiec: '11:00', type: 'both' },
+            notes: 'CD: PHẠM THU MINH · CR: NGUYỄN VĂN HOÀNG DƯƠNG 0335276418',
+            services: [
+                { service: 'QUAY PS', staff: 'THỐNG', cost: 3000000, paid: false, edit: 800000, date: '2026-05-16' },
+                { service: 'QUAY PS', staff: 'BÌNH', cost: 3000000, paid: false, edit: 800000, date: '2026-05-16' },
+                { service: 'CHỤP PS', staff: 'XUÂN', cost: 2500000, paid: false, edit: 500000, date: '2026-05-16' },
+                { service: 'CHỤP TT', staff: 'NGỌC TUYỀN', cost: 1700000, paid: false, edit: 300000, date: '2026-05-16' }
+            ]
+        },
+        {
+            id: '003T1b',
+            jobNo: 11,
+            client: 'Vy Phạm',
+            date: '2026-05-16',
+            phone: '0983082810',
+            venue: '4-13 Lô G, Chung cư Đồng Diều, P.Chánh Hưng / White Palace Võ Văn Kiệt',
+            address: 'Chung cư Đồng Diều, P.Chánh Hưng / White Palace Võ Văn Kiệt',
+            package: 25000000,
+            deposit: 5000000,
+            status: 'Sắp diễn ra',
+            eventType: 'Sáng gia tiên tối tiệc',
+            isTrash: false,
+            visibility: true,
+            timeline: { le: '07:00', tiec: '18:00', type: 'both' },
+            notes: 'CD Phạm Lê Nhật Vy 0983082810 · CR Nguyễn Trường Duy 0375106444 · TT lần 2: 3.600k sau quay pre · TT lần 3: 11.400k sau cưới',
+            services: [
+                { service: 'QUAY PS', staff: 'NHO', cost: 3000000, paid: false, edit: 800000, date: '2026-05-16' },
+                { service: 'QUAY TT', staff: '', cost: 2000000, paid: false, edit: 700000, date: '2026-05-16' },
+                { service: 'CHỤP PS', staff: 'BẢO', cost: 2500000, paid: false, edit: 500000, date: '2026-05-16' },
+                { service: 'CHỤP TT', staff: '', cost: 1700000, paid: false, edit: 300000, date: '2026-05-16' }
+            ]
+        },
+        // --- JUNE 2026 ---
+        {
+            id: '010T2',
+            jobNo: 12,
+            client: 'Diệu Nghi Planner',
+            date: '2026-06-06',
+            phone: '0818797768',
+            venue: 'Maison de charm - 793/57/16 Trần Xuân Soạn, P.Tân Hưng, Q7, TP.HCM',
+            address: 'Maison de charm, Trần Xuân Soạn, Q7',
+            package: 21000000,
+            deposit: 4200000,
+            status: 'Sắp diễn ra',
+            eventType: 'Chi tiệc',
+            isTrash: false,
+            visibility: true,
+            timeline: { tiec: '18:00', type: 'party' },
+            notes: 'CR: Đặng Quang Bảo 0818797768 · CD: Tô Thị Ngọc Hương 0971170705',
+            services: [
+                { service: 'QUAY PS', staff: '', cost: 3000000, paid: false, edit: 800000, date: '2026-06-06' },
+                { service: 'QUAY PS', staff: '', cost: 3000000, paid: false, edit: 800000, date: '2026-06-06' },
+                { service: 'CHỤP PS', staff: '', cost: 2500000, paid: false, edit: 500000, date: '2026-06-06' },
+                { service: 'CHỤP TT', staff: '', cost: 1700000, paid: false, edit: 300000, date: '2026-06-06' }
+            ]
+        },
+        {
+            id: '008T2b',
+            jobNo: 13,
+            client: 'Mỹ Thanh',
+            date: '2026-06-20',
+            phone: '0562535455',
+            venue: '149/9 Lý Thánh Tông, P.Phú Thạnh / Nhà hàng Diamond Âu Cơ',
+            address: '149/9 Lý Thánh Tông, P.Phú Thạnh / Diamond Âu Cơ',
+            package: 14000000,
+            deposit: 2800000,
+            status: 'Sắp diễn ra',
+            eventType: 'Đám cưới',
+            isTrash: false,
+            visibility: true,
+            timeline: { le: '07:00', tiec: '11:00', type: 'both' },
+            notes: 'Mỹ Thanh 0562535455 · Zalo: 09243419030 · CR: Huỳnh Văn Trí · Tặng clip ngắn',
+            services: [
+                { service: 'QUAY TT', staff: '', cost: 2000000, paid: false, edit: 700000, date: '2026-06-20' },
+                { service: 'CHỤP PS', staff: '', cost: 2500000, paid: false, edit: 500000, date: '2026-06-20' },
+                { service: 'CHỤP TT', staff: '', cost: 1700000, paid: false, edit: 300000, date: '2026-06-20' }
+            ]
         }
     ],
     // Monthly Costs & Metadata
     financeMetadata: {
         '2026-1': { ads: 0, office: 15000000 },
         '2026-2': { ads: 4425000, office: 15000000 },
-        '2026-3': { ads: 0, office: 10000000 }
+        '2026-3': { ads: 0, office: 10000000 },
+        '2026-4': { ads: 0, office: 0 },
+        '2026-5': { ads: 0, office: 0 },
+        '2026-6': { ads: 0, office: 0 }
     },
     staff: [
         { id: 1, name: 'XUÂN', role: 'Photo Lead', phone: '0901234567', bank: { no: '001100...', name: 'LE MINH XUAN', bank: 'VCB' } },
         { id: 2, name: 'THỐNG', role: 'Cinema Lead', phone: '0902345678', bank: { no: '123456...', name: 'VAN THONG', bank: 'ACB' } },
         { id: 3, name: 'BÌNH', role: 'Photographer / Asst', phone: '0903456789', bank: { no: '9021...', name: 'QUOC BINH', bank: 'TIMO' } },
         { id: 4, name: 'HIẾU', role: 'Cinema', phone: '0904567890', bank: { no: 'Sacombank...', name: 'TRONG HIEU', bank: 'SCB' } },
-        { id: 5, name: 'CAN', role: 'Cinema', phone: '0905671234', bank: { no: 'Techcombank...', name: 'HOANG CAN', bank: 'TCB' } }
+        { id: 5, name: 'CAN', role: 'Cinema', phone: '0905671234', bank: { no: 'Techcombank...', name: 'HOANG CAN', bank: 'TCB' } },
+        { id: 6, name: 'NGỌC TUYỀN', role: 'Photographer', phone: '', bank: { no: '', name: '', bank: '' } },
+        { id: 7, name: 'NHO', role: 'Cinema', phone: '', bank: { no: '', name: '', bank: '' } },
+        { id: 8, name: 'BẢO', role: 'Photographer', phone: '', bank: { no: '', name: '', bank: '' } }
     ],
     settings: {
         rates: {
