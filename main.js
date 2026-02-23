@@ -836,6 +836,18 @@ window.updateVideoEditStatus = (jobId, serviceName, newStatus) => {
   updateUI();
 };
 
+window.deleteVideoClip = (jobId, svcKey) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  const idx = job.services.findIndex(s => s.service === svcKey);
+  if (idx === -1) return;
+  job.services.splice(idx, 1);
+  saveState();
+  window.addHistory(`Xoá clip: ${job.client} – ${svcKey}`);
+  showPaymentToast('🗑️ Đã xoá clip', 'var(--danger)');
+  updateUI();
+};
+
 window.updateVideoEditLink = (jobId, serviceName, link) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
