@@ -1789,22 +1789,33 @@ export function renderHistory(state) {
     if (action.includes('Thêm') || action.includes('Tạo')) return { icon: 'fa-plus-circle', color: '#34d399' };
     if (action.includes('Sửa') || action.includes('Cập nhật') || action.includes('Lưu')) return { icon: 'fa-edit', color: '#60a5fa' };
     if (action.includes('Xóa') || action.includes('Xoá')) return { icon: 'fa-trash', color: '#f87171' };
+    if (action.includes('backup') || action.includes('Backup') || action.includes('Xuất') || action.includes('Nhập')) return { icon: 'fa-database', color: '#a78bfa' };
     return { icon: 'fa-info-circle', color: '#22c55e' };
   };
 
   container.innerHTML = `
-  <header class="section-header" >
-       <h1 class="view-title">📋 Lịch sử hoạt động</h1>
-       <span style="font-size: 0.85rem; color: var(--text-dim)">${state.history.length} hoạt động</span>
+  <header class="section-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+       <div>
+         <h1 class="view-title">📋 Lịch sử hoạt động</h1>
+         <span style="font-size: 0.85rem; color: var(--text-dim)">${state.history.length} hoạt động</span>
+       </div>
+       <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+         <button onclick="window.exportBackup()" style="background:#22c55e;color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem">
+           💾 Xuất Backup
+         </button>
+         <button onclick="window.importBackup()" style="background:var(--accent-soft);color:var(--primary);border:1px solid var(--border-bright);padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem">
+           📥 Nhập Backup
+         </button>
+       </div>
     </header>
 
   <div class="glass-panel" style="margin-top: 1.5rem; padding: 1.5rem">
     <div style="position: relative; padding-left: 2rem">
       <div style="position: absolute; left: 0.55rem; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, #22c55e, rgba(34,197,94,0.1))"></div>
-      ${state.history.slice().reverse().map(h => {
+      ${state.history.slice(0, 100).map(h => {
     const ic = getIcon(h.action);
     return `
-            <div style="position: relative; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.04)">
+            <div style="position: relative; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border)">
                <div style="position: absolute; left: -1.55rem; top: 0.2rem; width: 12px; height: 12px; border-radius: 50%; background: ${ic.color}; box-shadow: 0 0 8px ${ic.color}40"></div>
                <div style="display: flex; justify-content: space-between; align-items: flex-start">
                   <div style="flex: 1">
@@ -1813,6 +1824,7 @@ export function renderHistory(state) {
                         <span style="font-size: 0.9rem; font-weight: 700">${h.action}</span>
                      </div>
                      <div style="font-size: 0.75rem; color: var(--text-dim)"><i class="fas fa-user" style="margin-right: 0.3rem"></i>${h.user}</div>
+                     ${h.details ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.2rem;padding:0.3rem 0.5rem;background:var(--accent-soft);border-radius:6px;font-family:monospace">${h.details}</div>` : ''}
                   </div>
                   <div style="font-size: 0.75rem; font-family: monospace; color: var(--text-dim); white-space: nowrap">${new Date(h.time).toLocaleString('vi-VN')}</div>
                </div>

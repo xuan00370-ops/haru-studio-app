@@ -153,8 +153,58 @@ bootload();
 // ============================================================
 const app = document.getElementById('app');
 
-window.addHistory = (action) => {
-  state.history.unshift({ time: new Date().toISOString(), action, user: 'Admin' });
+window.addHistory = (action, details = null) => {
+  const session = JSON.parse(localStorage.getItem('haru_session') || '{}');
+  const entry = { time: new Date().toISOString(), action, user: session.displayName || 'Admin' };
+  if (details) entry.details = details;
+  state.history.unshift(entry);
+  if (state.history.length > 500) state.history = state.history.slice(0, 500);
+};
+
+// ============================================================
+// BACKUP & RESTORE
+// ============================================================
+window.exportBackup = () => {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  a.href = url;
+  a.download = `haru_backup_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  window.addHistory('Xuất backup dữ liệu');
+  saveState();
+};
+
+window.importBackup = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!imported.jobs || !Array.isArray(imported.jobs)) {
+          alert('❌ File backup không hợp lệ (thiếu jobs)');
+          return;
+        }
+        if (!confirm(`⚠️ Nhập backup sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại!\n\nFile: ${file.name}\nSố jobs: ${imported.jobs.length}\nSố nhân sự: ${(imported.staff || []).length}\n\nBạn chắc chắn?`)) return;
+        Object.assign(state, imported);
+        state.history.unshift({ time: new Date().toISOString(), action: `Nhập backup từ ${file.name}`, user: 'Admin' });
+        saveState();
+        updateUI();
+      } catch (err) {
+        alert('❌ Lỗi đọc file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 };
 
 function showValidationError(errors) {
