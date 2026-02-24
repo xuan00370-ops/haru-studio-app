@@ -117,6 +117,16 @@ export const state = {
   }
 })();
 
+// Rename old deliverable names (Ảnh Tiệc → Ảnh Phóng sự, etc.)
+(function renameOldDeliverables() {
+  state.jobs.forEach(job => {
+    (job.deliverables || []).forEach(d => {
+      if (d.name === 'Ảnh Tiệc') d.name = 'Ảnh Phóng sự';
+      if (d.name === 'Ảnh Truyền thống') d.name = 'Ảnh Truyền thống'; // keep as-is
+    });
+  });
+})();
+
 // ============================================================
 // PERSISTENCE — localStorage + Firebase
 // ============================================================
