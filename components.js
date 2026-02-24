@@ -148,7 +148,7 @@ export function renderBottomNav(activePage, navigate) {
     { id: 'edit_video', icon: '🎞️', label: 'Edit' },
     { id: 'calendar', icon: '📅', label: 'Lịch' }
   ];
-  if (window._state?.staffViewMode !== 'staff') {
+  if (window.state?.staffViewMode !== 'staff') {
     items.push({ id: 'finance', icon: '📒', label: 'Tiền' });
     items.push({ id: 'jobs', icon: '📁', label: 'Lưu trữ' });
   }
@@ -173,6 +173,10 @@ export function renderMonthPicker(state, updateMonth) {
   picker.className = 'month-picker';
   const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
 
+  // Multi-month label
+  const em = state.extraMonth;
+  const multiLabel = em ? `T${state.currentMonth} + T${em.month}` : '';
+
   picker.innerHTML = `
     <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.5rem">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -185,15 +189,31 @@ export function renderMonthPicker(state, updateMonth) {
           <option value="${i + 1}" ${state.currentMonth === i + 1 ? 'selected' : ''}>Tháng ${i + 1}</option>
         `).join('')}
       </select>
+      <button id="multi-month-btn" style="font-size:0.72rem;padding:0.3rem 0.6rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;border:1.5px solid ${em ? 'var(--primary)' : 'var(--border)'};background:${em ? 'var(--primary)' : 'var(--surface)'};color:${em ? '#fff' : 'var(--text-dim)'}" title="Gộp thêm 1 tháng kế tiếp">${em ? multiLabel : '+1T'}</button>
     </div>
   `;
 
   picker.querySelector('#month-select').onchange = (e) => {
+    state.extraMonth = null; // Reset multi-month when changing primary
     updateMonth(parseInt(e.target.value), state.currentYear);
   };
 
-  picker.querySelector('#prev-year').onclick = () => updateMonth(state.currentMonth, state.currentYear - 1);
-  picker.querySelector('#next-year').onclick = () => updateMonth(state.currentMonth, state.currentYear + 1);
+  picker.querySelector('#prev-year').onclick = () => { state.extraMonth = null; updateMonth(state.currentMonth, state.currentYear - 1); };
+  picker.querySelector('#next-year').onclick = () => { state.extraMonth = null; updateMonth(state.currentMonth, state.currentYear + 1); };
+
+  // Multi-month toggle
+  picker.querySelector('#multi-month-btn').onclick = () => {
+    if (state.extraMonth) {
+      state.extraMonth = null;
+    } else {
+      // Add next month
+      let nm = state.currentMonth + 1;
+      let ny = state.currentYear;
+      if (nm > 12) { nm = 1; ny++; }
+      state.extraMonth = { month: nm, year: ny };
+    }
+    if (window.updateUI) window.updateUI();
+  };
 
   return picker;
 }
@@ -472,7 +492,7 @@ function renderJobCard(job) {
       </div>
 
       <div class="job-card-footer" style="margin-top: 0.75rem; border-top: 1px dashed var(--border); padding-top: 0.5rem">
-         ${window._state?.staffViewMode === 'staff' ? '' : `
+         ${window.state?.staffViewMode === 'staff' ? '' : `
          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
             <div style="font-size: 0.82rem"><span style="color: var(--text-dim)">Gói:</span> ${formatCurrency(job.package)}</div>
             <div style="font-size: 0.82rem"><span style="color: var(--text-dim)">Cọc</span> ${formatCurrency(job.deposit || 0)}</div>
@@ -731,7 +751,7 @@ function renderJobDetailModal(state) {
           </div>
 
           <!-- Row 2: finance -->
-          ${window._state?.staffViewMode === 'staff' ? '' : `
+          ${window.state?.staffViewMode === 'staff' ? '' : `
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.875rem; background: rgba(22,163,74,0.04); padding: 1rem; border-radius: 10px; border: 1px solid var(--border)">
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Giá trị gói (VNĐ)</label>
@@ -864,15 +884,15 @@ function renderJobDetailModal(state) {
               </div>
               <div class="day-services-container" data-day="${idx}" style="display: flex; flex-direction: column; gap: 0.5rem">
                 ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => `
-                  <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window._state?.staffViewMode === 'staff' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
+                  <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window.state?.staffViewMode === 'staff' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
                      <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
                        ${['Quay phim', 'Chụp ảnh', 'Cinema', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác'].map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                      </select>
                      <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
                        <option value="Chưa xếp">-- Chọn người --</option>
-                       ${window._state?.staff?.map(staff => `<option value="${staff.name}" ${s.staff === staff.name ? 'selected' : ''}>${staff.name}</option>`).join('') || ''}
+                       ${window.state?.staff?.map(staff => `<option value="${staff.name}" ${s.staff === staff.name ? 'selected' : ''}>${staff.name}</option>`).join('') || ''}
                      </select>
-                     ${window._state?.staffViewMode === 'staff' ? '' : `
+                     ${window.state?.staffViewMode === 'staff' ? '' : `
                      <div style="position: relative">
                         <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
                         <input type="number" class="form-control svc-cost-input" value="${s.cost || 0}" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--danger); font-weight: 700">
@@ -984,7 +1004,7 @@ function renderJobDetailModal(state) {
         <div style="position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem">
 
           <!-- Profit card -->
-          ${window._state?.staffViewMode === 'staff' ? '' : `
+          ${window.state?.staffViewMode === 'staff' ? '' : `
           <div style="background: ${profit >= 0 ? 'rgba(21,128,61,0.06)' : 'rgba(185,28,28,0.06)'}; border: 2px solid ${profit >= 0 ? 'rgba(21,128,61,0.20)' : 'rgba(185,28,28,0.20)'}; border-radius: 14px; padding: 1.25rem">
             <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem">💰 Ước tính lợi nhuận</div>
             <div style="font-size: 2.2rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}; line-height: 1.1; margin-bottom: 1rem">
@@ -1053,7 +1073,7 @@ window._addServiceToDayInModal = (dayIdx) => {
   const container = document.querySelector(`.day-services-container[data-day="${dayIdx}"]`);
   if (!container) return;
   const sIdx = Date.now();
-  const isStaffView = window._state?.staffViewMode === 'staff';
+  const isStaffView = window.state?.staffViewMode === 'staff';
   const newRow = document.createElement('div');
   newRow.className = 'day-service-row';
   newRow.setAttribute('data-sidx', sIdx);
@@ -1064,7 +1084,7 @@ window._addServiceToDayInModal = (dayIdx) => {
      </select>
      <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
        <option value="Chưa xếp">-- Chọn người --</option>
-       ${(window._state?.staff || []).map(staff => `<option value="${staff.name}">${staff.name}</option>`).join('')}
+       ${(window.state?.staff || []).map(staff => `<option value="${staff.name}">${staff.name}</option>`).join('')}
      </select>
      ${isStaffView ? '' : `
      <div style="position: relative">

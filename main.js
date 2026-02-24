@@ -27,6 +27,7 @@ export const state = {
   staffFilter: 'TẤT CẢ',
   statusFilter: 'TẤT CẢ',
   searchQuery: '',
+  extraMonth: null, // Multi-month filter: e.g. { month: 3, year: 2026 } to combine with currentMonth
   staffViewMode: 'all',
   editVideoFilter: 'TẤT CẢ',
   editVideoMissingLink: false, // Phase 3 #6: audit link filter
@@ -51,17 +52,8 @@ export const state = {
   clients: [] // Phase 3 CRM
 };
 
-// Auto-focus month/year theo dữ liệu thật (job mới nhất)
-(function initMonthYearFromData() {
-  const dated = (state.jobs || [])
-    .map(j => new Date(j.date))
-    .filter(d => !Number.isNaN(d.getTime()))
-    .sort((a, b) => b - a);
-  if (dated.length) {
-    state.currentMonth = dated[0].getMonth() + 1;
-    state.currentYear = dated[0].getFullYear();
-  }
-})();
+// Mặc định tháng hiện tại (không ghi đè theo job mới nhất)
+// state.currentMonth và state.currentYear đã được set = new Date() ở trên
 
 // One-time hotfix: clear stale client cache from older builds
 (function oneTimeCacheReset() {
@@ -91,10 +83,8 @@ export const state = {
       }
 
       const chupCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
-      if (chupCount === 1) deliverables.push({ name: 'Ảnh Tiệc', type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
-      else if (chupCount >= 2) {
-        deliverables.push({ name: 'Ảnh Tiệc', type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
-        deliverables.push({ name: 'Ảnh Truyền thống', type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      for (let ci = 0; ci < chupCount; ci++) {
+        deliverables.push({ name: chupCount === 1 ? 'Bộ Hình' : `Bộ Hình ${ci + 1}`, type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
       }
 
       if (deliverables.length > 0) {
@@ -1952,10 +1942,14 @@ function updateUI() {
     contentArea.appendChild(header);
   }
 
-  // Monthly Filter
+  // Monthly Filter (supports multi-month)
   const filteredJobs = state.jobs.filter(job => {
     const jobDate = new Date(job.date);
-    return (jobDate.getMonth() + 1) === state.currentMonth && jobDate.getFullYear() === state.currentYear;
+    const jm = jobDate.getMonth() + 1;
+    const jy = jobDate.getFullYear();
+    if (jm === state.currentMonth && jy === state.currentYear) return true;
+    if (state.extraMonth && jm === state.extraMonth.month && jy === state.extraMonth.year) return true;
+    return false;
   });
 
   const periodState = { ...state, jobs: filteredJobs };
