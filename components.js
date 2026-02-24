@@ -637,8 +637,9 @@ function renderQuickPreviewModal(state, closeModal) {
     })()}
       </div>
       ${job.linkNAS ? `<div style="padding:0.5rem 0.8rem;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:6px;margin-top:0.25rem"><div style="font-size:0.62rem;color:var(--text-dim);margin-bottom:0.15rem">📂 NAS Path</div><div style="font-size:0.72rem;font-weight:700;color:#3b82f6;word-break:break-all">${job.linkNAS}</div></div>` : ''}
-      <div style="margin-top:auto;padding-top:1rem">
+      <div style="margin-top:auto;padding-top:1rem;display:flex;flex-direction:column;gap:0.5rem">
         <button onclick="window.closeModal(); setTimeout(() => window.openModal('job_detail', '${job.id}'), 100)" style="width:100%;padding:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(22,163,74,0.2)">✏️ Chỉnh sửa nâng cao</button>
+        <button onclick="window.deleteJob('${job.id}')" style="width:100%;padding:0.6rem;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer">🗑 Xóa dự án</button>
       </div>
 
     </div>
