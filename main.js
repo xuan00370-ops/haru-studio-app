@@ -1480,6 +1480,8 @@ window.addStaff = (data) => {
 };
 
 window.removeStaff = (name) => {
+  const role = state.currentUser?.role || '';
+  if (role !== 'admin') { alert('Chỉ Admin mới có quyền xóa nhân sự.'); return; }
   if (!confirm(`Xóa nhân sự "${name}" khỏi hệ thống ?\n\nLưu ý: Dữ liệu công việc liên quan vẫn được giữ.`)) return;
   state.staff = state.staff.filter(s => s.name !== name);
   window.addHistory(`Xóa nhân sự: ${name} `);

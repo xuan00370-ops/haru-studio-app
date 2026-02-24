@@ -1440,7 +1440,7 @@ export function renderStaff(state) {
                </div>
                <div style="display: flex; gap: 0.3rem">
                   <button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem" onclick="window.showEditStaff('${escapedName}')" title="Sửa"><i class="fas fa-pen"></i></button>
-                  <button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem; color: var(--danger)" onclick="if(confirm('Xóa nhân sự ${escapedName}?')) window.removeStaff('${escapedName}')" title="Xóa"><i class="fas fa-trash"></i></button>
+                  ${state.currentUser?.role === 'admin' ? `<button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem; color: var(--danger)" onclick="if(confirm('Xóa nhân sự ${escapedName}?')) window.removeStaff('${escapedName}')" title="Xóa"><i class="fas fa-trash"></i></button>` : ''}
                </div>
             </div>
 
@@ -2137,37 +2137,22 @@ export function renderEditVideo(state) {
     const currentStep = steps.indexOf(t.editStatus);
 
     return `
-         <div class="edit-video-card" style="background: ${t.stageBg}; border: 1.5px solid ${t.stageColor}30; border-radius: 16px; padding: 1.25rem; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.04)">
+         <div class="edit-video-card" style="background: ${t.stageBg}; border: 1.5px solid ${t.stageColor}30; border-radius: 12px; padding: 0.75rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.03)">
             <!-- Header -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem">
-               <div style="display: flex; align-items: center; gap: 0.5rem">
-                  <span style="font-size: 1.1rem">${t.stageIcon}</span>
-                  <span style="font-size: 0.68rem; font-weight: 900; color: ${t.stageColor}; text-transform: uppercase; letter-spacing: 0.5px; background: ${t.stageColor}15; padding: 0.15rem 0.5rem; border-radius: 4px">${t.stage}</span>
-                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); background: rgba(0,0,0,0.04); padding: 0.15rem 0.5rem; border-radius: 4px">${t.service}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem">
+               <div style="display: flex; align-items: center; gap: 0.4rem">
+                  <span style="font-size: 0.68rem; font-weight: 900; color: ${t.stageColor}; text-transform: uppercase; background: ${t.stageColor}15; padding: 0.1rem 0.4rem; border-radius: 4px">${t.stage}</span>
+                  <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-dim); background: rgba(0,0,0,0.04); padding: 0.1rem 0.4rem; border-radius: 4px">${t.service}</span>
+                  <span style="font-size: 0.6rem; font-weight: 800; color: var(--primary); background: var(--accent-soft); padding: 0.1rem 0.4rem; border-radius: 4px">#${t.jobNo || '—'}</span>
                </div>
-               <div style="text-align: right">
-                  <span style="font-size: 0.62rem; font-weight: 800; color: var(--primary); background: var(--accent-soft); padding: 0.15rem 0.5rem; border-radius: 4px">#${t.jobNo || '—'}</span>
-               </div>
+               <span style="font-size: 0.65rem; font-weight: 800; color: ${t.stageColor}; ${t.stage === 'QUÁ HẠN' ? 'animation:pulse 2s infinite' : ''}">${t.editStatus === 'Hoàn thành' ? '✅' : t.daysLeft > 0 ? '⏳ ' + t.daysLeft + 'ng' : '🚨 -' + Math.abs(t.daysLeft) + 'ng'}</span>
             </div>
 
-            <!-- Client name -->
-            <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.6rem; line-height: 1.3">${t.client}</div>
+            <!-- Client -->
+            <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 0.3rem; line-height: 1.2">${t.client}</div>
 
-            <!-- Progress bar -->
-            <div style="margin-bottom: 0.75rem">
-               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem">
-                  <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-dim)">Tiến độ</span>
-                  <span style="font-size: 0.78rem; font-weight: 800; color: ${progressColor}">
-                     ${t.editStatus === 'Hoàn thành' ? '✅ Xong' : (t.daysLeft > 0 ? `Còn ${t.daysLeft} ngày` : `Trễ ${Math.abs(t.daysLeft)} ngày`)}
-                  </span>
-               </div>
-               <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden">
-                  <div style="width: ${progressPct}%; height: 100%; background: ${progressColor}; border-radius: 3px; transition: width 0.3s"></div>
-               </div>
-            </div>
-
-            <!-- Workflow steps mini -->
-            <div style="display: flex; gap: 0.2rem; margin-bottom: 0.75rem">
+            <!-- Progress bar mini -->
+            <div style="display: flex; gap: 0.15rem; margin-bottom: 0.5rem">
                ${steps.map((step, idx) => {
       const isActive = idx === currentStep;
       const isDone = idx < currentStep;
@@ -2176,55 +2161,29 @@ export function renderEditVideo(state) {
     }).join('')}
             </div>
 
-            <!-- Info grid -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.75rem">
-               <div>
-                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">📷 Thợ quay</label>
-                  <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-main)">${t.staff}</span>
-               </div>
-               <div>
-                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">💰 Chi phí edit</label>
-                  <span style="font-size: 0.88rem; font-weight: 800; color: var(--danger)">${formatCurrency(t.editCost)}</span>
-               </div>
-               <div>
-                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.2rem">📅 Ngày quay</label>
-                  <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted)">${new Date(t.jobDate).toLocaleDateString('vi-VN')}</span>
-               </div>
-               <div style="background:${t.stageColor}12;border:1.5px solid ${t.stageColor}30;border-radius:8px;padding:0.35rem 0.5rem;${t.stage === 'QUÁ HẠN' ? 'animation:pulse 2s infinite' : ''}">
-                  <label style="font-size: 0.62rem; color: ${t.stageColor}; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.15rem">⏰ DEADLINE</label>
-                  <span style="font-size: 0.95rem; font-weight: 900; font-family: monospace; color: ${t.stageColor}">${t.deadlineStr}</span>
-                  <div style="font-size: 0.62rem; font-weight: 800; color: ${t.stageColor}; margin-top: 0.1rem">${t.editStatus === 'Hoàn thành' ? '✅ Đã xong' : t.daysLeft > 0 ? '⏳ Còn ' + t.daysLeft + ' ngày' : '🚨 Trễ ' + Math.abs(t.daysLeft) + ' ngày!'}</div>
-               </div>
-            </div>
-
-            <!-- Controls -->
-            <div style="display: flex; flex-direction: column; gap: 0.5rem; background: rgba(255,255,255,0.6); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border)">
-               <!-- Editor dropdown -->
-               <div style="display: flex; align-items: center; gap: 0.5rem">
-                  <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">🎬 Editor</label>
+            <!-- Controls compact -->
+            <div style="display: flex; flex-direction: column; gap: 0.35rem; background: rgba(255,255,255,0.5); padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border)">
+               <div style="display: flex; align-items: center; gap: 0.4rem">
+                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; min-width: 55px">🎬 Editor</label>
                   <select class="form-control ev-editor-select" data-job-id="${t.jobId}" data-sidx="${t.serviceIdx}"
-                     style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main); font-weight: 700">
+                     style="flex: 1; font-size: 0.8rem; padding: 0.25rem 0.4rem; background: #fff; border: 1px solid var(--border); font-weight: 700">
                      <option value="">— Chưa chọn —</option>
                      ${state.staff.map(s => `<option value="${s.name}" ${t.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
                   </select>
                </div>
-
-               <!-- Status dropdown -->
-               <div style="display: flex; align-items: center; gap: 0.5rem">
-                  <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">📊 Trạng thái</label>
+               <div style="display: flex; align-items: center; gap: 0.4rem">
+                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; min-width: 55px">📊 T.Thái</label>
                   <select class="form-control ev-status-select" data-job-id="${t.jobId}" data-sidx="${t.serviceIdx}"
-                     style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid ${t.stageColor}40; color: ${t.stageColor}; font-weight: 800">
+                     style="flex: 1; font-size: 0.8rem; padding: 0.25rem 0.4rem; background: #fff; border: 1px solid ${t.stageColor}40; color: ${t.stageColor}; font-weight: 800">
                      ${steps.map(step => `<option value="${step}" ${t.editStatus === step ? 'selected' : ''}>${step}</option>`).join('')}
                   </select>
                </div>
-
-               <!-- Drive link -->
-               <div style="display: flex; align-items: center; gap: 0.5rem">
-                  <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">🔗 Drive</label>
+               <div style="display: flex; align-items: center; gap: 0.4rem">
+                  <label style="font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; min-width: 55px">🔗 Drive</label>
                   <input type="text" class="form-control ev-drive-input" data-job-id="${t.jobId}" data-sidx="${t.serviceIdx}"
                      placeholder="Link sản phẩm…" value="${t.editDriveLink}"
-                     style="flex: 1; font-size: 0.82rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
-                  ${t.editDriveLink ? `<a href="${t.editDriveLink}" target="_blank" class="btn btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.7rem; background: #22c55e; color: #fff; border: none; white-space: nowrap; border-radius: 6px; text-decoration: none">Mở ↗</a>` : ''}
+                     style="flex: 1; font-size: 0.78rem; padding: 0.25rem 0.4rem; background: #fff; border: 1px solid var(--border)">
+                  ${t.editDriveLink ? `<a href="${t.editDriveLink}" target="_blank" style="font-size: 0.65rem; color: #22c55e; font-weight: 700; white-space: nowrap; text-decoration: none">Mở ↗</a>` : ''}
                </div>
             </div>
          </div>`;
