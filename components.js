@@ -18,89 +18,122 @@ function isValidServiceRow(svc) {
 export function renderSidebar(activePage, navigate) {
   const aside = document.createElement('aside');
   aside.className = 'sidebar';
+  const notifLog = (window.state?.notificationLog) || [];
+  const unreadCount = notifLog.filter(n => !n.read).length;
   aside.innerHTML = `
-    <div class="sidebar-brand" style="display:flex;align-items:center;gap:0.55rem">
-      <img src="/haru-job-logo.png" alt="Haru Job" style="width:24px;height:24px;object-fit:contain;border-radius:6px" />
-      <span>HARU JOB</span>
+    <div class="sidebar-brand" style="display:flex;align-items:center;gap:0.55rem;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:0.55rem">
+        <img src="/haru-job-logo.png" alt="Haru Job" style="width:24px;height:24px;object-fit:contain;border-radius:6px" />
+        <span>HARU JOB</span>
+      </div>
+      <!-- Phase 3 #8: Notification Bell -->
+      <div style="position:relative;cursor:pointer" onclick="window.toggleNotifPanel()" title="Thông báo">
+        <span style="font-size:1.1rem">&#128276;</span>
+        <span id="notif-bell-badge" style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:0.55rem;font-weight:900;min-width:16px;height:16px;border-radius:50%;display:${unreadCount > 0 ? 'flex' : 'none'};align-items:center;justify-content:center;border:2px solid var(--bg-sidebar)">${unreadCount > 9 ? '9+' : unreadCount}</span>
+      </div>
     </div>
+
+    <!-- Phase 3 #8: Notification Dropdown Panel -->
+    <div id="notif-dropdown-panel" style="display:none;position:absolute;top:60px;left:0;right:0;z-index:9999;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;margin:0 0.5rem;box-shadow:0 8px 24px rgba(0,0,0,0.12);max-height:340px;overflow-y:auto">
+      <div style="padding:0.6rem 0.9rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:0.8rem;font-weight:800">&#128276; Lịch sử hoạt động</span>
+        <button onclick="event.stopPropagation();window.clearNotifLog()" style="background:none;border:none;font-size:0.68rem;color:var(--text-dim);cursor:pointer;font-weight:700">Xóa tất cả</button>
+      </div>
+      ${notifLog.length === 0 ? '<div style="padding:1rem;text-align:center;font-size:0.8rem;color:var(--text-dim)">Chưa có hoạt động nào</div>' : notifLog.slice(0, 20).map(n => `
+        <div style="padding:0.5rem 0.9rem;border-bottom:1px solid var(--border);${!n.read ? 'background:rgba(59,130,246,0.05)' : ''}">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-main)">${n.action}</div>
+          <div style="font-size:0.62rem;color:var(--text-dim);margin-top:0.15rem">${new Date(n.time).toLocaleTimeString('vi-VN')} • ${n.user}</div>
+        </div>`).join('')}
+    </div>
+
     <nav class="sidebar-nav">
       <div class="nav-item" onclick="window.openGlobalSearch()" style="background: rgba(22,163,74,0.1); border: 1px dashed rgba(22,163,74,0.3); margin-bottom: 0.5rem; justify-content: space-between">
-        <span><span class="icon">🔎</span> Tìm kiếm</span>
+        <span><span class="icon">&#128270;</span> Tìm kiếm</span>
         <span style="font-size: 0.65rem; padding: 0.15rem 0.3rem; background: rgba(0,0,0,0.05); border-radius: 4px; color: var(--text-dim)">Cmd+K</span>
       </div>
-      <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1rem 0 0.5rem 0.75rem; text-transform: uppercase;">Điều hành</div>
+      <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1rem 0 0.5rem 0.75rem; text-transform: uppercase;">&#272;iều hành</div>
       <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.navigate('dashboard')">
-        <span class="icon">📊</span> Dự án
+        <span class="icon">&#128202;</span> Dự án
       </div>
       <div class="nav-item ${activePage === 'edit' ? 'active' : ''}" onclick="window.navigate('edit')">
-        <span class="icon">🎬</span> Deadline EDIT
+        <span class="icon">&#127916;</span> Deadline EDIT
       </div>
       <div class="nav-item ${activePage === 'edit_video' ? 'active' : ''}" onclick="window.navigate('edit_video')">
-        <span class="icon">🎞️</span> Edit Video
+        <span class="icon">&#127902;&#65039;</span> Edit Video
       </div>
       <div class="nav-item ${activePage === 'edit_photo' ? 'active' : ''}" onclick="window.navigate('edit_photo')">
-        <span class="icon">📸</span> Edit Photo
+        <span class="icon">&#128247;</span> Edit Photo
       </div>
       <div class="nav-item ${activePage === 'kanban' ? 'active' : ''}" onclick="window.navigate('kanban')">
-        <span class="icon">📋</span> Kanban
+        <span class="icon">&#128203;</span> Kanban
       </div>
       <div class="nav-item ${activePage === 'calendar' ? 'active' : ''}" onclick="window.navigate('calendar')">
-        <span class="icon">📅</span> Lịch / Nhắc việc
+        <span class="icon">&#128197;</span> Lịch / Nhắc việc
       </div>
 
-      ${window._state?.staffViewMode === 'staff' ? '' : `
+      ${window.state?.staffViewMode === 'staff' ? '' : `
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Quản lý</div>
       <div class="nav-item ${activePage === 'jobs' ? 'active' : ''}" onclick="window.navigate('jobs')">
-        <span class="icon">📁</span> Lưu trữ dự án
+        <span class="icon">&#128193;</span> Lưu trữ dự án
       </div>
       <div class="nav-item ${activePage === 'clients' ? 'active' : ''}" onclick="window.navigate('clients')">
-        <span class="icon">🧑‍🤝‍🧑</span> Khách hàng
+        <span class="icon">&#129309;</span> Khách hàng
       </div>
       <div class="nav-item ${activePage === 'finance' ? 'active' : ''}" onclick="window.navigate('finance')">
-        <span class="icon">📒</span> Giao dịch
+        <span class="icon">&#128210;</span> Giao dịch
       </div>
       <div class="nav-item ${activePage === 'tax' ? 'active' : ''}" onclick="window.navigate('tax')">
-        <span class="icon">🏦</span> Thuế
+        <span class="icon">&#127974;</span> Thuế
       </div>
       <div class="nav-item ${activePage === 'staff' ? 'active' : ''}" onclick="window.navigate('staff')">
-        <span class="icon">🎭</span> Nhân sự
+        <span class="icon">&#127917;</span> Nhân sự
       </div>
 
       <div class="nav-item ${activePage === 'analytics' ? 'active' : ''}" onclick="window.navigate('analytics')">
-        <span class="icon">📊</span> Analytics
+        <span class="icon">&#128202;</span> Analytics
       </div>
       <div class="nav-item ${activePage === 'watermark' ? 'active' : ''}" onclick="window.navigate('watermark')">
-        <span class="icon">🎬</span> Watermark
+        <span class="icon">&#127916;</span> Watermark
       </div>
 
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Hệ thống</div>
       <div class="nav-item ${activePage === 'sync' ? 'active' : ''}" onclick="window.navigate('sync')">
-        <span class="icon">🔄</span> Sync dữ liệu
+        <span class="icon">&#128260;</span> Sync dữ liệu
       </div>
       <div class="nav-item ${activePage === 'nas' ? 'active' : ''}" onclick="window.navigate('nas')">
-        <span class="icon">☁️</span> NAS / Drive
+        <span class="icon">&#9729;&#65039;</span> NAS / Drive
       </div>
       <div class="nav-item ${activePage === 'history' ? 'active' : ''}" onclick="window.navigate('history')">
-        <span class="icon">📜</span> Lịch sử
+        <span class="icon">&#128220;</span> Lịch sử
       </div>
       <div class="nav-item ${activePage === 'trash' ? 'active' : ''}" onclick="window.navigate('trash')">
-        <span class="icon">🗑️</span> Thùng rác
+        <span class="icon">&#128465;&#65039;</span> Thùng rác
       </div>
       <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.navigate('settings')">
-        <span class="icon">⚙️</span> Cài đặt
+        <span class="icon">&#9881;&#65039;</span> Cài đặt
       </div>
       `}
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border)">
         <div class="nav-item" onclick="window.toggleTheme();window.updateUI()" style="cursor:pointer">
-          <span class="icon">${document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</span> ${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}
+          <span class="icon">${document.documentElement.getAttribute('data-theme') === 'dark' ? '&#9728;&#65039;' : '&#127769;'}</span> ${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}
         </div>
         <div class="nav-item" onclick="window.logout()" style="color: #ef4444">
-          <span class="icon">🚪</span> Đăng xuất
+          <span class="icon">&#128682;</span> Đăng xuất
         </div>
       </div>
     </nav>
   `;
+  // Close notif panel when clicking outside
+  setTimeout(() => {
+    document.addEventListener('click', function _closeNotif(e) {
+      const panel = document.getElementById('notif-dropdown-panel');
+      if (panel && panel.style.display !== 'none' && !aside.contains(e.target)) {
+        panel.style.display = 'none';
+        document.removeEventListener('click', _closeNotif);
+      }
+    });
+  }, 100);
   return aside;
 }
 
@@ -352,7 +385,7 @@ function renderJobCard(job) {
 
   const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
   return `
-    <div class="job-card glass-panel" onclick="window.openModal('job_detail', '${job.id}')" style="${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}">
+    <div class="job-card glass-panel" onclick="window.openQuickPreview('${job.id}')" style="${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}">
       <div class="job-card-header" style="margin-bottom: 0.5rem">
         <div style="display: flex; flex-direction: column; gap: 0.1rem">
           <h3 class="job-card-title" style="font-size: 1.08rem; color: var(--text-main)">${job.client}</h3>
@@ -479,6 +512,10 @@ function renderJobCard(job) {
 }
 
 export function renderModalOverlay(state, closeModal) {
+  if (state.modal.type === 'quick_preview') {
+    return renderQuickPreviewModal(state, closeModal);
+  }
+
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay active';
   overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
@@ -502,6 +539,105 @@ export function renderModalOverlay(state, closeModal) {
   }
 
   overlay.appendChild(container);
+  return overlay;
+}
+
+function renderQuickPreviewModal(state, closeModal) {
+  const job = state.jobs.find(j => j.id === state.modal.data);
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;transition:opacity 0.3s';
+  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:0;right:0;bottom:0;width:400px;max-width:100%;background:var(--bg-main);box-shadow:-4px 0 24px rgba(0,0,0,0.1);z-index:10000;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);display:flex;flex-direction:column;overflow-y:auto';
+
+  setTimeout(() => { container.style.transform = 'translateX(0)'; }, 10);
+
+  if (!job) return overlay;
+
+  const validServices = (job.services || []).filter(s => s.staff && s.service);
+  const deliverables = job.deliverables || [];
+  const statusColor = job.status === 'Đã hoàn thành' ? '#15803d' : job.status === 'Đang edit' ? '#db2777' : '#4a6b4a';
+
+  container.innerHTML = `
+    <div style="background:var(--bg-card);padding:1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:0.2rem">#${job.jobNo || '00'}</div>
+          <h2 style="font-size:1.3rem;font-weight:900;color:var(--text-main);margin:0 0 0.3rem 0">${job.client}</h2>
+          <span style="font-size:0.72rem;font-weight:700;color:${statusColor};background:${statusColor}15;padding:0.15rem 0.5rem;border-radius:4px">${job.status}</span>
+        </div>
+        <button onclick="window.closeModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-dim)">&times;</button>
+      </div>
+    </div>
+    <div style="padding:1.5rem;flex:1;display:flex;flex-direction:column;gap:1.5rem">
+      <div>
+        <h4 style="font-size:0.8rem;text-transform:uppercase;color:var(--text-dim);font-weight:800;margin:0 0 0.5rem 0">📌 Thông tin chung</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+          <div><label style="font-size:0.65rem;color:var(--text-dim)">Ngày lễ</label><div style="font-size:0.85rem;font-weight:700">${new Date(job.date).toLocaleDateString('vi-VN')}</div></div>
+          <div><label style="font-size:0.65rem;color:var(--text-dim)">Loại sự kiện</label><div style="font-size:0.85rem;font-weight:700;color:var(--accent)">${job.eventType || 'Wedding'}</div></div>
+          <div style="grid-column:1/3"><label style="font-size:0.65rem;color:var(--text-dim)">Liên hệ</label><div style="font-size:0.85rem;font-weight:700">${job.phone || '—'}</div></div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:0.8rem;text-transform:uppercase;color:var(--text-dim);font-weight:800;margin:0 0 0.5rem 0">📹 Nhân sự đi quay/chụp</h4>
+        ${validServices.length > 0 ? validServices.map(s => `
+          <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:0.8rem;color:var(--text-main)">${s.service}</span>
+            <span style="font-size:0.8rem;font-weight:700">📷 ${s.staff}</span>
+          </div>`).join('') : '<div style="font-size:0.75rem;color:var(--text-dim)">Chưa có dữ liệu</div>'}
+      </div>
+      <div>
+        <h4 style="font-size:0.8rem;text-transform:uppercase;color:var(--text-dim);font-weight:800;margin:0 0 0.5rem 0">🎬 Tiến độ Thành phẩm</h4>
+        ${deliverables.length > 0 ? deliverables.map(d => `
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:0.6rem;margin-bottom:0.4rem">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem">
+              <span style="font-size:0.8rem;font-weight:700">${d.name} <span style="font-size:0.65rem;color:var(--text-dim)">(x${d.quantity || 1})</span></span>
+              <span style="font-size:0.65rem;color:${d.editStatus === 'Hoàn thành' ? '#22c55e' : '#f97316'};font-weight:700">${d.editStatus || 'Chưa bắt đầu'}</span>
+            </div>
+            <div style="font-size:0.7rem;color:var(--text-dim)">Nhân sự: <b>${d.editor || 'Trống'}</b></div>
+          </div>`).join('') : '<div style="font-size:0.75rem;color:var(--text-dim)">Không có thành phẩm đầu ra</div>'}
+      </div>
+      <div style="margin-top:0.75rem">
+        ${(() => {
+      const totalD = deliverables.length;
+      const doneD = deliverables.filter(d => d.editStatus === 'Hoàn thành').length;
+      if (totalD === 0) return '<div style="font-size:0.72rem;color:var(--text-dim)">Không có thành phẩm</div>';
+      const pct = Math.round((doneD / totalD) * 100);
+      const barColor = pct === 100 ? '#22c55e' : pct >= 50 ? '#f97316' : '#ef4444';
+      return `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem">
+              <span style="font-size:0.68rem;font-weight:700;color:var(--text-dim)">Tiến độ dự án</span>
+              <span style="font-size:0.75rem;font-weight:900;color:${barColor}">${doneD}/${totalD} · ${pct}%</span>
+            </div>
+            <div style="width:100%;height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:0.6rem">
+              <div style="width:${pct}%;height:100%;background:${barColor};border-radius:4px;transition:width 0.4s ease"></div>
+            </div>
+          `;
+    })()}
+      </div>
+      ${job.linkNAS ? `<div style="padding:0.5rem 0.8rem;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:6px;margin-top:0.25rem"><div style="font-size:0.62rem;color:var(--text-dim);margin-bottom:0.15rem">📂 NAS Path</div><div style="font-size:0.72rem;font-weight:700;color:#3b82f6;word-break:break-all">${job.linkNAS}</div></div>` : ''}
+      <div style="margin-top:auto;padding-top:1rem">
+        <button onclick="window.closeModal(); setTimeout(() => window.openModal('job_detail', '${job.id}'), 100)" style="width:100%;padding:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(22,163,74,0.2)">✏️ Chỉnh sửa nâng cao</button>
+      </div>
+
+    </div>
+  `;
+
+  overlay.appendChild(container);
+
+  // Ghi đè phương thức close của riêng modal này để tạo hiệu ứng trượt ra
+  overlay.dataset.closeFn = 'quickPreviewClose';
+  window._quickPreviewCloseFn = () => {
+    container.style.transform = 'translateX(100%)';
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+      overlay.remove();
+      state.modal.isOpen = false;
+      state.modal.type = null;
+    }, 300);
+  };
+
   return overlay;
 }
 
@@ -718,6 +854,40 @@ function renderJobDetailModal(state) {
               </div>
             </div>
 
+            <!-- Inline Services/Staff for This Specific Day -->
+            <div style="margin-top: 1rem; border-top: 1px dashed var(--border); padding-top: 1rem">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
+                <label style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--primary)">👥 Nhân sự đi làm (${day.date || job.date})</label>
+                <div style="display: flex; gap: 0.4rem">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window._addServiceToDayInModal(${idx})"><i class="fas fa-plus"></i> Thêm người</button>
+                </div>
+              </div>
+              <div class="day-services-container" data-day="${idx}" style="display: flex; flex-direction: column; gap: 0.5rem">
+                ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => `
+                  <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window._state?.staffViewMode === 'staff' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
+                     <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
+                       ${['Quay phim', 'Chụp ảnh', 'Cinema', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác'].map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                     </select>
+                     <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
+                       <option value="Chưa xếp">-- Chọn người --</option>
+                       ${window._state?.staff?.map(staff => `<option value="${staff.name}" ${s.staff === staff.name ? 'selected' : ''}>${staff.name}</option>`).join('') || ''}
+                     </select>
+                     ${window._state?.staffViewMode === 'staff' ? '' : `
+                     <div style="position: relative">
+                        <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
+                        <input type="number" class="form-control svc-cost-input" value="${s.cost || 0}" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--danger); font-weight: 700">
+                     </div>
+                     <div style="position: relative">
+                        <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
+                        <input type="number" class="form-control svc-edit-input" value="${s.edit || 0}" placeholder="Tiền Edit" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--warning)">
+                     </div>
+                     `}
+                     <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.day-service-row').remove()" title="Xóa nhân sự này"><i class="fas fa-trash"></i></button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
           </div>
         </div>`;
       }).join('');
@@ -734,9 +904,35 @@ function renderJobDetailModal(state) {
     })()}
           </div>
 
-          <!-- Row 5: Links -->
-          <div>
-            <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.5rem">🔗 Quản lý Liên kết (Links)</label>
+          <!-- Row 5: Deliverables -->
+          <div style="margin-top: 0.5rem">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
+              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim)">📦 Thành phẩm đầu ra</label>
+              <div style="display: flex; gap: 0.4rem">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window._addDeliverableInModal()"><i class="fas fa-plus"></i> Thêm thành phẩm</button>
+              </div>
+            </div>
+            <div id="deliverables-container-edit" style="display: flex; flex-direction: column; gap: 0.5rem">
+              ${(job.deliverables && job.deliverables.length > 0 ? job.deliverables : []).map((d, dIdx) => `
+                <div class="deliverable-row" data-didx="${dIdx}" style="display: grid; grid-template-columns: 2fr 100px 100px 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
+                   <input type="text" class="form-control del-name-input" value="${d.name}" placeholder="Tên sản phẩm (VD: Clip Truyền Thống)" style="font-size: 0.85rem; padding: 0.35rem 0.5rem; font-weight: 700">
+                   <select class="form-control del-type-input" style="font-size: 0.85rem; padding: 0.35rem">
+                     ${['Video', 'Photo', 'Khác'].map(opt => `<option value="${opt}" ${d.type === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                   </select>
+                   <input type="number" class="form-control del-qty-input" value="${d.quantity || 1}" min="1" placeholder="Số lượng" title="Số lượng" style="font-size: 0.85rem; padding: 0.35rem 0.5rem">
+                   <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.deliverable-row').remove()" title="Xóa"><i class="fas fa-trash"></i></button>
+                </div>
+              `).join('')}
+              ${(!job.deliverables || job.deliverables.length === 0) ? '<div class="empty-state" style="padding: 1rem; font-size: 0.8rem">Chưa có thành phẩm nào được khai báo.</div>' : ''}
+            </div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic">
+              * Đây là danh sách Video/Photo sẽ đồng bộ sang bảng Kanban "Edit Video / Photo".
+            </div>
+          </div>
+
+          <!-- Row 6: Links -->
+          <div style="margin-top: 0.5rem">
+            <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.5rem">🔗 Quản lý Liên kết (Links) - Trả file cho Khách</label>
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap">
               
               <!-- Hidden inputs to store actual values for saveJobDetail to read -->
@@ -782,45 +978,6 @@ function renderJobDetailModal(state) {
             </div>
           </div>
 
-          <!-- Row 6: Services table -->
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
-              <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim)">👥 Nhân sự &amp; Hậu kỳ</label>
-              <div style="display: flex; gap: 0.4rem">
-                <button class="btn btn-secondary btn-sm" onclick="window.addServiceRowInModal()"><i class="fas fa-plus"></i> Thêm dòng</button>
-                <button class="btn btn-secondary btn-sm" onclick="window.removeServiceRowInModal()"><i class="fas fa-minus"></i></button>
-              </div>
-            </div>
-            <table class="data-table" id="services-table-edit">
-              <thead>
-                <tr>
-                  <th>Vai trò</th>
-                  <th>Nghệ sĩ</th>
-                  ${window._state?.staffViewMode === 'staff' ? '' : `<th style="text-align:right">Lương thợ</th><th style="text-align:right">Edit</th>`}
-                  <th style="text-align:center">TT</th>
-                </tr>
-              </thead>
-                <tbody>
-                  ${serviceRows.map(({ s, idx }) => `
-                    <tr data-index="${idx}">
-                      <td data-label="Vai trò" style="font-weight: 800; font-size: 0.9rem; color: var(--text-main)">${s.service}</td>
-                      <td data-label="Nghệ sĩ" style="font-size: 0.92rem; font-weight: 600; color: var(--text-muted)">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                          <span>${s.staff}</span>
-                          ${s.staff && s.staff !== 'Chưa xếp' ? `<button class="btn btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem; background: #0084ff; color: #fff; border-radius: 4px" onclick="window.sendZaloReminder('${job.id}', ${idx})" title="Gửi lịch Zalo"><i class="fas fa-paper-plane"></i> Zalo</button>` : ''}
-                        </div>
-                      </td>
-                      ${window._state?.staffViewMode === 'staff' ? '' : `
-                      <td data-label="Lương thợ" style="text-align:right; font-size: 0.92rem; font-weight: 700; color: var(--danger)">${formatCurrency(s.cost)}</td>
-                      <td data-label="Tiền sửa bài" style="text-align:right; font-size: 0.92rem; color: var(--warning)">${formatCurrency(s.edit || 0)}</td>
-                      `}
-                      <td data-label="Đã thu tiền" style="text-align:center"><input type="checkbox" class="service-paid-check" data-job-id="${job.id}" data-svc-idx="${idx}" ${s.paid ? 'checked' : ''}></td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-            </table>
-          </div>
-
         </div><!-- /left -->
 
         <!-- RIGHT COLUMN: sticky profit panel -->
@@ -847,7 +1004,10 @@ function renderJobDetailModal(state) {
 
           <!-- Finance summary card -->
           <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 1rem">
-            <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.75rem">💳 Thanh toán</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem">
+               <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim)">💳 Thanh toán</div>
+               ${depositRemaining > 0 ? `<button type="button" class="btn btn-sm" onclick="window.markJobFullyPaid('${job.id}')" style="background: var(--success); color: white; padding: 0.2rem 0.5rem; font-size: 0.65rem; border: none; border-radius: 4px"><i class="fas fa-check-double"></i> Đã tất toán</button>` : `<span style="font-size: 0.65rem; color: var(--success); font-weight: 800"><i class="fas fa-check-circle"></i> Hoàn tất</span>`}
+            </div>
             ${[
         ['Giá gói', revenue, 'var(--text-main)'],
         ['Đã đặt cọc', job.deposit || 0, 'var(--success)'],
@@ -876,18 +1036,74 @@ function renderJobDetailModal(state) {
     </div>
   `;
 
-  // Event delegation: .service-paid-check checkboxes
+  // Auto-save event delegation for all inputs in the modal
   container.addEventListener('change', function (ev) {
-    var chk = ev.target;
-    if (!chk.classList.contains('service-paid-check')) return;
-    var jobId = chk.getAttribute('data-job-id');
-    var svcIdx = parseInt(chk.getAttribute('data-svc-idx'), 10);
-    if (!jobId || isNaN(svcIdx)) return;
-    window.toggleServicePaid(jobId, svcIdx, chk.checked, chk);
+    if (ev.target.matches('input, select, textarea')) {
+      clearTimeout(window._autoSaveTimer);
+      window._autoSaveTimer = setTimeout(() => {
+        window.saveJobDetail(job.id, false);
+      }, 700);
+    }
   });
 
   return container;
 }
+
+window._addServiceToDayInModal = (dayIdx) => {
+  const container = document.querySelector(`.day-services-container[data-day="${dayIdx}"]`);
+  if (!container) return;
+  const sIdx = Date.now();
+  const isStaffView = window._state?.staffViewMode === 'staff';
+  const newRow = document.createElement('div');
+  newRow.className = 'day-service-row';
+  newRow.setAttribute('data-sidx', sIdx);
+  newRow.style.cssText = `display: grid; grid-template-columns: 1fr 1.2fr ${isStaffView ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
+  newRow.innerHTML = `
+     <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
+       <option value="Quay phim">Quay phim</option><option value="Chụp ảnh">Chụp ảnh</option><option value="Cinema">Cinema</option><option value="Quay Flycam">Quay Flycam</option><option value="Editor">Editor</option><option value="Hỗ trợ">Hỗ trợ</option><option value="Quản lý">Quản lý</option><option value="Khác">Khác</option>
+     </select>
+     <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
+       <option value="Chưa xếp">-- Chọn người --</option>
+       ${(window._state?.staff || []).map(staff => `<option value="${staff.name}">${staff.name}</option>`).join('')}
+     </select>
+     ${isStaffView ? '' : `
+     <div style="position: relative">
+        <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
+        <input type="number" class="form-control svc-cost-input" value="0" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--danger); font-weight: 700">
+     </div>
+     <div style="position: relative">
+        <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
+        <input type="number" class="form-control svc-edit-input" value="0" placeholder="Tiền Edit" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--warning)">
+     </div>
+     `}
+     <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.day-service-row').remove(); window.saveJobDetail(window.state.modal.data, false)" title="Xóa"><i class="fas fa-trash"></i></button>
+  `;
+  container.appendChild(newRow);
+  window.saveJobDetail(window.state.modal.data, false);
+};
+
+window._addDeliverableInModal = () => {
+  const container = document.getElementById('deliverables-container-edit');
+  if (!container) return;
+  const dIdx = Date.now();
+  const emptyState = container.querySelector('.empty-state');
+  if (emptyState) emptyState.remove();
+
+  const newRow = document.createElement('div');
+  newRow.className = 'deliverable-row';
+  newRow.setAttribute('data-didx', dIdx);
+  newRow.style.cssText = `display: grid; grid-template-columns: 2fr 100px 100px 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
+  newRow.innerHTML = `
+     <input type="text" class="form-control del-name-input" value="" placeholder="Tên sản phẩm (VD: Clip Truyền Thống)" style="font-size: 0.85rem; padding: 0.35rem 0.5rem; font-weight: 700">
+     <select class="form-control del-type-input" style="font-size: 0.85rem; padding: 0.35rem">
+       <option value="Video">Video</option><option value="Photo">Photo</option><option value="Khác">Khác</option>
+     </select>
+     <input type="number" class="form-control del-qty-input" value="1" min="1" placeholder="Số lượng" title="Số lượng" style="font-size: 0.85rem; padding: 0.35rem 0.5rem">
+     <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.deliverable-row').remove(); window.saveJobDetail(window.state.modal.data, false)" title="Xóa"><i class="fas fa-trash"></i></button>
+  `;
+  container.appendChild(newRow);
+  window.saveJobDetail(window.state.modal.data, false);
+};
 
 
 
@@ -1537,13 +1753,15 @@ export function renderCalendar(state) {
     </div>
 
     <div class="reminder-list" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem">
-      ${upcomingJobs.length > 0 ? upcomingJobs.map(job => {
+      ${upcomingJobs.length > 0 ? upcomingJobs.map((job, mapIdx) => {
     const jobDate = new Date(job.date);
     const diffDays = Math.ceil((jobDate - today) / (1000 * 60 * 60 * 24));
     const u = getUrgency(diffDays);
     const staffList = job.services.map(s => s.staff).join(', ');
+    const isToday = diffDays === 0;
     return `
-          <div class="glass-panel" style="padding: 1.25rem 1.5rem; border-left: 4px solid ${u.border}; background: ${u.bg}; position: relative; ${u.pulse}">
+          <div ${isToday ? 'id="calendar-today-item"' : ''} class="glass-panel" style="padding: 1.25rem 1.5rem; border-left: 4px solid ${u.border}; background: ${isToday ? 'rgba(59,130,246,0.08)' : u.bg}; position: relative; ${u.pulse}${isToday ? ';box-shadow:0 0 0 2px #3b82f6,0 4px 16px rgba(59,130,246,0.15)' : ''}">
+             ${isToday ? '<div style="position:absolute;top:0.5rem;right:0.75rem;font-size:0.62rem;font-weight:900;color:#3b82f6;background:rgba(59,130,246,0.12);padding:0.15rem 0.5rem;border-radius:20px;letter-spacing:0.5px">📍 HÔM NAY</div>' : ''}
              <div style="display: flex; justify-content: space-between; align-items: flex-start">
                 <div style="flex: 1">
                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem">
@@ -1559,15 +1777,22 @@ export function renderCalendar(state) {
                    ${job.venue ? `<div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.4rem"><i class="fas fa-map-marker-alt" style="margin-right: 0.3rem"></i>${job.venue}</div>` : ''}
                 </div>
                 <div style="text-align: center; min-width: 70px">
-                   <div style="font-size: 2rem; font-weight: 900; color: ${u.color}; line-height: 1">${diffDays}</div>
-                   <div style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700">ngày</div>
+                   <div style="font-size: 2rem; font-weight: 900; color: ${isToday ? '#3b82f6' : u.color}; line-height: 1">${diffDays}</div>
+                   <div style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700">${isToday ? 'Hôm nay' : 'ngày'}</div>
                 </div>
              </div>
           </div>
         `;
-  }).join('') : '<div class="empty-state" style="padding: 3rem; text-align: center; color: var(--text-dim)">🎉 Không có việc nào trong 30 ngày tới</div>'}
+  }).join('') : '<div class="empty-state" style="padding: 3rem; text-align: center; color: var(--text-dim)">&#127881; Không có việc nào trong 30 ngày tới</div>'}
     </div>
 `;
+  // #4 Smart Focus: auto-scroll to today's item after render
+  setTimeout(() => {
+    const todayEl = container.querySelector('#calendar-today-item');
+    if (todayEl) {
+      todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 150);
   return container;
 }
 
@@ -1700,12 +1925,12 @@ export function renderEditVideo(state) {
   today.setHours(0, 0, 0, 0);
   const EDIT_DAYS = 20;
 
-  // Thu thập tất cả video tasks
+  // Thu thập tất cả video tasks từ Deliverables
   const videoTasks = [];
   state.jobs.forEach(job => {
     if (job.isTrash) return;
-    job.services.forEach((s, sIdx) => {
-      const isVideo = s.service.toLowerCase().includes('quay');
+    (job.deliverables || []).forEach((d, dIdx) => {
+      const isVideo = d.type === 'Video';
       if (!isVideo) return;
 
       const jobDate = new Date(job.date);
@@ -1719,7 +1944,7 @@ export function renderEditVideo(state) {
       const progress = Math.max(0, Math.min(100, (elapsed / EDIT_DAYS) * 100));
 
       let stage, stageColor, stageBg, stageIcon;
-      const editStatus = s.editStatus || 'Chưa bắt đầu';
+      const editStatus = d.editStatus || 'Chưa bắt đầu';
       if (editStatus === 'Hoàn thành') {
         stage = 'HOÀN THÀNH'; stageColor = '#22c55e'; stageBg = 'rgba(34,197,94,0.08)'; stageIcon = '✅';
       } else if (daysLeft > 10) {
@@ -1736,13 +1961,12 @@ export function renderEditVideo(state) {
         jobId: job.id,
         jobNo: job.jobNo,
         client: job.client,
-        service: s.service,
-        serviceIdx: sIdx,
-        staff: s.staff,
-        editStaff: s.editStaff || '',
-        editCost: s.edit || 0,
+        service: d.name, // Tên thành phẩm
+        serviceIdx: dIdx, // Vị trí trong mảng deliverables
+        qty: d.quantity || 1, // Số lượng
+        editStaff: d.editor || '',
         editStatus,
-        editDriveLink: s.editDriveLink || '',
+        editDriveLink: d.editDriveLink || '',
         jobDate: job.date,
         deadlineDate,
         deadlineStr: deadlineDate.toLocaleDateString('vi-VN'),
@@ -1768,6 +1992,11 @@ export function renderEditVideo(state) {
   else if (statusFilter === 'PENDING') filtered = filtered.filter(t => t.editStatus !== 'Hoàn thành');
   else if (statusFilter === 'PENDING_DEMO') filtered = filtered.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang cắt');
 
+  // Phase 3 #6: Audit link — filter clips Done nhưng chưa có link
+  if (state.editVideoMissingLink) {
+    filtered = filtered.filter(t => t.editStatus === 'Hoàn thành' && !t.editDriveLink);
+  }
+
   const isKanban = (state.editVideoView || 'list') === 'kanban';
   const kanbanStatuses = [
     { key: 'Chưa bắt đầu', label: '⏳ Chưa bắt đầu', color: '#94a3b8' },
@@ -1786,13 +2015,36 @@ export function renderEditVideo(state) {
   // Staff dropdown options
   const staffOptions = state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
 
+  // Phase 3 #3: Editor KPI summary (only for admins)
+  const isAdmin = (window.state?.currentUser?.role === 'admin') || !window.state?.currentUser;
+  const editorKPIHtml = (() => {
+    if (!isAdmin) return '';
+    const editorMap = {};
+    videoTasks.filter(t => t.editStatus === 'Ho\u00e0n th\u00e0nh' && t.editStaff).forEach(t => {
+      if (!editorMap[t.editStaff]) editorMap[t.editStaff] = { clips: 0 };
+      editorMap[t.editStaff].clips++;
+    });
+    const entries = Object.entries(editorMap);
+    if (entries.length === 0) return '';
+    return `<div class="glass-panel" style="padding:0.65rem 1rem;margin-bottom:1rem;border-left:3px solid #a855f7;background:rgba(168,85,247,0.04)">
+      <div style="font-size:0.68rem;font-weight:800;color:#a855f7;text-transform:uppercase;margin-bottom:0.4rem">&#128176; KPI H\u1eadu k\u1ef3 th\u00e1ng n\u00e0y (clip \u0110\u00c3 xong)</div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+        ${entries.map(([name, d]) => `<div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:6px;padding:0.3rem 0.7rem">
+          <div style="font-size:0.72rem;font-weight:800">${name}</div>
+          <div style="font-size:0.6rem;color:var(--text-dim)">${d.clips} clip ho\u00e0n th\u00e0nh</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  })();
+
   container.innerHTML = `
     <header class="section-header">
        <div>
-         <h1 class="view-title">🎬 Edit Video Tracker</h1>
-         <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem">Theo dõi tiến độ hậu kỳ video — Deadline ${EDIT_DAYS} ngày</p>
+         <h1 class="view-title">&#127916; Edit Video Tracker</h1>
+         <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem">Theo d\u00f5i ti\u1ebfn \u0111\u1ed9 h\u1eadu k\u1ef3 video \u2014 Deadline ${EDIT_DAYS} ng\u00e0y</p>
        </div>
     </header>
+    ${editorKPIHtml}
 
     <!-- Thống kê tổng quan -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem">
@@ -1822,10 +2074,12 @@ export function renderEditVideo(state) {
        `).join('')}
     </div>
     <div style="display: flex; gap: 0.35rem; margin-bottom: 1.2rem; flex-wrap: wrap; align-items: center">
-      <button onclick="window.setEditVideoStatusFilter('ALL')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">🎬 Tất cả (${videoTasks.length})</button>
-      <button onclick="window.setEditVideoStatusFilter('PENDING')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">⚠️ Chưa xong (${videoTasks.filter(t => t.editStatus !== 'Hoàn thành').length})</button>
-      <button onclick="window.setEditVideoStatusFilter('PENDING_DEMO')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING_DEMO' ? 'background:#8b5cf6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">🚀 Chưa gửi Demo (${videoTasks.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang cắt').length})</button>
-      <button onclick="window.setEditVideoStatusFilter('DONE')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">✅ Hoàn thành (${done})</button>
+      <button onclick="window.setEditVideoStatusFilter('ALL')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">&#127916; Tất cả (${videoTasks.length})</button>
+      <button onclick="window.setEditVideoStatusFilter('PENDING')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">&#9888;&#65039; Chưa xong (${videoTasks.filter(t => t.editStatus !== 'Hoàn thành').length})</button>
+      <button onclick="window.setEditVideoStatusFilter('PENDING_DEMO')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'PENDING_DEMO' ? 'background:#8b5cf6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">&#128640; Chưa gửi Demo (${videoTasks.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang cắt').length})</button>
+      <button onclick="window.setEditVideoStatusFilter('DONE')" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">&#9989; Hoàn thành (${done})</button>
+      <!-- Phase 3 #6: Audit Link Filter -->
+      <button onclick="window.setMissingLinkFilter('video', ${!state.editVideoMissingLink})" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 16px; cursor: pointer; font-weight: 700; font-family: inherit; ${state.editVideoMissingLink ? 'background:#f59e0b;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}" title="Lọc những clip ĐÃ xong nhưng chưa nộp link">&#128279; Thiếu Link (${videoTasks.filter(t => t.editStatus === 'Hoàn thành' && !t.editDriveLink).length})</button>
       <span style="margin-left:auto;display:flex;gap:0.3rem">
         <button onclick="window.toggleEditVideoView('kanban')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">📋 Kanban</button>
         <button onclick="window.toggleEditVideoView('list')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${!isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)'}">📝 List</button>
@@ -1838,20 +2092,16 @@ export function renderEditVideo(state) {
         <div class="ev-col" data-status="${ks.key}" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;border-top:3px solid ${ks.color}">
           <div style="font-size:0.72rem;font-weight:800;color:${ks.color};margin-bottom:0.4rem;text-align:center">${ks.label} (${colTasks.length})</div>
           <div class="ev-col-cards" data-status="${ks.key}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
-            ${colTasks.map(t => `<div class="ev-card" data-jobid="${t.jobId}" data-sidx="${t.serviceIdx}" style="background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-card)'};border:1px solid ${t.stageColor}40;border-radius:8px;padding:0.5rem;border-left:4px solid ${t.stageColor};cursor:grab; box-shadow: 0 2px 4px rgba(0,0,0,0.02)">
-              <div style="font-size:0.8rem;font-weight:800;color:var(--text-main);margin-bottom:0.15rem;display:flex;justify-content:space-between">
-                <span>${t.client} <span style="font-size:0.6rem;color:var(--text-dim)">#${t.jobNo}</span></span>
-                ${t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite">🚨</span>' : ''}
+            ${colTasks.map(t => `<div class="ev-card" onclick="window.openQuickPreview('${t.jobId}')" data-jobid="${t.jobId}" data-sidx="${t.serviceIdx}" style="background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-main)'};border:1px solid ${t.stageColor}30;border-radius:6px;padding:0.4rem 0.5rem;border-left:3px solid ${t.stageColor};cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+              <div style="font-size:0.75rem;font-weight:800;color:var(--text-main);margin-bottom:0.15rem;display:flex;justify-content:space-between;align-items:center">
+                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${t.client}">${t.client}</span>
+                ${t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite;font-size:0.65rem">🚨</span>' : ''}
               </div>
-              <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.2rem">${t.service}</div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
-                <span style="font-size:0.6rem;font-weight:700;background:#3b82f620;color:#3b82f6;padding:0.1rem 0.25rem;border-radius:4px">📹 ${t.staff}</span>
-                <select onchange="event.stopPropagation();window.updateVideoEditor&&window.updateVideoEditor('${t.jobId}','${t.service}',this.value)" style="font-size:0.58rem;padding:0.1rem 0.2rem;border-radius:4px;border:1px solid #a855f740;background:#a855f710;color:#a855f7;font-weight:700;font-family:inherit;cursor:pointer;max-width:90px">
-                  <option value="">✏️ ${t.editStaff || 'Chọn'}</option>
-                  ${state.staff.map(s => `<option value="${s.name}" ${t.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
-                </select>
+              <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${t.service}">🎬 ${t.service} <strong style="color:var(--text-main)">(x${t.qty})</strong></div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.55rem;font-weight:700;color:${t.editStatus === 'Hoàn thành' ? '#22c55e' : t.daysLeft > 0 ? 'var(--text-dim)' : '#ef4444'}">⏰ ${t.deadlineStr}</span>
+                <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${t.editStaff || 'Chưa gán'}">✏️ ${t.editStaff || 'Trống'}</span>
               </div>
-              <div style="font-size:0.58rem;font-weight:700;color:${t.editStatus === 'Hoàn thành' ? '#22c55e' : t.daysLeft > 5 ? '#22c55e' : t.daysLeft > 0 ? '#f97316' : '#ef4444'};text-align:center;background:${t.editStatus === 'Hoàn thành' ? '#22c55e10' : t.daysLeft > 5 ? '#22c55e10' : t.daysLeft > 0 ? '#f9731610' : '#ef444415'};padding:0.15rem;border-radius:4px">⏰ ${t.deadlineStr} ${t.editStatus === 'Hoàn thành' ? '(Đã xong)' : t.daysLeft > 0 ? '(còn ' + t.daysLeft + 'd)' : '(trễ ' + Math.abs(t.daysLeft) + 'd!)'}</div>
             </div>`).join('')}
           </div>
         </div>`;
@@ -1932,7 +2182,7 @@ export function renderEditVideo(state) {
                <!-- Editor dropdown -->
                <div style="display: flex; align-items: center; gap: 0.5rem">
                   <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">🎬 Editor</label>
-                  <select class="form-control ev-editor-select" data-job-id="${t.jobId}" data-service="${t.service}"
+                  <select class="form-control ev-editor-select" data-job-id="${t.jobId}" data-sidx="${t.serviceIdx}"
                      style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main); font-weight: 700">
                      <option value="">— Chưa chọn —</option>
                      ${state.staff.map(s => `<option value="${s.name}" ${t.editStaff === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
@@ -1942,7 +2192,7 @@ export function renderEditVideo(state) {
                <!-- Status dropdown -->
                <div style="display: flex; align-items: center; gap: 0.5rem">
                   <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">📊 Trạng thái</label>
-                  <select class="form-control ev-status-select" data-job-id="${t.jobId}" data-service="${t.service}"
+                  <select class="form-control ev-status-select" data-job-id="${t.jobId}" data-sidx="${t.serviceIdx}"
                      style="flex: 1; font-size: 0.85rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid ${t.stageColor}40; color: ${t.stageColor}; font-weight: 800">
                      ${steps.map(step => `<option value="${step}" ${t.editStatus === step ? 'selected' : ''}>${step}</option>`).join('')}
                   </select>
@@ -1951,7 +2201,7 @@ export function renderEditVideo(state) {
                <!-- Drive link -->
                <div style="display: flex; align-items: center; gap: 0.5rem">
                   <label style="font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; white-space: nowrap; min-width: 65px">🔗 Drive</label>
-                  <input type="text" class="form-control ev-drive-input" data-job-id="${t.jobId}" data-service="${t.service}"
+                  <input type="text" class="form-control ev-drive-input" data-job-id="${t.jobId}" data-sidx="${t.serviceIdx}"
                      placeholder="Link sản phẩm…" value="${t.editDriveLink}"
                      style="flex: 1; font-size: 0.82rem; padding: 0.35rem 0.6rem; background: #fff; border: 1.5px solid var(--border); color: var(--text-main)">
                   ${t.editDriveLink ? `<a href="${t.editDriveLink}" target="_blank" class="btn btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.7rem; background: #22c55e; color: #fff; border: none; white-space: nowrap; border-radius: 6px; text-decoration: none">Mở ↗</a>` : ''}
@@ -1966,17 +2216,17 @@ export function renderEditVideo(state) {
   container.addEventListener('change', function (ev) {
     const el = ev.target;
     if (el.classList.contains('ev-editor-select')) {
-      window.updateVideoEditor(el.dataset.jobId, el.dataset.service, el.value);
+      window.updateVideoEditor(el.dataset.jobId, el.dataset.sidx, el.value);
     }
     if (el.classList.contains('ev-status-select')) {
-      window.updateVideoEditStatus(el.dataset.jobId, el.dataset.service, el.value);
+      window.updateVideoEditStatus(el.dataset.jobId, el.dataset.sidx, el.value);
     }
   });
 
   container.addEventListener('blur', function (ev) {
     const el = ev.target;
     if (el.classList.contains('ev-drive-input')) {
-      window.updateVideoEditLink(el.dataset.jobId, el.dataset.service, el.value);
+      window.updateVideoEditLink(el.dataset.jobId, el.dataset.sidx, el.value);
     }
   }, true);
 
@@ -2229,8 +2479,8 @@ export function renderKanban(state) {
   // Build clips array from jobs
   const clips = [];
   (state.filteredJobs || state.jobs).forEach(job => {
-    (job.services || []).forEach(svc => {
-      if (svc.service && svc.service.toLowerCase().includes('quay')) {
+    (job.deliverables || []).forEach((d, dIdx) => {
+      if (d.type === 'Video') {
         const EDIT_DAYS = 20;
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const jobDate = new Date(job.date); jobDate.setHours(0, 0, 0, 0);
@@ -2238,12 +2488,13 @@ export function renderKanban(state) {
         const daysLeft = Math.ceil((dl - today) / 864e5);
         clips.push({
           jobId: job.id,
-          svcKey: svc.service,
+          sIdx: dIdx,
           client: job.client,
-          service: svc.service,
-          staff: svc.staff || '—',
-          editor: svc.editor || '—',
-          editStatus: svc.editStatus || 'Chưa bắt đầu',
+          service: d.name,
+          qty: d.quantity || 1,
+          staff: d.staff || '—',
+          editor: d.editor || '—',
+          editStatus: d.editStatus || 'Chưa bắt đầu',
           date: job.date,
           daysLeft,
           deadlineStr: dl.toLocaleDateString('vi-VN')
@@ -2268,18 +2519,17 @@ export function renderKanban(state) {
           </div>
           <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
             ${clips.filter(c => c.editStatus === s.id).map(c => `
-              <div class="kanban-card" data-job-id="${c.jobId}" data-svc="${c.svcKey}"
-                style="background:var(--bg-main);border:1px solid var(--border);border-radius:8px;padding:0.55rem 0.6rem;cursor:grab;transition:all 0.15s;border-left:3px solid ${s.color};position:relative">
+              <div class="kanban-card" onclick="window.openQuickPreview('${c.jobId}')" data-job-id="${c.jobId}" data-sidx="${c.sIdx}"
+                style="background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${s.color};position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
-                  <span style="font-size:0.8rem;font-weight:800;color:var(--text-main)">${c.client}</span>
-                  <button onclick="event.stopPropagation();if(confirm('Xoá clip này?'))window.deleteVideoClip&&window.deleteVideoClip('${c.jobId}','${c.svcKey}')" style="background:none;border:none;cursor:pointer;font-size:0.65rem;color:#ef4444;padding:0.1rem 0.2rem;border-radius:4px;opacity:0.5" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">🗑️</button>
+                  <span style="font-size:0.75rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${c.client}">${c.client}</span>
+                  <button onclick="event.stopPropagation();if(confirm('Xoá clip này?'))window.deleteVideoClip&&window.deleteVideoClip('${c.jobId}','${c.sIdx}')" style="background:none;border:none;cursor:pointer;font-size:0.65rem;color:#ef4444;padding:0.1rem 0.2rem;border-radius:4px;opacity:0.5" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">🗑️</button>
                 </div>
-                <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.2rem">${c.service}</div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
-                  <span style="font-size:0.62rem;font-weight:700;background:#3b82f620;color:#3b82f6;padding:0.1rem 0.3rem;border-radius:4px">📹 ${c.staff}</span>
-                  <span style="font-size:0.62rem;font-weight:700;background:#a855f720;color:#a855f7;padding:0.1rem 0.3rem;border-radius:4px">✏️ ${c.editor || '—'}</span>
+                <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.service}">🎥 ${c.service} <strong style="color:var(--text-main)">(x${c.qty})</strong></div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:0.55rem;font-weight:700;color:${c.daysLeft != null ? (c.daysLeft > 0 ? 'var(--text-dim)' : '#ef4444') : 'var(--text-muted)'}">⏰ ${c.deadlineStr || '—'}</span>
+                  <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${c.editor || 'Chưa gán'}">✏️ ${c.editor || 'Trống'}</span>
                 </div>
-                <div style="font-size:0.58rem;font-weight:700;color:${c.daysLeft != null ? (c.daysLeft > 5 ? '#22c55e' : c.daysLeft > 0 ? '#f97316' : '#ef4444') : 'var(--text-muted)'};background:${c.daysLeft != null ? (c.daysLeft > 5 ? '#22c55e10' : c.daysLeft > 0 ? '#f9731610' : '#ef444410') : 'transparent'};padding:0.1rem 0.3rem;border-radius:4px;text-align:center">⏰ DL: ${c.deadlineStr || '—'} ${c.daysLeft != null ? (c.daysLeft > 0 ? '(còn ' + c.daysLeft + 'd)' : '(trễ ' + Math.abs(c.daysLeft) + 'd!)') : ''}</div>
               </div>
             `).join('')}
           </div>
@@ -2301,9 +2551,9 @@ export function renderKanban(state) {
           const card = evt.item;
           const newStatus = evt.to.dataset.status;
           const jobId = card.dataset.jobId;
-          const svcKey = card.dataset.svc;
+          const sIdx = card.dataset.sidx;
           if (window.updateVideoEditStatus) {
-            window.updateVideoEditStatus(jobId, svcKey, newStatus);
+            window.updateVideoEditStatus(jobId, sIdx, newStatus);
           }
         }
       });
@@ -3564,20 +3814,25 @@ export function renderEditPhoto(state) {
   const photoTasks = [];
   state.jobs.forEach(job => {
     if (job.isTrash) return;
-    job.services.forEach((s, sIdx) => {
-      const isPhoto = s.service.toLowerCase().includes('chụp');
+    (job.deliverables || []).forEach((d, dIdx) => {
+      const isPhoto = d.type === 'Photo';
       if (!isPhoto) return;
       const jobDate = new Date(job.date); jobDate.setHours(0, 0, 0, 0);
       const dl = new Date(jobDate); dl.setDate(dl.getDate() + EDIT_DAYS);
       const daysLeft = Math.ceil((dl - today) / 864e5);
-      const editStatus = s.editStatus || 'Chưa bắt đầu';
+      const editStatus = d.editStatus || 'Chưa bắt đầu';
       let stage, sc;
       if (editStatus === 'Hoàn thành') { stage = 'HOÀN THÀNH'; sc = '#22c55e'; }
       else if (daysLeft > 5) { stage = 'THOẢI MÁI'; sc = '#22c55e'; }
       else if (daysLeft > 2) { stage = 'CẦN ĐẨY'; sc = '#eab308'; }
       else if (daysLeft > 0) { stage = 'GẤP'; sc = '#f97316'; }
       else { stage = 'QUÁ HẠN'; sc = '#ef4444'; }
-      photoTasks.push({ jobId: job.id, jobNo: job.jobNo, client: job.client, service: s.service, serviceIdx: sIdx, staff: s.staff, editStaff: s.editStaff || '', editStatus, editDriveLink: s.editDriveLink || '', deadlineStr: dl.toLocaleDateString('vi-VN'), daysLeft, stage, sc, jobDate: job.date });
+      photoTasks.push({
+        jobId: job.id, jobNo: job.jobNo, client: job.client, qty: d.quantity || 1,
+        service: d.name, serviceIdx: dIdx, staff: d.editor || '',
+        editStaff: d.editor || '', editStatus, editDriveLink: d.editDriveLink || '',
+        deadlineStr: dl.toLocaleDateString('vi-VN'), daysLeft, stage, sc, jobDate: job.date
+      });
     });
   });
 
@@ -3607,13 +3862,24 @@ export function renderEditPhoto(state) {
     { key: 'Hoàn thành', label: '✅ Hoàn thành', color: '#22c55e' }
   ];
 
-  const renderCard = (t) => '<div class="ep-card" data-jobid="' + t.jobId + '" data-svcname="' + t.service + '" style="background:' + (t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-card)') + ';border:1px solid ' + t.sc + '40;border-radius:10px;padding:0.5rem 0.7rem;margin-bottom:0.4rem;border-left:4px solid ' + t.sc + ';cursor:grab; box-shadow: 0 2px 4px rgba(0,0,0,0.02)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem"><span style="font-size:0.82rem;font-weight:800;color:var(--text-main)">' + (t.client) + ' <span style="font-size:0.6rem;color:var(--text-dim)">#' + t.jobNo + '</span></span>' + (t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite">🚨</span>' : '<span style="font-size:0.58rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span>') + '</div><div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.2rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:0.62rem;margin-top:0.35rem;padding-top:0.3rem;border-top:1px dashed var(--border)"><span style="font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</span><span style="font-weight:700;color:' + t.sc + '">' + (t.editStatus === 'Hoàn thành' ? '✅ Xong' : t.daysLeft > 0 ? t.daysLeft + 'd còn' : 'Trễ ' + Math.abs(t.daysLeft) + 'd') + '</span></div></div>';
+  const renderCard = (t) => `
+    <div class="ep-card" onclick="window.openQuickPreview('${t.jobId}')" data-jobid="${t.jobId}" data-svcname="${t.serviceIdx}" style="background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-main)'};border:1px solid ${t.sc}30;border-radius:6px;padding:0.4rem 0.5rem;margin-bottom:0.4rem;border-left:3px solid ${t.sc};cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
+        <span style="font-size:0.75rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${t.client}">${t.client}</span>
+        ${t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite;font-size:0.65rem">🚨</span>' : ''}
+      </div>
+      <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${t.service}">📸 ${t.service} <strong style="color:var(--text-main)">(x${t.qty})</strong></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:0.55rem;font-weight:700;color:${t.editStatus === 'Hoàn thành' ? '#22c55e' : t.daysLeft > 0 ? 'var(--text-dim)' : '#ef4444'}">⏰ ${t.deadlineStr}</span>
+        <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${t.editStaff || 'Chưa gán'}">✏️ ${t.editStaff || 'Trống'}</span>
+      </div>
+    </div>`;
 
   container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline ' + EDIT_DAYS + ' ngày</p></div></header>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">' + total + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">' + done + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">' + (total - done) + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">' + overdue + '</div></div></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem"><div style="display:flex;gap:0.3rem;flex-wrap:wrap"><button onclick="window.setEditPhotoFilter(\'TẤT CẢ\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">Tất cả</button>' + allEditors.map(n => '<button onclick="window.setEditPhotoFilter(\'' + n + '\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === n ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">' + n + '</button>').join('') + '</div><div style="display:flex;gap:0.3rem"><button onclick="window.setEditPhotoStatusFilter(\'ALL\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📸 Tất cả (' + total + ')</button><button onclick="window.setEditPhotoStatusFilter(\'PENDING\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">⚠️ Chưa xong (' + (total - done) + ')</button><button onclick="window.setEditPhotoStatusFilter(\'PENDING_DEMO\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'PENDING_DEMO' ? 'background:#8b5cf6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">🚀 Chưa gửi Demo (' + photoTasks.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang chỉnh sửa').length + ')</button><button onclick="window.setEditPhotoStatusFilter(\'DONE\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">✅ Xong (' + done + ')</button></div><div style="display:flex;gap:0.3rem"><button onclick="window.toggleEditPhotoView(\'kanban\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📋 Kanban</button><button onclick="window.toggleEditPhotoView(\'list\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (!isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📝 List</button></div></div>'
-    + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat(' + kanbanCols.length + ',1fr);gap:0.6rem;overflow-x:auto">' + kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="' + col.key + '" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid ' + col.color + '"><div style="font-size:0.72rem;font-weight:800;color:' + col.color + ';margin-bottom:0.4rem;text-align:center">' + col.label + ' (' + colTasks.length + ')</div><div class="ep-col-cards">' + colTasks.map(renderCard).join('') + '</div></div>'; }).join('') + '</div>'
-      : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">' + filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid ' + t.sc + '"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + t.client + ' <span style="font-size:0.65rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.6rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">' + t.service + ' · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</div><select onchange="window.updateEditStatus(\'' + t.jobId + '\',\'' + t.service + '\',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">' + ['Chưa bắt đầu', 'Đang chỉnh sửa', 'Demo', 'Chỉnh sửa lại', 'Hoàn thành'].map(s => '<option value="' + s + '" ' + (t.editStatus === s ? 'selected' : '') + '>' + s + '</option>').join('') + '</select></div></div>').join('') + '</div>');
+    + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat(' + kanbanCols.length + ',1fr);gap:0.6rem;overflow-x:auto">' + kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="' + col.key + '" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid ' + col.color + '"><div style="font-size:0.72rem;font-weight:800;color:' + col.color + ';margin-bottom:0.4rem;text-align:center">' + col.label + ' (' + colTasks.length + ')</div><div class="ep-col-cards" data-status="' + col.key + '">' + colTasks.map(renderCard).join('') + '</div></div>'; }).join('') + '</div>'
+      : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">' + filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid ' + t.sc + '"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + t.client + ' <span style="font-size:0.65rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.6rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">📸 ' + t.service + ' (x' + t.qty + ') · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</div><select onchange="window.updateEditStatus(\'' + t.jobId + '\',\'' + t.serviceIdx + '\',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">' + ['Chưa bắt đầu', 'Đang chỉnh sửa', 'Demo', 'Chỉnh sửa lại', 'Hoàn thành'].map(s => '<option value="' + s + '" ' + (t.editStatus === s ? 'selected' : '') + '>' + s + '</option>').join('') + '</select></div></div>').join('') + '</div>');
 
   // SortableJS is initialized in main.js updateUI() after DOM attach
   return container;
@@ -3627,10 +3893,30 @@ export function renderGlobalSearchModal(state) {
   container.className = 'global-search-container';
   container.style.cssText = 'width: 600px; max-width: 95vw; background: var(--surface); border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; max-height: 80vh';
 
-  const results = state.globalSearchResults || [];
-  const query = state.globalSearchQuery || '';
+  // Phase 3 #7: Command hints
+  const commandHint = state.globalSearchCommandHint;
+  const COMMANDS = [
+    { label: '➕ Tạo dự án mới', cmd: 'tạo job', keys: '> tạo job' },
+    { label: '📅 Lịch nhắc việc', cmd: 'lịch', keys: '> lịch' },
+    { label: '📋 Kanban', cmd: 'kanban', keys: '> kanban' },
+    { label: '📊 Analytics', cmd: 'analytics', keys: '> analytics' },
+    { label: '🎬 Edit Video', cmd: 'video', keys: '> video' },
+    { label: '📸 Edit Photo', cmd: 'ảnh', keys: '> ảnh' },
+    { label: '🎭 Nhân sự', cmd: 'nhân sự', keys: '> nhân sự' },
+    { label: '📒 Tài chính', cmd: 'tài chính', keys: '> tài chính' },
+  ];
 
-  const resultsHTML = results.length > 0 ? results.map(j => {
+  const resultsHTML = commandHint !== undefined && commandHint !== null ? `
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:rgba(59,130,246,0.04)">
+      <div style="font-size:0.72rem;font-weight:800;color:#3b82f6;text-transform:uppercase;margin-bottom:0.6rem">⌨️ Lệnh nhanh — nhấn Enter hoặc click</div>
+      <div style="display:flex;flex-direction:column;gap:0.3rem">
+        ${COMMANDS.filter(c => !commandHint || c.cmd.includes(commandHint) || c.label.includes(commandHint)).map(c => `
+          <div onclick="window._executeCommand('${c.cmd}')" style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;background:var(--bg-hover);border:1px solid var(--border);transition:0.15s" class="hover-bg-success">
+            <span style="font-size:0.9rem;font-weight:700">${c.label}</span>
+            <code style="font-size:0.68rem;background:rgba(0,0,0,0.07);padding:0.1rem 0.4rem;border-radius:4px;color:var(--text-dim)">${c.keys}</code>
+          </div>`).join('')}
+      </div>
+    </div>` : results.length > 0 ? results.map(j => {
     const d = new Date(j.date);
     const monthStr = `T${d.getMonth() + 1}/${d.getFullYear()}`;
     return `
@@ -3649,12 +3935,12 @@ export function renderGlobalSearchModal(state) {
         </div>
       </div>
     `;
-  }).join('') : (query.length > 1 ? '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Không tìm thấy kết quả nào cho "' + query + '"</div>' : '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Gõ tên cô dâu chú rể, SDT hoặc mã Job để tìm kiếm (Enter)</div>');
+  }).join('') : (query.length > 1 ? '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Không tìm thấy kết quả nào cho "' + query + '"</div>' : '<div style="padding: 2rem; text-align: center; color: var(--text-dim)"><div style="font-size:0.85rem;margin-bottom:0.5rem">Gõ tên cô dâu chú rể, SDT hoặc mã Job để tìm kiếm</div><div style="font-size:0.75rem;color:var(--text-dim);opacity:0.7">💡 Gõ <code style="background:rgba(0,0,0,0.08);padding:0.1rem 0.4rem;border-radius:4px">> lệnh</code> để mở tính năng nhanh</div></div>');
 
   container.innerHTML = `
     <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; background: var(--surface)">
       <i class="fas fa-search" style="color: var(--primary); font-size: 1.2rem"></i>
-      <input type="text" id="global-search-input" placeholder="Tìm kiếm toàn cục..." value="${query}" autocomplete="off"
+      <input type="text" id="global-search-input" placeholder="Tìm kiếm... hoặc nhập > lệnh" value="${query}" autocomplete="off"
         style="flex: 1; border: none; outline: none; background: transparent; font-size: 1.1rem; color: var(--text-main); font-weight: 600">
       <button onclick="window.closeModal()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-dim)">&times;</button>
     </div>
@@ -3662,6 +3948,8 @@ export function renderGlobalSearchModal(state) {
       ${resultsHTML}
     </div>
   `;
+
+
 
   // Focus input on render and attach events
   setTimeout(() => {

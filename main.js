@@ -22,12 +22,15 @@ export const state = {
   currentYear: new Date().getFullYear(),
   modal: { isOpen: false, type: null, data: null },
   history: [{ time: new Date().toISOString(), action: 'Khởi tạo hệ thống', user: 'Admin' }],
+  notificationLog: [], // Phase 3 #8: notification bell log (max 50)
   deadlineFilter: 'TẤT CẢ',
   staffFilter: 'TẤT CẢ',
   statusFilter: 'TẤT CẢ',
   searchQuery: '',
   staffViewMode: 'all',
   editVideoFilter: 'TẤT CẢ',
+  editVideoMissingLink: false, // Phase 3 #6: audit link filter
+  editPhotoMissingLink: false, // Phase 3 #6: audit link filter
   currentUser: null, // { username, role, displayName }
   syncLogs: [],
   lastSyncResult: null,
@@ -71,6 +74,56 @@ export const state = {
     }
   } catch (e) {
     console.warn('Cache reset skipped:', e.message);
+  }
+})();
+
+// Auto-migrate old services to deliverables
+(function migrateDeliverables() {
+  let migrated = false;
+  state.jobs.forEach(job => {
+    if (!job.deliverables || job.deliverables.length === 0) {
+      const deliverables = [];
+      const quayCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('quay')).length;
+      if (quayCount === 1) deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      else if (quayCount >= 2) {
+        deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+        deliverables.push({ name: 'Clip Truyền thống', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      }
+
+      const chupCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
+      if (chupCount === 1) deliverables.push({ name: 'Ảnh Tiệc', type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      else if (chupCount >= 2) {
+        deliverables.push({ name: 'Ảnh Tiệc', type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
+        deliverables.push({ name: 'Ảnh Truyền thống', type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      }
+
+      if (deliverables.length > 0) {
+        // Map data từ Quay
+        const firstQuay = (job.services || []).find(s => (s.service || '').toLowerCase().includes('quay'));
+        if (firstQuay) {
+          deliverables.filter(d => d.type === 'Video').forEach(d => {
+            d.editor = firstQuay.editStaff || '';
+            d.editStatus = firstQuay.editStatus || 'Chưa bắt đầu';
+            d.editDriveLink = firstQuay.editDriveLink || '';
+          });
+        }
+        // Map data từ Chụp
+        const firstChup = (job.services || []).find(s => (s.service || '').toLowerCase().includes('chụp'));
+        if (firstChup) {
+          deliverables.filter(d => d.type === 'Photo').forEach(d => {
+            d.editor = firstChup.editStaff || '';
+            d.editStatus = firstChup.editStatus || 'Chưa bắt đầu';
+            d.editDriveLink = firstChup.editDriveLink || '';
+          });
+        }
+
+        job.deliverables = deliverables;
+        migrated = true;
+      }
+    }
+  });
+  if (migrated) {
+    console.log('[Haru] Migrated old services to deliverables based on Fallback Ruled');
   }
 })();
 
@@ -368,6 +421,75 @@ window.addHistory = (action, details = null) => {
   if (details) entry.details = details;
   state.history.unshift(entry);
   if (state.history.length > 500) state.history = state.history.slice(0, 500);
+
+  // Phase 3 #8: push to notification log
+  if (!state.notificationLog) state.notificationLog = [];
+  state.notificationLog.unshift({ id: Date.now(), time: entry.time, action, user: entry.user, read: false });
+  if (state.notificationLog.length > 50) state.notificationLog = state.notificationLog.slice(0, 50);
+  // Update bell badge without full re-render
+  const badge = document.getElementById('notif-bell-badge');
+  if (badge) {
+    const unread = state.notificationLog.filter(n => !n.read).length;
+    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.style.display = unread > 0 ? 'flex' : 'none';
+  }
+};
+
+// Phase 3 #10: Floating Save Indicator
+window.showFloatingSaveStatus = (status) => {
+  let el = document.getElementById('haru-floating-save');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'haru-floating-save';
+    el.style.cssText = 'position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);z-index:99998;display:flex;align-items:center;gap:0.5rem;padding:0.45rem 1.1rem;border-radius:100px;font-size:0.82rem;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,0.15);transition:all 0.3s;pointer-events:none;opacity:0';
+    document.body.appendChild(el);
+  }
+  clearTimeout(el._hideTimer);
+  if (status === 'saving') {
+    el.style.background = '#3b82f6';
+    el.style.color = '#fff';
+    el.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Đang lưu...';
+    el.style.opacity = '1';
+  } else if (status === 'saved') {
+    el.style.background = '#22c55e';
+    el.style.color = '#fff';
+    el.innerHTML = '✓ Đã đồng bộ';
+    el.style.opacity = '1';
+    el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 3000);
+  } else if (status === 'error') {
+    el.style.background = '#ef4444';
+    el.style.color = '#fff';
+    el.innerHTML = '✕ Lỗi lưu dữ liệu';
+    el.style.opacity = '1';
+    el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 4000);
+  }
+};
+
+// Phase 3 #8: Notification actions
+window.markNotifsRead = () => {
+  if (!state.notificationLog) return;
+  state.notificationLog.forEach(n => { n.read = true; });
+  const badge = document.getElementById('notif-bell-badge');
+  if (badge) badge.style.display = 'none';
+  updateUI();
+};
+window.clearNotifLog = () => {
+  state.notificationLog = [];
+  updateUI();
+};
+window.toggleNotifPanel = () => {
+  const panel = document.getElementById('notif-dropdown-panel');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) window.markNotifsRead();
+};
+
+// Phase 3 #6: Missing Link filter
+window.setMissingLinkFilter = (type, val) => {
+  if (type === 'video') state.editVideoMissingLink = val;
+  else if (type === 'photo') state.editPhotoMissingLink = val;
+  updateUI();
 };
 
 // ============================================================
@@ -525,7 +647,13 @@ window.openModal = (type, data = null) => {
   updateUI();
 };
 
+window.openQuickPreview = (id) => window.openModal('quick_preview', id);
+
 window.closeModal = () => {
+  if (state.modal.type === 'quick_preview' && window._quickPreviewCloseFn) {
+    window._quickPreviewCloseFn();
+    return;
+  }
   state.modal.isOpen = false;
   state.modal.type = null;
   state.modal.data = null;
@@ -545,6 +673,18 @@ window.openGlobalSearch = () => {
 
 window._handleGlobalSearchInput = (query) => {
   state.globalSearchQuery = query;
+
+  // Phase 3 #7: Detect command shortcuts (prefix '>')
+  if (query.startsWith('>')) {
+    const cmd = query.slice(1).trim().toLowerCase();
+    state.globalSearchResults = [];
+    // Show command hints in results via special marker
+    state.globalSearchCommandHint = cmd;
+    updateUI();
+    return;
+  }
+
+  state.globalSearchCommandHint = null;
   if (!query || query.length < 2) {
     state.globalSearchResults = [];
   } else {
@@ -558,6 +698,74 @@ window._handleGlobalSearchInput = (query) => {
   }
   updateUI();
 };
+
+// Phase 3 #7: Execute command shortcut
+window._executeCommand = (cmd) => {
+  window.closeModal();
+  setTimeout(() => {
+    if (cmd.includes('tạo') || cmd.includes('tao') || cmd.includes('job') || cmd.includes('thêm') || cmd.includes('them')) {
+      window.openModal('add_job');
+    } else if (cmd.includes('lịch') || cmd.includes('lich') || cmd.includes('calendar')) {
+      window.navigate('calendar');
+    } else if (cmd.includes('kanban')) {
+      window.navigate('kanban');
+    } else if (cmd.includes('analytics') || cmd.includes('thống') || cmd.includes('thong')) {
+      window.navigate('analytics');
+    } else if (cmd.includes('edit video') || cmd.includes('video')) {
+      window.navigate('edit_video');
+    } else if (cmd.includes('ảnh') || cmd.includes('photo')) {
+      window.navigate('edit_photo');
+    } else if (cmd.includes('nhân sự') || cmd.includes('nhan su') || cmd.includes('staff')) {
+      window.navigate('staff');
+    } else if (cmd.includes('tài chính') || cmd.includes('tai chinh') || cmd.includes('finance')) {
+      window.navigate('finance');
+    }
+  }, 100);
+};
+
+// Phase 3 #5: Bulk mark done
+window.bulkMarkDone = (jobIds) => {
+  if (!jobIds || jobIds.length === 0) return;
+  let count = 0;
+  jobIds.forEach(info => {
+    const [jobId, sIdx] = info.split('::');
+    const job = state.jobs.find(j => j.id === jobId);
+    if (!job) return;
+    const dIdx = parseInt(sIdx, 10);
+    const d = job.deliverables?.[dIdx];
+    if (d && d.editStatus !== 'Hoàn thành') {
+      d.editStatus = 'Hoàn thành';
+      count++;
+    }
+  });
+  if (count > 0) {
+    window.addHistory(`Đánh dấu hoàn thành hàng loạt: ${count} thành phẩm`);
+    saveState();
+    window.showFloatingSaveStatus('saved');
+    updateUI();
+  }
+};
+
+// Phase 3 #5: Sync floating bulk-action bar visibility
+window._syncBulkBar = () => {
+  const checked = [...document.querySelectorAll('.ev-multi-cb:checked')];
+  let bar = document.getElementById('haru-bulk-bar');
+  if (checked.length === 0) {
+    if (bar) bar.remove();
+    return;
+  }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'haru-bulk-bar';
+    bar.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:99997;background:#1e293b;color:#fff;padding:0.6rem 1.2rem;border-radius:100px;display:flex;align-items:center;gap:0.8rem;font-size:0.85rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,0.25);animation:slideIn 0.25s ease';
+    document.body.appendChild(bar);
+  }
+  const keys = checked.map(cb => cb.dataset.key);
+  bar.innerHTML = `<span style="background:rgba(255,255,255,0.15);padding:0.2rem 0.6rem;border-radius:20px">${checked.length} đã chọn</span>
+    <button onclick="window.bulkMarkDone(${JSON.stringify(keys)})" style="background:#22c55e;color:#fff;border:none;padding:0.35rem 1rem;border-radius:20px;font-weight:800;font-size:0.8rem;cursor:pointer">✅ Đánh dấu Hoàn thành</button>
+    <button onclick="document.querySelectorAll('.ev-multi-cb').forEach(cb=>cb.checked=false);window._syncBulkBar()" style="background:rgba(255,255,255,0.1);color:#fff;border:none;padding:0.35rem 0.7rem;border-radius:20px;font-size:0.8rem;cursor:pointer">✕</button>`;
+};
+
 
 window._jumpToJob = (jobId) => {
   const job = state.jobs.find(j => j.id === jobId);
@@ -663,18 +871,20 @@ window.addJob = (jobData) => {
   updateUI();
 };
 
-window.updateJob = (jobId, updatedData) => {
+window.updateJob = (jobId, updatedData, skipUpdateUI = false) => {
   const index = state.jobs.findIndex(j => j.id === jobId);
   if (index !== -1) {
     state.jobs[index] = { ...state.jobs[index], ...updatedData };
     window.addHistory(`Cập nhật dự án: ${state.jobs[index].client} `);
     saveState();
-    updateUI();
+    if (!skipUpdateUI) {
+      updateUI();
+    }
   }
 };
 
 // saveJobDetail: đọc DOM form trong modal, validate, rồi updateJob
-window.saveJobDetail = (jobId) => {
+window.saveJobDetail = (jobId, closeModalAfter = true) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
 
@@ -695,6 +905,8 @@ window.saveJobDetail = (jobId) => {
   const modal = document.querySelector('.modal-container');
   const dayContents = modal?.querySelectorAll('.day-tab-content') || [];
   const eventDays = [];
+  const parsedServices = []; // Thay thế #services-table-edit cũ
+
   dayContents.forEach((dayEl, idx) => {
     const dayLabel = dayEl.querySelector('.day-label-input')?.value || '';
     const dayDate = dayEl.querySelector('.day-date-input')?.value || '';
@@ -721,58 +933,81 @@ window.saveJobDetail = (jobId) => {
     catChecks.forEach(chk => { if (chk.checked) categories.push(chk.value); });
 
     eventDays.push({ dayLabel, date: dayDate, boyHouse, girlHouse, venue, timeline, categories });
+
+    // Đọc Services được gán cho Ngày này
+    const svcRows = dayEl.querySelectorAll('.day-service-row');
+    svcRows.forEach(row => {
+      const roleInp = row.querySelector('.svc-role-input');
+      const staffInp = row.querySelector('.svc-staff-input');
+      const costInp = row.querySelector('.svc-cost-input');
+      const editInp = row.querySelector('.svc-edit-input');
+
+      const svc = roleInp ? roleInp.value.trim() : '';
+      const stf = staffInp ? staffInp.value.trim() : '';
+      const cst = parseInt(costInp?.value) || 0;
+      const edt = parseInt(editInp?.value) || 0;
+      let paid = false;
+      const sIdx = row.getAttribute('data-sidx');
+      if (sIdx != null && job.services && job.services[sIdx]) {
+        paid = !!job.services[sIdx].paid;
+      }
+
+      if (svc && stf) {
+        parsedServices.push({ service: svc, staff: stf, cost: cst, edit: edt, paid, date: dayDate });
+      }
+    });
   });
 
-  // Fallback: nếu không đọc được tabs, dùng legacy
+  // Fallback: nếu không đọc được tabs, dùng metadata cũ
   const finalEventDays = eventDays.length > 0 ? eventDays : (job.eventDays || []);
-
-  // Legacy compatibility: lấy dữ liệu ngày đầu tiên cho các field cũ
   const firstDay = finalEventDays[0] || {};
   const finalDate = firstDay.date || date;
   const finalVenue = firstDay.venue || job.venue || '';
   const finalTimeline = firstDay.timeline || job.timeline || {};
 
-  // Đọc service rows từ table
-  const table = document.getElementById('services-table-edit');
-  let services = job.services; // fallback về services cũ
-  if (table) {
-    const rows = table.querySelectorAll('tbody tr');
-    const parsedServices = [];
-    rows.forEach((row, idx) => {
-      const cells = row.querySelectorAll('td');
-      if (cells.length >= 5) {
-        const select0 = cells[0].querySelector('select');
-        const select1 = cells[1].querySelector('select');
-        const inp2 = cells[2].querySelector('input');
-        const inp3 = cells[3].querySelector('input');
-        const chk4 = cells[4].querySelector('input[type=checkbox]');
-        const svc = select0 ? select0.value : cells[0].textContent.trim();
-        const stf = select1 ? select1.value : cells[1].textContent.trim();
-        const cst = parseInt(inp2 ? inp2.value : 0) || parseInt(job.services[idx]?.cost) || 0;
-        const edt = parseInt(inp3 ? inp3.value : 0) || parseInt(job.services[idx]?.edit) || 0;
-        const paid = chk4 ? chk4.checked : (job.services[idx]?.paid || false);
-        if (svc && stf) parsedServices.push({ service: svc, staff: stf, cost: cst, edit: edt, paid, date: finalDate });
-      }
-    });
-    if (parsedServices.length > 0) services = parsedServices;
-  }
+  let services = parsedServices.length > 0 ? parsedServices : (job.services || []);
+
+  // ── Đọc Deliverables (Sản phẩm đầu ra) ──
+  const delRows = modal?.querySelectorAll('.deliverable-row') || [];
+  const deliverables = [];
+  delRows.forEach((row, dIdx) => {
+    const nameInp = row.querySelector('.del-name-input');
+    const typeInp = row.querySelector('.del-type-input');
+    const qtyInp = row.querySelector('.del-qty-input');
+
+    // Giữ nguyên các thông tin hậu kỳ đã chia nếu có (cho file sau này)
+    const existing = (job.deliverables && job.deliverables[dIdx]) ? job.deliverables[dIdx] : {};
+
+    const name = nameInp ? nameInp.value.trim() : '';
+    const type = typeInp ? typeInp.value.trim() : 'Khác';
+    const quantity = parseInt(qtyInp?.value) || 1;
+
+    if (name) {
+      deliverables.push({ ...existing, name, type, quantity });
+    }
+  });
 
   // Validate
   const errors = validateJobData({ client, date: finalDate, package: packageVal }, services);
   if (errors.length > 0) { showValidationError(errors); return; }
 
+  // Update
   window.updateJob(jobId, {
     client, status, date: finalDate, eventType, phone, package: packageVal, deposit: depositVal,
     venue: finalVenue, notes, linkCustomer, linkNAS, linkDrive,
-    timeline: finalTimeline, services, eventDays: finalEventDays
-  });
-  window.closeModal();
-  // Toast thành công
-  const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;background:#22c55e;color:#fff;padding:0.75rem 1.5rem;border-radius:12px;font-weight:700;z-index:9999;font-size:0.9rem';
-  toast.textContent = '✓ Đã lưu thay đổi';
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+    timeline: finalTimeline, services, eventDays: finalEventDays, deliverables
+  }, !closeModalAfter);
+  // Nếu !closeModalAfter = false (tức là close) -> skipUpdateUI = false (sẽ updateUI)
+  // Nếu !closeModalAfter = true (tức là không close) -> skipUpdateUI = true (sẽ KHÔNG updateUI tránh giật form)
+
+  // Xử lý Hậu UI update hoặc Toast
+  if (closeModalAfter) {
+    window.closeModal();
+    window.showFloatingSaveStatus('saved');
+  } else {
+    // Auto-save: show floating indicator
+    window.showFloatingSaveStatus('saved');
+  }
 };
 
 // ============================================================
@@ -1086,109 +1321,115 @@ window.updateTaxRate = (rate) => {
 
 // ── Deadline Edit Status ─────────────────────────────────────
 // Persist service.editStatus when user changes the select in Deadline view
-window.updateEditStatus = (jobId, serviceName, newStatus) => {
+window.updateEditStatus = (jobId, dIdx, newStatus, skipUpdateUI = false) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
-  const svc = job.services.find(s => s.service === serviceName);
-  if (!svc) return;
+  const parsedIdx = parseInt(dIdx, 10);
+  const deliverable = job.deliverables?.[parsedIdx];
+  if (!deliverable) return;
 
-  const oldStatus = svc.editStatus;
-  svc.editStatus = newStatus;
+  const oldStatus = deliverable.editStatus;
+  deliverable.editStatus = newStatus;
 
   // Also update job.status if all services "Hoàn thành"
-  const allDone = job.services.every(s => (s.editStatus || '') === 'Hoàn thành');
-  if (allDone && newStatus === 'Hoàn thành') {
+  const allDone = (job.deliverables || []).every(d => (d.editStatus || '') === 'Hoàn thành');
+  if (allDone && newStatus === 'Hoàn thành' && job.deliverables && job.deliverables.length > 0) {
     job.status = 'Đã hoàn thành';
   }
 
   try {
     saveState();
   } catch (err) {
-    svc.editStatus = oldStatus;
+    deliverable.editStatus = oldStatus;
     showPaymentToast('❌ Lỗi lưu – đã hoàn tác', 'var(--danger)');
     return;
   }
 
-  window.addHistory(`Cập nhật trạng thái edit: ${job.client} – ${serviceName} → ${newStatus} `);
-  showPaymentToast(`✓ Cập nhật: ${newStatus} `, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
+  window.addHistory(`Cập nhật trạng thái edit: ${job.client} – ${deliverable.name} → ${newStatus}`);
+  showPaymentToast(`✓ Cập nhật: ${newStatus}`, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
 
   // Delay updateUI so SortableJS drag animation finishes before DOM re-render
-  setTimeout(() => updateUI(), 350);
+  if (!skipUpdateUI) {
+    setTimeout(() => updateUI(), 350);
+  }
 };
 
 // ── Video Edit Tab Functions ───────────────────────────────
-window.updateVideoEditor = (jobId, serviceName, editorName) => {
+window.updateVideoEditor = (jobId, dIdx, editorName) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
-  const svc = job.services.find(s => s.service === serviceName);
-  if (!svc) return;
-  svc.editStaff = editorName;
+  const deliverable = job.deliverables?.[parseInt(dIdx, 10)];
+  if (!deliverable) return;
+  deliverable.editor = editorName;
   saveState();
-  window.addHistory(`Gán editor: ${editorName} cho ${job.client} – ${serviceName} `);
-  showPaymentToast(`✓ Editor: ${editorName || 'Đã xóa'} `, 'var(--primary)');
+  window.addHistory(`Gán editor: ${editorName} cho ${job.client} – ${deliverable.name}`);
+  showPaymentToast(`✓ Editor: ${editorName || 'Đã xóa'}`, 'var(--primary)');
 };
 
-window.updateVideoEditStatus = (jobId, serviceName, newStatus, skipUpdateUI = false) => {
+window.updateVideoEditStatus = (jobId, dIdx, newStatus, skipUpdateUI = false) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
-  const svc = job.services.find(s => s.service === serviceName);
-  if (!svc) return;
-  svc.editStatus = newStatus;
+  const deliverable = job.deliverables?.[parseInt(dIdx, 10)];
+  if (!deliverable) return;
+  deliverable.editStatus = newStatus;
+
   if (newStatus === 'Hoàn thành') {
-    const allDone = job.services.every(s => (s.editStatus || '') === 'Hoàn thành');
-    if (allDone) job.status = 'Đã hoàn thành';
+    const allDone = (job.deliverables || []).every(d => (d.editStatus || '') === 'Hoàn thành');
+    if (allDone && job.deliverables && job.deliverables.length > 0) job.status = 'Đã hoàn thành';
   }
+
   saveState();
-  window.addHistory(`Edit video: ${job.client} – ${serviceName} → ${newStatus} `);
-  showPaymentToast(`✓ ${newStatus} `, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
+  window.addHistory(`Edit video: ${job.client} – ${deliverable.name} → ${newStatus}`);
+  showPaymentToast(`✓ ${newStatus}`, newStatus === 'Hoàn thành' ? 'var(--success)' : 'var(--primary)');
 
   if (!skipUpdateUI) {
     updateUI();
   }
 };
 
-window.deleteVideoClip = (jobId, svcKey) => {
+window.deleteVideoClip = (jobId, dIdx) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
-  const idx = job.services.findIndex(s => s.service === svcKey);
-  if (idx === -1) return;
-  job.services.splice(idx, 1);
+  const parsedIdx = parseInt(dIdx, 10);
+  const deliverable = job.deliverables?.[parsedIdx];
+  if (!deliverable) return;
+  job.deliverables.splice(parsedIdx, 1);
   saveState();
-  window.addHistory(`Xoá clip: ${job.client} – ${svcKey} `);
-  showPaymentToast('🗑️ Đã xoá clip', 'var(--danger)');
+  window.addHistory(`Xoá thành phẩm: ${job.client} – ${deliverable.name}`);
+  showPaymentToast('🗑️ Đã xoá thành phẩm', 'var(--danger)');
   updateUI();
 };
 
-window.updateVideoEditLink = (jobId, serviceName, link) => {
+window.updateVideoEditLink = (jobId, dIdx, link) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
-  const svc = job.services.find(s => s.service === serviceName);
-  if (!svc) return;
-  if (svc.editDriveLink === link) return;
-  svc.editDriveLink = link;
+  const deliverable = job.deliverables?.[parseInt(dIdx, 10)];
+  if (!deliverable) return;
+  if (deliverable.editDriveLink === link) return;
+  deliverable.editDriveLink = link;
   saveState();
   if (link) {
-    window.addHistory(`Thêm link Drive: ${job.client} – ${serviceName} `);
+    window.addHistory(`Thêm link Drive: ${job.client} – ${deliverable.name}`);
     showPaymentToast('✓ Đã lưu link Drive', 'var(--success)');
   }
 };
 
-window.updateEditorChecklist = (jobId, serviceName, key, checked) => {
+window.updateEditorChecklist = (jobId, dIdx, key, checked) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
-  const svc = job.services.find(s => s.service === serviceName);
-  if (!svc) return;
-  if (!svc.editChecklist) svc.editChecklist = { footage: false, rough: false, color: false, audio: false, export: false };
-  svc.editChecklist[key] = checked;
+  const deliverable = job.deliverables?.[parseInt(dIdx, 10)];
+  if (!deliverable) return;
+  if (!deliverable.editChecklist) deliverable.editChecklist = { footage: false, rough: false, color: false, audio: false, export: false };
+  deliverable.editChecklist[key] = checked;
   saveState();
 };
 
-window.updateEditorNote = (jobId, serviceName, note) => {
+window.updateEditorNote = (jobId, dIdx, note) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
-  const svc = job.services.find(s => s.service === serviceName);
-  if (!svc) return;
-  svc.editorNote = note;
+  const deliverable = job.deliverables?.[parseInt(dIdx, 10)];
+  if (!deliverable) return;
+  deliverable.editorNote = note;
   saveState();
 };
 
@@ -1198,6 +1439,25 @@ window.updateJobLink = (jobId, field, value) => {
   job[field] = value;
   saveState();
   if (value) showPaymentToast('✓ Đã lưu link', 'var(--success)');
+};
+
+window.markJobFullyPaid = (jobId) => {
+  if (!confirm('Xác nhận khách đã thanh toán toàn bộ số tiền còn lại (Cọc = Giá gói)?')) return;
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  job.deposit = job.package;
+  saveState();
+  window.addHistory(`Xác nhận khách đã tất toán (${job.package.toLocaleString()}đ): ${job.client}`);
+
+  // Update the UI directly if the modal is open, to trigger Auto-save organically
+  const depositInput = document.getElementById('edit-job-deposit');
+  if (depositInput) {
+    depositInput.value = job.package;
+    window.saveJobDetail(jobId, false);
+    updateUI(); // re-render layout to reflect 0 remaining
+  } else {
+    updateUI();
+  }
 };
 
 
@@ -1797,9 +2057,9 @@ function updateUI() {
             const card = evt.item;
             const newStatus = evt.to.closest('.ep-col').dataset.status;
             const jobId = card.dataset.jobid;
-            const svcName = card.dataset.svcname; // Sửa bug Edit Photo: dùng dataset.svcname
+            const sIdx = card.dataset.svcname; // Sửa bug Edit Photo: dùng index
             if (window.updateEditStatus) {
-              window.updateEditStatus(jobId, svcName, newStatus, true);
+              window.updateEditStatus(jobId, sIdx, newStatus, true);
               updateKanbanCounts(evt.from.closest('.ep-col'), evt.to.closest('.ep-col'));
             }
           }
@@ -1813,10 +2073,10 @@ function updateUI() {
           onEnd: (evt) => {
             const card = evt.item;
             const newStatus = evt.to.dataset.status;
-            const jobId = card.dataset.jobId;
-            const svc = card.dataset.svc;
+            const jobId = card.dataset.jobid; // Sửa lại thành jobid theo chuẩn DOM lowercase
+            const dIdx = card.dataset.sidx; // Update theo chuẩn mới
             if (window.updateVideoEditStatus) {
-              window.updateVideoEditStatus(jobId, svc, newStatus, true);
+              window.updateVideoEditStatus(jobId, dIdx, newStatus, true);
               // Editor kanban doesn't have explicit count format like ` (N)` by default, but we handles it safely inside helper
               updateKanbanCounts(evt.from, evt.to);
             }
