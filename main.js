@@ -1760,6 +1760,99 @@ window.saveStudioInfo = () => {
   window.showFloatingSaveStatus('saved');
 };
 
+// ============================================================
+// ADMIN DEBUG TOOLS
+// ============================================================
+window._debugLogs = [];
+const _origConsoleLog = console.log;
+const _origConsoleWarn = console.warn;
+const _origConsoleError = console.error;
+console.log = (...args) => { window._debugLogs.push({ level: 'log', msg: args.map(String).join(' '), time: new Date().toLocaleTimeString() }); if (window._debugLogs.length > 100) window._debugLogs.shift(); _origConsoleLog(...args); };
+console.warn = (...args) => { window._debugLogs.push({ level: 'warn', msg: args.map(String).join(' '), time: new Date().toLocaleTimeString() }); if (window._debugLogs.length > 100) window._debugLogs.shift(); _origConsoleWarn(...args); };
+console.error = (...args) => { window._debugLogs.push({ level: 'error', msg: args.map(String).join(' '), time: new Date().toLocaleTimeString() }); if (window._debugLogs.length > 100) window._debugLogs.shift(); _origConsoleError(...args); };
+
+window.runHealthCheck = () => {
+  const issues = [];
+  const jobs = state.jobs.filter(j => !j.isTrash);
+  // Check deliverables
+  const noDeliverables = jobs.filter(j => !j.deliverables || j.deliverables.length === 0);
+  if (noDeliverables.length) issues.push({ type: '⚠️', msg: `${noDeliverables.length} job thiếu thành phẩm đầu ra`, items: noDeliverables.map(j => j.client) });
+  // Check staff empty
+  const noStaff = jobs.filter(j => !j.services || j.services.length === 0);
+  if (noStaff.length) issues.push({ type: '👤', msg: `${noStaff.length} job chưa có nhân sự`, items: noStaff.map(j => j.client) });
+  // Check missing date
+  const noDate = jobs.filter(j => !j.date || isNaN(new Date(j.date).getTime()));
+  if (noDate.length) issues.push({ type: '📅', msg: `${noDate.length} job thiếu ngày`, items: noDate.map(j => j.client || j.id) });
+  // Check old service roles
+  const oldRoles = ['Quay phim', 'Chụp ảnh', 'Cinema', 'Trợ lý'];
+  const badRoles = jobs.filter(j => (j.services || []).some(s => oldRoles.includes(s.service)));
+  if (badRoles.length) issues.push({ type: '🔄', msg: `${badRoles.length} job có vai trò cũ (Quay phim/Chụp ảnh)`, items: badRoles.map(j => j.client) });
+  // Check no package
+  const noPackage = jobs.filter(j => !j.package || j.package === 0);
+  if (noPackage.length) issues.push({ type: '💰', msg: `${noPackage.length} job chưa có giá gói`, items: noPackage.map(j => j.client) });
+
+  // Render
+  const el = document.getElementById('debug-health-result');
+  if (el) {
+    if (issues.length === 0) {
+      el.innerHTML = '<div style="color:#22c55e;font-weight:800;padding:0.5rem">✅ Hệ thống khỏe mạnh! Không phát hiện vấn đề.</div>';
+    } else {
+      el.innerHTML = issues.map(i => `
+        <div style="margin-bottom:0.5rem;padding:0.5rem;background:rgba(255,200,0,0.1);border-radius:6px;border-left:3px solid #f59e0b">
+          <div style="font-weight:800;font-size:0.85rem">${i.type} ${i.msg}</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:0.2rem">${i.items.slice(0, 5).join(', ')}${i.items.length > 5 ? '...' : ''}</div>
+        </div>
+      `).join('');
+    }
+  }
+};
+
+window.showDebugLogs = () => {
+  const el = document.getElementById('debug-console-result');
+  if (el) {
+    const logs = (window._debugLogs || []).slice(-30).reverse();
+    if (logs.length === 0) {
+      el.innerHTML = '<div style="color:var(--text-dim);padding:0.5rem;font-size:0.8rem">Chưa có log nào.</div>';
+    } else {
+      const colors = { log: '#888', warn: '#f59e0b', error: '#ef4444' };
+      el.innerHTML = logs.map(l => `<div style="font-family:monospace;font-size:0.7rem;padding:0.2rem 0.4rem;border-bottom:1px solid rgba(0,0,0,0.05);color:${colors[l.level] || '#888'}"><span style="opacity:0.5">[${l.time}]</span> ${l.msg}</div>`).join('');
+    }
+  }
+};
+
+window.forceMigration = () => {
+  if (!confirm('Chạy lại migration thành phẩm cho TẤT CẢ job chưa có deliverables?')) return;
+  let count = 0;
+  state.jobs.forEach(job => {
+    if (!job.deliverables || job.deliverables.length === 0) {
+      const deliverables = [];
+      const quayCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('quay')).length;
+      if (quayCount === 1) deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      else if (quayCount >= 2) {
+        deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+        deliverables.push({ name: 'Clip Truyền thống', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      }
+      const chupCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
+      for (let ci = 0; ci < chupCount; ci++) {
+        deliverables.push({ name: chupCount === 1 ? 'Bộ Hình' : `Bộ Hình ${ci + 1}`, type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      }
+      if (deliverables.length > 0) {
+        const firstQuay = (job.services || []).find(s => (s.service || '').toLowerCase().includes('quay'));
+        if (firstQuay) deliverables.filter(d => d.type === 'Video').forEach(d => { d.editor = firstQuay.editStaff || ''; d.editStatus = firstQuay.editStatus || 'Chưa bắt đầu'; d.editDriveLink = firstQuay.editDriveLink || ''; });
+        const firstChup = (job.services || []).find(s => (s.service || '').toLowerCase().includes('chụp'));
+        if (firstChup) deliverables.filter(d => d.type === 'Photo').forEach(d => { d.editor = firstChup.editStaff || ''; d.editStatus = firstChup.editStatus || 'Chưa bắt đầu'; d.editDriveLink = firstChup.editDriveLink || ''; });
+        job.deliverables = deliverables;
+        count++;
+      }
+    }
+  });
+  // Rename old names
+  state.jobs.forEach(job => { (job.deliverables || []).forEach(d => { if (d.name === 'Ảnh Tiệc') d.name = 'Ảnh Phóng sự'; }); });
+  saveState();
+  updateUI();
+  alert(`✅ Migration hoàn tất!\n${count} job đã được tạo thành phẩm.`);
+};
+
 window.saveFirebaseConfig = () => {
   const el = document.getElementById('setting-firebase-config');
   if (!el) return;

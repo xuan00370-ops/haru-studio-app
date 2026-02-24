@@ -2259,6 +2259,21 @@ export function renderSettings(state) {
        </div>
     </div>
 
+    ${state.currentUser?.role === 'admin' ? `
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border: 2px solid rgba(139,92,246,0.3)">
+       <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 1rem; color: #8b5cf6"><i class="fas fa-bug" style="margin-right: 0.5rem"></i>🛠 Debug Tools (Admin)</h3>
+
+       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem">
+          <button class="btn btn-sm" style="background: #22c55e; color: #fff; border: none; padding: 0.5rem; font-weight: 700; border-radius: 8px" onclick="window.runHealthCheck()">🔍 Health Check</button>
+          <button class="btn btn-sm" style="background: #3b82f6; color: #fff; border: none; padding: 0.5rem; font-weight: 700; border-radius: 8px" onclick="window.showDebugLogs()">📊 Console Log</button>
+          <button class="btn btn-sm" style="background: #f59e0b; color: #fff; border: none; padding: 0.5rem; font-weight: 700; border-radius: 8px" onclick="window.forceMigration()">🔄 Force Migration</button>
+       </div>
+
+       <div id="debug-health-result" style="margin-bottom: 0.75rem; max-height: 200px; overflow-y: auto; border-radius: 8px"></div>
+       <div id="debug-console-result" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.05); border-radius: 8px"></div>
+    </div>
+    ` : ''}
+
     <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">
        <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.5rem; color: #f59e0b"><i class="fas fa-cloud" style="margin-right: 0.5rem"></i>Cấu hình Đám Mây (Firebase)</h3>
        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem">Dán đoạn mã JSON Firebase Config để kết nối App với Realtime Database. <a href="#" style="color: var(--accent-blue)">Xem hướng dẫn</a></p>
