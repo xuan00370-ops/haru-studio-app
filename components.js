@@ -886,7 +886,7 @@ function renderJobDetailModal(state) {
                 ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => `
                   <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window.state?.staffViewMode === 'staff' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
                      <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
-                       ${['Quay phim', 'Chụp ảnh', 'Cinema', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác'].map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                       ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác'].map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                      </select>
                      <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
                        <option value="Chưa xếp">-- Chọn người --</option>
@@ -1080,7 +1080,7 @@ window._addServiceToDayInModal = (dayIdx) => {
   newRow.style.cssText = `display: grid; grid-template-columns: 1fr 1.2fr ${isStaffView ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
   newRow.innerHTML = `
      <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
-       <option value="Quay phim">Quay phim</option><option value="Chụp ảnh">Chụp ảnh</option><option value="Cinema">Cinema</option><option value="Quay Flycam">Quay Flycam</option><option value="Editor">Editor</option><option value="Hỗ trợ">Hỗ trợ</option><option value="Quản lý">Quản lý</option><option value="Khác">Khác</option>
+       <option value="QUAY PS">QUAY PS</option><option value="CHỤP PS">CHỤP PS</option><option value="QUAY TT">QUAY TT</option><option value="CHỤP TT">CHỤP TT</option><option value="Quay Flycam">Quay Flycam</option><option value="Editor">Editor</option><option value="Hỗ trợ">Hỗ trợ</option><option value="Quản lý">Quản lý</option><option value="Khác">Khác</option>
      </select>
      <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
        <option value="Chưa xếp">-- Chọn người --</option>
@@ -1407,7 +1407,7 @@ export function renderStaff(state) {
        <div style="flex: 0.7; min-width: 120px">
           <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">Vai trò</label>
           <select id="new-staff-role" class="form-control" style="font-size: 0.85rem; padding: 0.5rem">
-             <option>Quay phim</option><option>Chụp ảnh</option><option>Cinema</option><option>Editor</option><option>Trợ lý</option>
+             <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option><option>Quay Flycam</option><option>Editor</option><option>Hỗ trợ</option>
           </select>
        </div>
        <div style="flex: 0.7; min-width: 120px">
@@ -1448,7 +1448,7 @@ export function renderStaff(state) {
                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
                   <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Tên</label><input class="form-control" id="edit-name-${escapedName}" value="${member.name}" style="font-size: 0.85rem; padding: 0.4rem"></div>
                   <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Vai trò</label><select class="form-control" id="edit-role-${escapedName}" style="font-size: 0.85rem; padding: 0.4rem">
-                     <option ${member.role === 'Quay phim' ? 'selected' : ''}>Quay phim</option><option ${member.role === 'Chụp ảnh' ? 'selected' : ''}>Chụp ảnh</option><option ${member.role === 'Cinema' ? 'selected' : ''}>Cinema</option><option ${member.role === 'Editor' ? 'selected' : ''}>Editor</option><option ${member.role === 'Trợ lý' ? 'selected' : ''}>Trợ lý</option>
+                     <option ${member.role === 'QUAY PS' ? 'selected' : ''}>QUAY PS</option><option ${member.role === 'CHỤP PS' ? 'selected' : ''}>CHỤP PS</option><option ${member.role === 'QUAY TT' ? 'selected' : ''}>QUAY TT</option><option ${member.role === 'CHỤP TT' ? 'selected' : ''}>CHỤP TT</option><option ${member.role === 'Quay Flycam' ? 'selected' : ''}>Quay Flycam</option><option ${member.role === 'Editor' ? 'selected' : ''}>Editor</option><option ${member.role === 'Hỗ trợ' ? 'selected' : ''}>Hỗ trợ</option>
                   </select></div>
                </div>
                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
