@@ -2251,11 +2251,11 @@ export function renderSettings(state) {
        <div class="glass-panel" style="padding: 1.5rem">
           <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--accent-teal)"><i class="fas fa-building" style="margin-right: 0.5rem"></i>Thông tin Studio</h3>
           <div style="display: flex; flex-direction: column; gap: 0.75rem">
-             <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">Tên Studio</label><input class="form-control" value="Haru Wedding Film" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
-             <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">SĐT liên hệ</label><input class="form-control" value="0909 xxx xxx" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
-             <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">Địa chỉ</label><input class="form-control" value="TP. Hồ Chí Minh" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
+             <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">Tên Studio</label><input id="setting-studio-name" class="form-control" value="${state.settings.studioName || 'Haru Wedding Film'}" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
+             <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">SĐT liên hệ</label><input id="setting-studio-phone" class="form-control" value="${state.settings.studioPhone || '0909 xxx xxx'}" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
+             <div><label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.2rem">Địa chỉ</label><input id="setting-studio-address" class="form-control" value="${state.settings.studioAddress || 'TP. Hồ Chí Minh'}" style="font-size: 0.9rem; padding: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border)"></div>
           </div>
-          <button class="btn btn-primary btn-sm" style="margin-top: 1rem" onclick="alert('Đã lưu thông tin!')">💾 Lưu thông tin</button>
+          <button class="btn btn-primary btn-sm" style="margin-top: 1rem" onclick="window.saveStudioInfo()">💾 Lưu thông tin</button>
        </div>
     </div>
 

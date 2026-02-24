@@ -1768,6 +1768,18 @@ window.sendZaloReminder = (jobId, svcIdx) => {
   }
 };
 
+window.saveStudioInfo = () => {
+  const name = document.getElementById('setting-studio-name')?.value?.trim();
+  const phone = document.getElementById('setting-studio-phone')?.value?.trim();
+  const address = document.getElementById('setting-studio-address')?.value?.trim();
+  state.settings.studioName = name || 'Haru Wedding Film';
+  state.settings.studioPhone = phone || '';
+  state.settings.studioAddress = address || '';
+  window.addHistory('Cập nhật thông tin Studio');
+  saveState();
+  window.showFloatingSaveStatus('saved');
+};
+
 window.saveFirebaseConfig = () => {
   const el = document.getElementById('setting-firebase-config');
   if (!el) return;
