@@ -69,63 +69,7 @@ export const state = {
   }
 })();
 
-// Auto-migrate old services to deliverables
-(function migrateDeliverables() {
-  let migrated = false;
-  state.jobs.forEach(job => {
-    if (!job.deliverables || job.deliverables.length === 0) {
-      const deliverables = [];
-      const quayCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('quay')).length;
-      if (quayCount === 1) deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
-      else if (quayCount >= 2) {
-        deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
-        deliverables.push({ name: 'Clip Truyền thống', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
-      }
-
-      const chupCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
-      for (let ci = 0; ci < chupCount; ci++) {
-        deliverables.push({ name: chupCount === 1 ? 'Bộ Hình' : `Bộ Hình ${ci + 1}`, type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
-      }
-
-      if (deliverables.length > 0) {
-        // Map data từ Quay
-        const firstQuay = (job.services || []).find(s => (s.service || '').toLowerCase().includes('quay'));
-        if (firstQuay) {
-          deliverables.filter(d => d.type === 'Video').forEach(d => {
-            d.editor = firstQuay.editStaff || '';
-            d.editStatus = firstQuay.editStatus || 'Chưa bắt đầu';
-            d.editDriveLink = firstQuay.editDriveLink || '';
-          });
-        }
-        // Map data từ Chụp
-        const firstChup = (job.services || []).find(s => (s.service || '').toLowerCase().includes('chụp'));
-        if (firstChup) {
-          deliverables.filter(d => d.type === 'Photo').forEach(d => {
-            d.editor = firstChup.editStaff || '';
-            d.editStatus = firstChup.editStatus || 'Chưa bắt đầu';
-            d.editDriveLink = firstChup.editDriveLink || '';
-          });
-        }
-
-        job.deliverables = deliverables;
-        migrated = true;
-      }
-    }
-  });
-  if (migrated) {
-    console.log('[Haru] Migrated old services to deliverables based on Fallback Ruled');
-  }
-})();
-
-// Rename old deliverable names (Ảnh Tiệc → Ảnh Phóng sự, etc.)
-(function renameOldDeliverables() {
-  state.jobs.forEach(job => {
-    (job.deliverables || []).forEach(d => {
-      if (d.name === 'Ảnh Tiệc') d.name = 'Ảnh Phóng sự';
-      if (d.name === 'Ảnh Truyền thống') d.name = 'Ảnh Truyền thống'; // keep as-is
-    });
-  });
-})();
+// Deliverables migration moved to bootload() — runs after real data loads
 
 // ============================================================
 // PERSISTENCE — localStorage + Firebase
@@ -384,6 +328,42 @@ async function bootload() {
         });
       }
     });
+  }
+
+  // Auto-migrate old services to deliverables (runs AFTER real data loads)
+  let migratedDel = false;
+  state.jobs.forEach(job => {
+    if (!job.deliverables || job.deliverables.length === 0) {
+      const deliverables = [];
+      const quayCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('quay')).length;
+      if (quayCount === 1) deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      else if (quayCount >= 2) {
+        deliverables.push({ name: 'Clip Phóng sự', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+        deliverables.push({ name: 'Clip Truyền thống', type: 'Video', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      }
+      const chupCount = (job.services || []).filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
+      for (let ci = 0; ci < chupCount; ci++) {
+        deliverables.push({ name: chupCount === 1 ? 'Bộ Hình' : `Bộ Hình ${ci + 1}`, type: 'Photo', quantity: 1, editStatus: 'Chưa bắt đầu' });
+      }
+      if (deliverables.length > 0) {
+        const firstQuay = (job.services || []).find(s => (s.service || '').toLowerCase().includes('quay'));
+        if (firstQuay) deliverables.filter(d => d.type === 'Video').forEach(d => { d.editor = firstQuay.editStaff || ''; d.editStatus = firstQuay.editStatus || 'Chưa bắt đầu'; d.editDriveLink = firstQuay.editDriveLink || ''; });
+        const firstChup = (job.services || []).find(s => (s.service || '').toLowerCase().includes('chụp'));
+        if (firstChup) deliverables.filter(d => d.type === 'Photo').forEach(d => { d.editor = firstChup.editStaff || ''; d.editStatus = firstChup.editStatus || 'Chưa bắt đầu'; d.editDriveLink = firstChup.editDriveLink || ''; });
+        job.deliverables = deliverables;
+        migratedDel = true;
+      }
+    }
+  });
+  // Rename old names
+  state.jobs.forEach(job => {
+    (job.deliverables || []).forEach(d => {
+      if (d.name === 'Ảnh Tiệc') d.name = 'Ảnh Phóng sự';
+    });
+  });
+  if (migratedDel) {
+    console.log('[Haru] Migrated deliverables after data load');
+    saveState();
   }
 
   // Khởi động UI Component render
