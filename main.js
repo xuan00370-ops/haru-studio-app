@@ -1159,18 +1159,22 @@ window.toggleTrash = (jobId) => {
 window.deleteJob = (jobId) => {
   if (!confirm('Xóa dự án này vào thùng rác?')) return;
   const job = state.jobs.find(j => j.id === jobId);
-  if (job) {
-    job.isTrash = true;
-    window.addHistory(`Xóa dự án: ${job.client}`);
-    saveState();
-    // Đóng mọi loại modal (quick_preview hoặc full modal)
-    if (window._quickPreviewCloseFn) { try { window._quickPreviewCloseFn(); } catch (e) { } }
-    state.modal.isOpen = false;
-    state.modal.type = null;
-    state.modal.data = null;
-    updateUI();
-    console.log(`[Haru] Đã xóa dự án: ${job.client} (id: ${jobId})`);
-  }
+  if (!job) { console.error('[Haru] Job not found:', jobId); return; }
+  // 1. Mark as trash + save immediately
+  job.isTrash = true;
+  window.addHistory(`Xóa dự án: ${job.client}`);
+  saveState();
+  console.log(`[Haru] Đã xóa dự án: ${job.client} (id: ${jobId})`);
+  // 2. Force-remove quick preview overlay if exists
+  const overlay = document.querySelector('.modal-overlay');
+  if (overlay) overlay.remove();
+  // 3. Reset modal state
+  state.modal.isOpen = false;
+  state.modal.type = null;
+  state.modal.data = null;
+  window._quickPreviewCloseFn = null;
+  // 4. Refresh UI after short delay to ensure DOM is clean
+  setTimeout(() => updateUI(), 50);
 };
 
 // ============================================================
