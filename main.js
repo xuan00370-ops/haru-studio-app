@@ -1161,10 +1161,15 @@ window.deleteJob = (jobId) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (job) {
     job.isTrash = true;
-    window.addHistory(`Xóa dự án: ${job.client} `);
+    window.addHistory(`Xóa dự án: ${job.client}`);
     saveState();
-    window.closeModal();
+    // Đóng mọi loại modal (quick_preview hoặc full modal)
+    if (window._quickPreviewCloseFn) { try { window._quickPreviewCloseFn(); } catch (e) { } }
+    state.modal.isOpen = false;
+    state.modal.type = null;
+    state.modal.data = null;
     updateUI();
+    console.log(`[Haru] Đã xóa dự án: ${job.client} (id: ${jobId})`);
   }
 };
 
