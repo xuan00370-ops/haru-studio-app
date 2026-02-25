@@ -2253,6 +2253,7 @@ function updateUI() {
     case 'edit_photo': contentArea.appendChild(renderEditPhoto(periodState)); break;
     case 'calendar': contentArea.appendChild(renderCalendar(state)); break;
     case 'trash': contentArea.appendChild(renderTrash(state)); break;
+    case 'portfolio': contentArea.appendChild(renderPortfolioAdmin(state)); break;
     case 'settings': contentArea.appendChild(renderSettings(state)); break;
     case 'sync': contentArea.appendChild(renderSync(state)); break;
     case 'nas': contentArea.appendChild(renderNAS(state)); break;
@@ -2605,6 +2606,317 @@ window.importGoLiveData = async () => {
   } catch (err) {
     console.error(err);
     alert("Lỗi khi nạp dữ liệu: " + err.message);
+  }
+};
+
+// ============================================================
+// PHASE 6: PORTFOLIO MANAGEMENT
+// ============================================================
+window._openPortfolioModal = (id = null) => {
+  let p = {
+    id: 'PF-' + Date.now(),
+    jobName: '',
+    category: 'Sự kiện',
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    thumbnail: '',
+    videoLink: '',
+    photoLink: '',
+    images: [],
+    isVisible: true
+  };
+
+  if (id) {
+    const existing = state.portfolios?.find(x => x.id === id);
+    if (existing) p = JSON.parse(JSON.stringify(existing));
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay portfolio-modal';
+  overlay.innerHTML = `
+    <div class="modal" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+         <h3>${id ? 'Chỉnh sửa Portfolio' : 'Tạo Portfolio mới'}</h3>
+         <button onclick="this.closest('.modal-overlay').remove()">×</button>
+      </div>
+      <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+         
+         <!-- CỘT TRÁI: THÔNG TIN CƠ BẢN -->
+         <div style="display:flex; flex-direction:column; gap:1rem">
+            <div class="form-group">
+               <label>Tên Bộ sưu tập (Tên KH / Sự kiện) *</label>
+               <input type="text" id="pf-name" class="form-control" value="${p.jobName}" placeholder="VD: Đám cưới Duy & Trinh">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
+              <div class="form-group">
+                 <label>Phân loại *</label>
+                 <select id="pf-category" class="form-control">
+                    ${(state.settings?.eventCategories || ['Pre-wedding', 'Phóng sự', 'Sự kiện', 'Khác']).map(c => `
+                       <option value="${c}" ${p.category === c ? 'selected' : ''}>${c}</option>
+                    `).join('')}
+                 </select>
+              </div>
+              <div class="form-group">
+                 <label>Ngày thực hiện</label>
+                 <input type="date" id="pf-date" class="form-control" value="${p.date ? p.date.split('T')[0] : ''}">
+              </div>
+            </div>
+
+            <div class="form-group">
+               <label>Ảnh Bìa (Thumbnail URL) *</label>
+               <input type="url" id="pf-thumbnail" class="form-control" value="${p.thumbnail}" placeholder="https://domain.com/anh-bia.jpg">
+               <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.3rem">Khuyên dùng ảnh ngang 16:9 chất lượng cao.</div>
+            </div>
+
+            <div class="form-group">
+               <label>Link Video Youtube / Vimeo (Tùy chọn)</label>
+               <input type="url" id="pf-video" class="form-control" value="${p.videoLink || ''}" placeholder="https://youtube.com/watch?v=...">
+            </div>
+            
+            <div class="form-group">
+               <label>Link Google Drive Trả Khách (Tùy chọn)</label>
+               <input type="url" id="pf-photo" class="form-control" value="${p.photoLink || ''}" placeholder="https://drive.google.com/...">
+            </div>
+
+            <div class="form-group">
+               <label>Mô tả / Lời dẫn (Tùy chọn)</label>
+               <textarea id="pf-desc" class="form-control" rows="3" placeholder="Vài dòng cảm nghĩ về bộ ảnh...">${p.description || ''}</textarea>
+            </div>
+            
+            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top: 0.5rem; background: var(--bg-body); padding: 0.8rem; border-radius: 8px">
+               <input type="checkbox" id="pf-visible" ${p.isVisible ? 'checked' : ''} style="width: 18px; height: 18px">
+               <label for="pf-visible" style="margin:0; font-weight:800; cursor:pointer">Công khai Bộ sưu tập này</label>
+            </div>
+         </div>
+
+         <!-- CỘT PHẢI: QUẢN LÝ ẢNH (MASONRY GRID) -->
+         <div style="display:flex; flex-direction:column; gap:1rem; border-left: 1px solid var(--border); padding-left: 1.5rem">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end">
+               <div>
+                 <label style="font-weight:800; color:var(--text-main); display:block; margin-bottom:0.2rem">Kho Ảnh Triển Lãm (Grid)</label>
+                 <div style="font-size: 0.75rem; color: var(--text-dim)">Ảnh tải lên sẽ được hiển thị tự do đa kích thước.</div>
+               </div>
+               <label for="pf-upload" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor:pointer; font-size:0.8rem">
+                  <i class="fas fa-upload"></i> Tải ảnh lên
+               </label>
+               <input type="file" id="pf-upload" multiple accept="image/*" style="display:none" onchange="window._handleImgBBUpload(event, '${id || ''}')">
+            </div>
+
+            <div id="pf-gallery-preview" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; overflow-y:auto; max-height:450px; padding-right:0.5rem">
+               <!-- Images will be rendered here -->
+               ${p.images.length === 0 ? '<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color:var(--text-dim); background:var(--bg-body); border-radius:8px">Chưa có ảnh nào.</div>' : ''}
+               ${p.images.map((imgUrl, i) => `
+                 <div class="pf-img-item" style="position:relative; padding-bottom:100%; border-radius:8px; overflow:hidden; background:url('${imgUrl}') center/cover; border:1px solid var(--border); group">
+                   <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.9); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3)">×</button>
+                   <input type="hidden" class="pf-img-url" value="${imgUrl}">
+                 </div>
+               `).join('')}
+            </div>
+            
+            <div id="pf-upload-status" style="font-size:0.8rem; font-weight:800; color:var(--primary); text-align:center; display:none">Đang tải lên: 0%</div>
+         </div>
+
+      </div>
+      <div class="modal-footer" style="margin-top:2rem">
+         <button class="btn" onclick="this.closest('.modal-overlay').remove()">Hủy</button>
+         <button class="btn btn-primary" onclick="window._savePortfolio('${p.id}')">Lưu Bộ Sưu Tập</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+};
+
+window._handleImgBBUpload = async (e, portfolioId) => {
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+
+  const statusEl = document.getElementById('pf-upload-status');
+  const previewContainer = document.getElementById('pf-gallery-preview');
+
+  // ImgBB API Key (Provided by user context / free tier)
+  const IMGBB_API_KEY = '6e7ce3b6ca2830f30501a4db6d18ae4e'; // Free tier API key for Haru Studio
+
+  statusEl.style.display = 'block';
+  statusEl.innerText = `Đang xử lý ${files.length} ảnh...`;
+
+  if (previewContainer.innerHTML.includes('Chưa có ảnh nào')) previewContainer.innerHTML = '';
+
+  let successCount = 0;
+  for (let i = 0; i < files.length; i++) {
+    statusEl.innerText = `Đang tải lên ${i + 1}/${files.length}...`;
+    try {
+      const formData = new FormData();
+      formData.append('image', files[i]);
+      // Note: In a real prod it's better to route this through a backend to hide the key, 
+      // but for client-only Haru Studio, we use the direct ImgBB API endpoint as requested.
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error?.message || 'Upload failed');
+
+      const imageUrl = data.data.url;
+
+      const div = document.createElement('div');
+      div.className = 'pf-img-item';
+      div.style.cssText = `position:relative; padding-bottom:100%; border-radius:8px; overflow:hidden; background:url('${imageUrl}') center/cover; border:1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.1)`;
+      div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.9); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3)">×</button>
+        <input type="hidden" class="pf-img-url" value="${imageUrl}">
+      `;
+      previewContainer.appendChild(div);
+      successCount++;
+    } catch (err) {
+      console.error("Upload failed for file", files[i].name, err);
+    }
+  }
+
+  statusEl.innerText = `Đã tải xong ${successCount} ảnh!`;
+  setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+  // Reset input so throwing same file works again
+  e.target.value = '';
+};
+
+window._savePortfolio = (id) => {
+  const jobName = document.getElementById('pf-name').value.trim();
+  const category = document.getElementById('pf-category').value;
+  const thumbnail = document.getElementById('pf-thumbnail').value.trim();
+
+  if (!jobName || !thumbnail) {
+    alert("Vui lòng nhập Tên bộ sưu tập và Ảnh bìa!");
+    return;
+  }
+
+  // Thu thập danh sách ảnh
+  const imageInputs = document.querySelectorAll('.pf-img-url');
+  const images = Array.from(imageInputs).map(inp => inp.value);
+
+  const pf = {
+    id,
+    jobName,
+    category,
+    date: document.getElementById('pf-date').value || new Date().toISOString(),
+    thumbnail,
+    videoLink: document.getElementById('pf-video').value.trim(),
+    photoLink: document.getElementById('pf-photo').value.trim(),
+    description: document.getElementById('pf-desc').value.trim(),
+    images,
+    isVisible: document.getElementById('pf-visible').checked
+  };
+
+  if (!state.portfolios) state.portfolios = [];
+  const idx = state.portfolios.findIndex(x => x.id === id);
+  if (idx > -1) {
+    state.portfolios[idx] = pf;
+    window.addHistory('Sửa Portfolio: ' + jobName);
+  } else {
+    state.portfolios.push(pf);
+    window.addHistory('Tạo Portfolio mới: ' + jobName);
+  }
+
+  saveState();
+  updateUI();
+  document.querySelector('.portfolio-modal').remove();
+};
+
+window._deletePortfolio = (id) => {
+  const pf = (state.portfolios || []).find(x => x.id === id);
+  if (!pf) return;
+
+  window.haruConfirm(`Xóa vĩnh viễn bộ sưu tập "${pf.jobName}"? (Không thể khôi phục)`, () => {
+    state.portfolios = state.portfolios.filter(x => x.id !== id);
+    window.addHistory('Xóa Portfolio: ' + pf.jobName);
+    saveState();
+    updateUI();
+  });
+};
+
+// ============================================================
+// PHASE 6: CLIENT GALLERY LIGHTBOX
+// ============================================================
+let lightboxImages = [];
+let currentLightboxIndex = 0;
+
+window._openLightbox = (index) => {
+  // Extract images from DOM directly from portfolio-masonry-item img tags
+  // because we don't pass the `portfolio` object down here easily without polluting window
+  const imgs = Array.from(document.querySelectorAll('.portfolio-masonry-item img')).map(el => el.src);
+  if (imgs.length === 0) return;
+
+  lightboxImages = imgs;
+  currentLightboxIndex = index;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.id = 'pf-lightbox';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.95); z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s;
+  `;
+
+  overlay.innerHTML = `
+    <button onclick="window._closeLightbox()" style="position:absolute; top: 20px; right: 20px; background:none; border:none; color:#fff; font-size: 2rem; cursor:pointer; z-index: 10">×</button>
+    
+    <button onclick="window._lightboxNav(-1)" style="position:absolute; left: 20px; top: 50%; transform: translateY(-50%); background:rgba(255,255,255,0.1); border:none; color:#fff; width: 50px; height: 50px; border-radius: 50%; font-size: 1.5rem; cursor:pointer; z-index: 10; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px)">❮</button>
+    
+    <img id="pf-lightbox-img" src="${lightboxImages[currentLightboxIndex]}" style="max-width: 90vw; max-height: 90vh; object-fit: contain; transition: opacity 0.2s" />
+    
+    <div id="pf-lightbox-counter" style="position:absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.9rem; font-family: sans-serif; letter-spacing: 2px">
+      ${currentLightboxIndex + 1} / ${lightboxImages.length}
+    </div>
+
+    <button onclick="window._lightboxNav(1)" style="position:absolute; right: 20px; top: 50%; transform: translateY(-50%); background:rgba(255,255,255,0.1); border:none; color:#fff; width: 50px; height: 50px; border-radius: 50%; font-size: 1.5rem; cursor:pointer; z-index: 10; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px)">❯</button>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Trigger fade in
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+  });
+
+  // Keyboard navigation
+  window._lightboxKeydownHandler = (e) => {
+    if (e.key === 'Escape') window._closeLightbox();
+    if (e.key === 'ArrowRight') window._lightboxNav(1);
+    if (e.key === 'ArrowLeft') window._lightboxNav(-1);
+  };
+  document.addEventListener('keydown', window._lightboxKeydownHandler);
+};
+
+window._closeLightbox = () => {
+  const el = document.getElementById('pf-lightbox');
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.remove();
+      document.removeEventListener('keydown', window._lightboxKeydownHandler);
+    }, 300);
+  }
+};
+
+window._lightboxNav = (dir) => {
+  if (lightboxImages.length === 0) return;
+
+  currentLightboxIndex += dir;
+  if (currentLightboxIndex < 0) currentLightboxIndex = lightboxImages.length - 1;
+  if (currentLightboxIndex >= lightboxImages.length) currentLightboxIndex = 0;
+
+  const imgEl = document.getElementById('pf-lightbox-img');
+  const counterEl = document.getElementById('pf-lightbox-counter');
+
+  if (imgEl && counterEl) {
+    imgEl.style.opacity = '0';
+    setTimeout(() => {
+      imgEl.src = lightboxImages[currentLightboxIndex];
+      counterEl.innerText = `${currentLightboxIndex + 1} / ${lightboxImages.length}`;
+      imgEl.style.opacity = '1';
+    }, 150);
   }
 };
 

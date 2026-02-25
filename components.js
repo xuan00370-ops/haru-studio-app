@@ -4272,7 +4272,45 @@ export function renderGalleryClient(galleryId, state) {
   const container = document.createElement('div');
   container.style.cssText = 'min-height: 100vh; background: #0a0a0a; color: #f3f4f6; font-family: "Google Sans", sans-serif; position: relative';
 
-  const portfolio = (state.portfolios || []).find(p => p.id === galleryId && p.isVisible);
+  const publicPortfolios = (state.portfolios || []).filter(p => p.isVisible);
+
+  // 1. HUB VIEW (Trang chủ chọn Album)
+  if (galleryId === 'home') {
+    container.innerHTML = `
+      <header style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05)">
+         <div style="font-size: 1.5rem; font-weight: 900; letter-spacing: 2px; color: #fff;">HARU<span style="color:var(--primary)">STUDIO</span></div>
+         <div style="font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.5)">Our Exhibitions</div>
+      </header>
+      
+      <section style="max-width: 1400px; margin: 0 auto; padding: 4rem 2rem">
+         <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; color: #fff; margin-bottom: 1rem; line-height: 1.1">Khám phá <br><span style="color:var(--primary)">Hành trình Hình ảnh</span></h1>
+         <p style="color: #9ca3af; font-size: 1.1rem; max-width: 600px; margin-bottom: 4rem; line-height: 1.6">Những khoảnh khắc chân thực và cảm xúc nhất được chúng tôi lưu giữ cẩn thận qua từng lăng kính.</p>
+         
+         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem">
+            ${publicPortfolios.length === 0 ? '<div style="color: var(--text-dim)">Chưa có bộ sưu tập nào được công khai.</div>' : publicPortfolios.map(p => `
+              <a href="?gallery=${p.id}" style="text-decoration:none; display:flex; flex-direction:column; background: #111; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s, border-color 0.2s; group">
+                 <div style="width:100%; padding-bottom: 75%; position:relative; background: url('${p.thumbnail || ''}') center/cover no-repeat; background-color: #222">
+                    <div style="position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent 50%); opacity:0; transition:opacity 0.3s"></div>
+                 </div>
+                 <div style="padding: 1.5rem; display:flex; flex-direction:column; flex-grow: 1">
+                    <div style="font-size: 0.7rem; color: var(--primary); font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem">${p.category}</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem; line-height: 1.3">${p.jobName}</div>
+                    <div style="font-size: 0.85rem; color: #6b7280; font-weight: 600; margin-top: auto"><i class="far fa-calendar-alt" style="margin-right:0.4rem"></i>${p.date ? new Date(p.date).toLocaleDateString('vi-VN') : '-'}  |  ${p.images?.length || 0} Ảnh</div>
+                 </div>
+              </a>
+            `).join('')}
+         </div>
+      </section>
+      
+      <footer style="margin-top: 5rem; padding-bottom: 2rem; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.75rem">
+         &copy; ${new Date().getFullYear()} Haru Studio. All rights reserved.
+      </footer>
+    `;
+    return container;
+  }
+
+  // 2. SINGLE GALLERY VIEW
+  const portfolio = publicPortfolios.find(p => p.id === galleryId);
 
   if (!portfolio) {
     container.innerHTML = `
@@ -4325,10 +4363,10 @@ export function renderGalleryClient(galleryId, state) {
     <section style="max-width: 1200px; margin: 0 auto; padding: 2rem; position: relative; z-index: 20">
       ${portfolio.description ? `<p style="font-size: 1rem; color: #e5e7eb; line-height: 1.6; max-width: 800px; margin-bottom: 2rem; font-style: italic">"${portfolio.description}"</p>` : ''}
       
-      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 4rem">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem">
          ${portfolio.photoLink ? `
            <a href="${portfolio.photoLink}" target="_blank" style="text-decoration: none; padding: 0.8rem 1.5rem; background: #fff; color: #000; border-radius: 8px; font-weight: 800; font-size: 0.9rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(255,255,255,0.1)">
-             <i class="fas fa-image" style="margin-right: 0.5rem"></i> Xem Toàn Bộ Ảnh
+             <i class="fas fa-image" style="margin-right: 0.5rem"></i> Xem Toàn Bộ Ảnh Nhỏ/Gốc (Drive)
            </a>
          ` : ''}
          ${portfolio.videoLink && embedUrl === '' ? `
@@ -4337,6 +4375,60 @@ export function renderGalleryClient(galleryId, state) {
            </a>
          ` : ''}
       </div>
+
+      <!-- Masonry Grid for uploaded Images -->
+      ${portfolio.images && portfolio.images.length > 0 ? `
+         <style>
+            .portfolio-masonry {
+               column-count: 1;
+               column-gap: 1.5rem;
+               margin-top: 2rem;
+            }
+            @media (min-width: 640px) { .portfolio-masonry { column-count: 2; } }
+            @media (min-width: 1024px) { .portfolio-masonry { column-count: 3; } }
+            .portfolio-masonry-item {
+               break-inside: avoid;
+               margin-bottom: 1.5rem;
+               border-radius: 12px;
+               overflow: hidden;
+               cursor: pointer;
+               position: relative;
+               transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .portfolio-masonry-item img {
+               width: 100%;
+               height: auto;
+               display: block;
+               transition: transform 0.5s ease;
+            }
+            .portfolio-masonry-item:hover {
+               transform: translateY(-5px);
+               box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            }
+            .portfolio-masonry-item:hover img {
+               transform: scale(1.03);
+            }
+            .portfolio-masonry-item::after {
+               content: '';
+               position: absolute;
+               inset: 0;
+               background: rgba(0,0,0,0.1);
+               opacity: 0;
+               transition: opacity 0.3s;
+            }
+            .portfolio-masonry-item:hover::after {
+               opacity: 1;
+            }
+         </style>
+         
+         <div class="portfolio-masonry">
+            ${portfolio.images.map((imgUrl, idx) => `
+               <div class="portfolio-masonry-item" onclick="window._openLightbox(${idx})">
+                  <img src="${imgUrl}" loading="lazy" alt="Gallery Photo ${idx + 1}">
+               </div>
+            `).join('')}
+         </div>
+      ` : ''}
 
       <!-- Explore More -->
       ${otherPortfolios.length > 0 ? `
@@ -4360,6 +4452,60 @@ export function renderGalleryClient(galleryId, state) {
          &copy; ${new Date().getFullYear()} Haru Studio. All rights reserved.
       </footer>
     </section>
+  `;
+
+  return container;
+}
+
+// ============================================================
+// PHASE 6: HARU GALLERY (Admin Side)
+// ============================================================
+export function renderPortfolioAdmin(state) {
+  const container = document.createElement('div');
+  container.className = 'container';
+
+  // Make sure state.portfolios is an array
+  if (!state.portfolios) state.portfolios = [];
+
+  container.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem">
+      <h2 style="font-size: 1.5rem; font-weight: 800; display:flex; align-items:center; gap:0.5rem">
+        <span style="font-size:2rem">🖼️</span> Quản lý Portfolio
+      </h2>
+      <button class="btn btn-primary" onclick="window._openPortfolioModal()">+ Tạo Bộ sưu tập mới</button>
+    </div>
+
+    <div style="background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden">
+      <div style="display: grid; grid-template-columns: 80px 1.5fr 1fr 1fr 100px; padding: 1rem; border-bottom: 1px solid var(--border); font-weight: 800; color: var(--text-dim); font-size: 0.85rem">
+        <div>Ảnh bìa</div>
+        <div>Tên bộ sưu tập</div>
+        <div>Phân loại</div>
+        <div>Ngày đăng</div>
+        <div style="text-align: right">Thao tác</div>
+      </div>
+      <div>
+        ${state.portfolios.length === 0 ? '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Chưa có bộ sưu tập nào. Nhấn "+ Tạo mới" để bắt đầu!</div>' : state.portfolios.map(p => `
+          <div style="display: grid; grid-template-columns: 80px 1.5fr 1fr 1fr 100px; padding: 1rem; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.2s">
+            <div style="width: 60px; height: 60px; border-radius: 8px; background: url('${p.thumbnail || ''}') center/cover; background-color: var(--border)"></div>
+            <div>
+              <div style="font-weight: 800; color: var(--text-main); font-size: 1rem; margin-bottom: 0.2rem">
+                ${p.jobName} 
+                ${p.isVisible ? '<span style="font-size:0.6rem; padding: 0.15rem 0.4rem; background: rgba(22,163,74,0.1); color: var(--success); border-radius: 4px; vertical-align: middle; margin-left: 0.5rem">Công khai</span>' : '<span style="font-size:0.6rem; padding: 0.15rem 0.4rem; background: rgba(239,68,68,0.1); color: var(--danger); border-radius: 4px; vertical-align: middle; margin-left: 0.5rem">Đã ẩn</span>'}
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-dim)">
+                ${p.images?.length || 0} ảnh • Link: <a href="?gallery=${p.id}" target="_blank" style="color:var(--primary)">/?gallery=${p.id}</a>
+              </div>
+            </div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-main)"><span style="display:inline-block; padding: 0.3rem 0.6rem; background: var(--bg-body); border-radius: 6px">${p.category || 'Khác'}</span></div>
+            <div style="font-size: 0.9rem; color: var(--text-dim)">${p.date ? new Date(p.date).toLocaleDateString('vi-VN') : '-'}</div>
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end">
+              <button onclick="window._openPortfolioModal('${p.id}')" style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body); color: var(--primary); cursor: pointer; display:flex; align-items:center; justify-content:center" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>
+              <button onclick="window._deletePortfolio('${p.id}')" style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body); color: var(--danger); cursor: pointer; display:flex; align-items:center; justify-content:center" title="Xóa"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
   `;
 
   return container;
