@@ -4270,161 +4270,239 @@ export function renderGlobalSearchModal(state) {
 // ============================================================
 export function renderGalleryClient(galleryId, state) {
   const container = document.createElement('div');
-  container.style.cssText = 'min-height: 100vh; background: #fdfbf7; color: #1c1917; font-family: "Google Sans", sans-serif; position: relative';
+  container.style.cssText = 'min-height: 100vh; background: #dcd7ce; color: #333; position: relative';
 
   const publicPortfolios = (state.portfolios || []).filter(p => p.isVisible);
 
   // 1. HUB VIEW (Trang chủ chọn Album)
   if (galleryId === 'home') {
+    // Force body background to match for no seam
+    document.body.style.background = '#dcd7ce';
+
     // Extract unique categories for filtering
     const categories = ['Tất cả', ...new Set(publicPortfolios.map(p => p.category).filter(Boolean))];
 
-    // Add Google Fonts for the premium serif look
-    const fontStr = `<style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap');</style>`;
+    // Fonts: Caveat for handwriting, Special Elite for typewriter
+    const fontStr = `<style>@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap');</style>`;
 
     container.innerHTML = fontStr + `
       <style>
+        .scrapbook-container {
+           min-height: 100vh;
+           background: #dcd7ce url('https://www.transparenttextures.com/patterns/cream-paper.png'); /* Subtle paper texture */
+           color: #333;
+           position: relative;
+           overflow-x: hidden;
+        }
+        
+        /* Premium Hero Section */
+        .scrapbook-hero {
+           padding: 6rem 2rem 4rem;
+           text-align: center;
+        }
+        .scrapbook-hero h1 {
+           font-family: 'Caveat', cursive;
+           font-size: clamp(4rem, 10vw, 7rem);
+           color: #2c2925;
+           margin: 0;
+           line-height: 1;
+           transform: rotate(-2deg);
+        }
+        .scrapbook-hero p {
+           font-family: 'Special Elite', monospace;
+           font-size: 1rem;
+           color: #5c554b;
+           margin-top: 1rem;
+           letter-spacing: 2px;
+        }
+        
         .hub-filter-btn {
            background: transparent;
-           border: 1px solid rgba(0,0,0,0.15);
-           color: rgba(0,0,0,0.6);
-           padding: 0.5rem 1.5rem;
-           border-radius: 30px;
+           border: 1px dashed rgba(0,0,0,0.3);
+           color: #4a443a;
+           padding: 0.5rem 1.2rem;
+           font-family: 'Special Elite', monospace;
            font-size: 0.85rem;
-           font-weight: 600;
            cursor: pointer;
            transition: all 0.3s ease;
-           letter-spacing: 1px;
-           text-transform: uppercase;
+           margin: 0.3rem;
+           transform: rotate(calc(var(--rot) * 1deg));
         }
         .hub-filter-btn.active, .hub-filter-btn:hover {
-           background: #1c1917;
-           color: #fff;
-           border-color: #1c1917;
+           background: rgba(0,0,0,0.05);
+           border: 1px solid #2c2925;
+           color: #000;
+           box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
         }
         
-        .hub-masonry {
-           column-count: 1;
-           column-gap: 2rem;
+        .scrapbook-grid {
+           display: flex;
+           flex-wrap: wrap;
+           justify-content: center;
+           gap: 3rem;
+           padding: 2rem 2rem 8rem 2rem;
+           max-width: 1400px;
+           margin: 0 auto;
         }
-        @media (min-width: 768px) { .hub-masonry { column-count: 2; } }
-        @media (min-width: 1200px) { .hub-masonry { column-count: 3; } }
         
-        .hub-card {
-           break-inside: avoid;
-           margin-bottom: 2rem;
+        .scrapbook-card {
+           background: #fff;
+           padding: 1rem 1rem 3.5rem 1rem;
+           box-shadow: 2px 6px 15px rgba(0,0,0,0.15);
+           border-radius: 2px;
+           text-decoration: none;
+           color: #333;
+           width: 320px; /* Fixed width for polaroid look */
+           position: relative;
+           transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, z-index 0s;
+           z-index: 1;
            display: flex;
            flex-direction: column;
-           text-decoration: none;
-           group;
+           transform: rotate(calc(var(--rot) * 1deg)) translateY(calc(var(--y) * 1px));
         }
         
-        .hub-card-img-wrapper {
-           position: relative;
+        .scrapbook-card.hidden {
+           display: none !important;
+        }
+        
+        .scrapbook-card:hover {
+           transform: scale(1.08) rotate(0deg) translateY(0) !important;
+           box-shadow: 8px 15px 30px rgba(0,0,0,0.25);
+           z-index: 100;
+        }
+        
+        .scrapbook-img-wrapper {
            width: 100%;
-           border-radius: 4px; /* Slight rounding, more elegant than heavy rounding */
+           aspect-ratio: 1/1; /* Square for Polaroid */
+           background: #eee;
            overflow: hidden;
-           aspect-ratio: 3/4; /* Default portrait feel for masonry */
-           background-color: #f0ebe1;
+           position: relative;
         }
         
-        /* Make every 2nd card square and 3rd landscape for asymmetry */
-        .hub-card:nth-child(2n) .hub-card-img-wrapper { aspect-ratio: 1/1; }
-        .hub-card:nth-child(3n) .hub-card-img-wrapper { aspect-ratio: 16/9; }
+        .scrapbook-img {
+           width: 100%;
+           height: 100%;
+           object-fit: cover;
+           filter: contrast(1.05) saturate(0.95); /* Slight vintage color grade */
+        }
         
-        .hub-card-img {
+        .scrapbook-title {
+           font-family: 'Caveat', cursive;
+           font-size: 2.2rem;
+           line-height: 1.1;
+           margin-top: 1rem;
+           text-align: center;
+           color: #222;
+        }
+        
+        .scrapbook-meta {
            position: absolute;
-           inset: -5%; /* Prevent white edges on scale */
-           width: 110%;
-           height: 110%;
-           background-size: cover;
-           background-position: center;
-           transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+           bottom: 1rem;
+           right: 1.5rem;
+           font-family: 'Special Elite', monospace;
+           font-size: 0.65rem;
+           color: #666;
+           transform: rotate(-3deg);
+           text-align: right;
         }
         
-        .hub-card:hover .hub-card-img {
-           transform: scale(1.05); /* Smooth slow zoom */
-        }
-        
-        .hub-card-overlay {
+        /* Washi tape variants */
+        .washi-tape {
            position: absolute;
-           inset: 0;
-           background: linear-gradient(to top, rgba(0,0,0,0.15) 0%, transparent 40%);
-           opacity: 0;
-           transition: opacity 0.5s ease;
+           width: 120px;
+           height: 30px;
+           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+           z-index: 5;
+           opacity: 0.85;
+           pointer-events: none;
+        }
+        .washi-1 {
+           top: -15px; left: 50%;
+           transform: translateX(-50%) rotate(-4deg);
+           background: rgba(225, 218, 203, 0.9);
+           border-left: 3px dashed rgba(0,0,0,0.1);
+           border-right: 3px dashed rgba(0,0,0,0.1);
+        }
+        .washi-2 {
+           top: -10px; right: -20px;
+           transform: rotate(45deg);
+           background: rgba(200, 210, 200, 0.8); /* Sage tint */
+           width: 80px;
+        }
+        .washi-3 {
+           bottom: 10px; left: -20px;
+           transform: rotate(-35deg);
+           background: rgba(230, 200, 190, 0.8); /* Blush tint */
+           width: 70px;
         }
         
-        .hub-card:hover .hub-card-overlay {
-           opacity: 1;
-        }
-        
-        .hub-card-content {
-           padding-top: 1rem;
-           transition: transform 0.3s ease;
-        }
-        
-        .hub-card:hover .hub-card-content {
-           transform: translateY(-4px);
-        }
-        
-        .hub-title {
-           font-family: 'Playfair Display', serif;
-           font-size: 1.5rem;
-           font-weight: 600;
-           color: #1c1917;
-           margin-bottom: 0.3rem;
-           line-height: 1.2;
+        /* Additional styling for decorative elements */
+        .washi-text {
+            font-family: 'Caveat', cursive;
+            font-size: 1rem;
+            color: #4a443a;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
         }
       </style>
       
-      <header style="padding: 2.5rem 3rem; display: flex; justify-content: space-between; align-items: center; position: absolute; width: 100%; z-index: 10">
-         <div style="font-size: 1.2rem; font-weight: 900; letter-spacing: 4px; color: #1c1917;">HARU<span style="color: #c19b76">.</span></div>
-         <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; color: rgba(0,0,0,0.4); text-transform: uppercase">Portfolio</div>
-      </header>
-      
-      <!-- Premium Hero Section -->
-      <section style="position: relative; width: 100%; min-height: 50vh; display: flex; align-items: center; justify-content: center; overflow: hidden; padding-top: 6rem">
-         <div style="text-align: center; position: relative; z-index: 2">
-            <h1 style="font-family: 'Playfair Display', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 400; font-style: italic; color: #1c1917; margin-bottom: 0.5rem; line-height: 1.1; letter-spacing: -1px">Timeless<br><span style="color: #c19b76; font-style: normal; font-weight: 600">Moments</span></h1>
-            <p style="color: rgba(0,0,0,0.4); font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; margin-top: 1.5rem; font-weight: 400">Curated by Haru Studio</p>
-         </div>
-      </section>
-      
-      <!-- Filters -->
-      <section style="max-width: 1400px; margin: 0 auto; padding: 2rem; display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem">
-         ${categories.map((cat, idx) => `
-            <button class="hub-filter-btn ${idx === 0 ? 'active' : ''}" data-filter="${cat}">${cat}</button>
-         `).join('')}
-      </section>
-      
-      <!-- Masonry Grid -->
-      <section style="max-width: 1400px; margin: 0 auto; padding: 0 2rem 5rem 2rem">
-         <div class="hub-masonry" id="hub-grid">
-            ${publicPortfolios.length === 0 ? '<div style="color: rgba(0,0,0,0.3); text-align: center; grid-column: 1/-1; padding: 4rem">Thư viện đang trống.</div>' : publicPortfolios.map(p => `
-              <a href="?gallery=${p.id}" class="hub-card" data-category="${p.category}">
-                 <div class="hub-card-img-wrapper">
-                    <div class="hub-card-img" style="background-image: url('${p.thumbnail || ''}')"></div>
-                    <div class="hub-card-overlay"></div>
+      <div class="scrapbook-container">
+         <header style="padding: 2rem 3rem; display: flex; justify-content: space-between; align-items: center; position: absolute; width: 100%; z-index: 10">
+            <div style="font-family: 'Special Elite', monospace; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;">HARU.</div>
+            <div style="font-family: 'Caveat', cursive; font-size: 1.8rem; color: #5c554b;">Our Memories</div>
+         </header>
+         
+         <section class="scrapbook-hero">
+            <h1>Câu chuyện về Chúng tôi</h1>
+            <p>A DIGITAL SCRAPBOOK BY HARU STUDIO</p>
+         </section>
+         
+         <!-- Filters -->
+         <section style="display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; margin-bottom: 3rem; padding: 0 1rem;">
+            ${categories.map((cat, idx) => `
+               <button class="hub-filter-btn ${idx === 0 ? 'active' : ''}" data-filter="${cat}" style="--rot: ${Math.random() * 4 - 2}">${cat}</button>
+            `).join('')}
+         </section>
+         
+         <!-- Scattered Scrapbook Grid -->
+         <section class="scrapbook-grid">
+            ${publicPortfolios.length === 0 ? '<div style="font-family: Caveat; font-size: 2rem; color: #888; text-align: center; width: 100%;">Cuốn sổ chưa có trang nào...</div>' : publicPortfolios.map((p, idx) => {
+      // Generate pseudo-random rotations (-6 to +6 degrees)
+      const rot = (Math.random() * 12 - 6).toFixed(1);
+      // Generate vertical scatter (-20px to +20px)
+      const yOffset = (Math.random() * 40 - 20).toFixed(0);
+
+      const tapeType = idx % 3 === 0 ? 'washi-1' : (idx % 3 === 1 ? 'washi-2' : 'washi-3');
+      const extraTape = idx % 3 === 1 ? '<div class="washi-tape washi-3"></div>' : '';
+
+      return `
+              <a href="?gallery=${p.id}" class="scrapbook-card" data-category="${p.category}" style="--rot: ${rot}; --y: ${yOffset};">
+                 <div class="washi-tape ${tapeType}"></div>
+                 ${extraTape}
+                 <div class="scrapbook-img-wrapper">
+                    <img class="scrapbook-img" src="${p.thumbnail || ''}" crossorigin="anonymous">
                  </div>
-                 <div class="hub-card-content">
-                    <div style="font-size: 0.65rem; color: #c19b76; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.4rem">${p.category}</div>
-                    <div class="hub-title">${p.jobName}</div>
-                    <div style="font-size: 0.75rem; color: rgba(0,0,0,0.4); letter-spacing: 1px; margin-top: 0.4rem; font-family: monospace">${p.date ? new Date(p.date).toLocaleDateString('vi-VN') : ''} / ${p.images?.length || 0} pics</div>
+                 <div class="scrapbook-title">${p.jobName}</div>
+                 <div class="scrapbook-meta">
+                    [ ${p.category} ]<br>
+                    ${p.date ? new Date(p.date).toLocaleDateString('vi-VN') : ''}
                  </div>
               </a>
-            `).join('')}
-         </div>
-      </section>
-      
-      <footer style="padding: 4rem 2rem; text-align: center; color: rgba(0,0,0,0.3); font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid rgba(0,0,0,0.05)">
-         &copy; ${new Date().getFullYear()} Haru Studio.
-      </footer>
+            `}).join('')}
+         </section>
+         
+         <footer style="padding: 4rem 2rem; text-align: center; font-family: 'Special Elite', monospace; font-size: 0.75rem; color: #888;">
+            &copy; ${new Date().getFullYear()} Haru Studio.
+         </footer>
+      </div>
     `;
 
     // Attach event listeners for filtering
     requestAnimationFrame(() => {
       const btns = container.querySelectorAll('.hub-filter-btn');
-      const cards = container.querySelectorAll('.hub-card');
+      const cards = container.querySelectorAll('.scrapbook-card');
 
       btns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -4434,16 +4512,12 @@ export function renderGalleryClient(galleryId, state) {
 
           const filter = btn.dataset.filter;
 
-          // Filter cards
+          // Filter cards via CSS class for display toggling
           cards.forEach(card => {
             if (filter === 'Tất cả' || card.dataset.category === filter) {
-              card.style.display = 'flex';
-              // Trick to restart animation
-              card.style.animation = 'none';
-              card.offsetHeight; /* trigger reflow */
-              card.style.animation = null;
+              card.classList.remove('hidden');
             } else {
-              card.style.display = 'none';
+              card.classList.add('hidden');
             }
           });
         });
