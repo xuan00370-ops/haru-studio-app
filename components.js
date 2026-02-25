@@ -114,6 +114,9 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'trash' ? 'active' : ''}" onclick="window.navigate('trash')">
         <span class="icon">&#128465;&#65039;</span> Thùng rác
       </div>
+      <div class="nav-item ${activePage === 'portfolio' ? 'active' : ''}" onclick="window.navigate('portfolio')">
+        <span class="icon">🖼️</span> Portfolio
+      </div>
       <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.navigate('settings')">
         <span class="icon">👑</span> Admin Center
       </div>` : ''}
@@ -4258,6 +4261,106 @@ export function renderGlobalSearchModal(state) {
       });
     }
   }, 10);
+
+  return container;
+}
+
+// ============================================================
+// PHASE 6: HARU GALLERY (Client Side)
+// ============================================================
+export function renderGalleryClient(galleryId, state) {
+  const container = document.createElement('div');
+  container.style.cssText = 'min-height: 100vh; background: #0a0a0a; color: #f3f4f6; font-family: "Google Sans", sans-serif; position: relative';
+
+  const portfolio = (state.portfolios || []).find(p => p.id === galleryId && p.isVisible);
+
+  if (!portfolio) {
+    container.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center">
+         <div style="font-size: 4rem; margin-bottom: 1rem">🍂</div>
+         <h1 style="font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem">Bộ sưu tập không tồn tại hoặc đã bị ẩn</h1>
+         <p style="color: #9ca3af; font-size: 0.9rem">Rất tiếc, đường link này không còn khả dụng.</p>
+      </div>
+    `;
+    return container;
+  }
+
+  // Helper Extract Youtube ID to embed
+  let embedUrl = '';
+  if (portfolio.videoLink && (portfolio.videoLink.includes('youtube.com') || portfolio.videoLink.includes('youtu.be'))) {
+    const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = portfolio.videoLink.match(regExp);
+    if (match && match[2].length === 11) {
+      embedUrl = `https://www.youtube.com/embed/${match[2]}?autoplay=1&mute=0&controls=1&rel=0`;
+    }
+  }
+
+  const otherPortfolios = (state.portfolios || []).filter(p => p.id !== galleryId && p.isVisible).slice(0, 4);
+
+  container.innerHTML = `
+    <!-- Header -->
+    <header style="position: absolute; top:0; left:0; right:0; padding: 1.5rem 2rem; z-index: 10; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)">
+       <div style="font-size: 1.25rem; font-weight: 900; letter-spacing: 2px; color: #fff;">HARU<span style="color:var(--primary)">STUDIO</span></div>
+       <div style="font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.7)">Portfolio / Khách hàng</div>
+    </header>
+
+    <!-- Main Hero Video / Cover -->
+    <section style="position: relative; width: 100%; height: 60vh; max-height: 800px; min-height: 400px; background: #000; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 2rem">
+      ${embedUrl ? `
+         <iframe src="${embedUrl}" style="position: absolute; top:0; left:0; width:100%; height:100%; border:none; opacity: 0.85; pointer-events: auto" allow="autoplay; fullscreen"></iframe>
+         <div style="position: absolute; inset:0; background: linear-gradient(to top, #0a0a0a 0%, transparent 40%); pointer-events: none"></div>
+      ` : `
+         <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: url('${portfolio.thumbnail}') center/cover no-repeat; opacity: 0.6"></div>
+         <div style="position: absolute; inset:0; background: linear-gradient(to top, #0a0a0a 0%, transparent 60%)"></div>
+      `}
+      
+      <div style="position: relative; z-index: 10; padding: 0 2rem; max-width: 1200px; margin: 0 auto; width: 100%">
+         <span style="display:inline-block; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--primary); margin-bottom: 0.5rem">${portfolio.category}</span>
+         <h1 style="font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; color: #fff; margin-bottom: 0.5rem; line-height: 1.1; text-shadow: 0 2px 10px rgba(0,0,0,0.5)">${portfolio.jobName}</h1>
+         <div style="font-size: 0.9rem; color: #d1d5db; font-weight: 700"><i class="far fa-calendar-alt" style="margin-right:0.4rem"></i>${new Date(portfolio.date).toLocaleDateString('vi-VN')}</div>
+      </div>
+    </section>
+
+    <!-- Details actions -->
+    <section style="max-width: 1200px; margin: 0 auto; padding: 2rem; position: relative; z-index: 20">
+      ${portfolio.description ? `<p style="font-size: 1rem; color: #e5e7eb; line-height: 1.6; max-width: 800px; margin-bottom: 2rem; font-style: italic">"${portfolio.description}"</p>` : ''}
+      
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 4rem">
+         ${portfolio.photoLink ? `
+           <a href="${portfolio.photoLink}" target="_blank" style="text-decoration: none; padding: 0.8rem 1.5rem; background: #fff; color: #000; border-radius: 8px; font-weight: 800; font-size: 0.9rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(255,255,255,0.1)">
+             <i class="fas fa-image" style="margin-right: 0.5rem"></i> Xem Toàn Bộ Ảnh
+           </a>
+         ` : ''}
+         ${portfolio.videoLink && embedUrl === '' ? `
+           <a href="${portfolio.videoLink}" target="_blank" style="text-decoration: none; padding: 0.8rem 1.5rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-weight: 800; font-size: 0.9rem; transition: all 0.2s">
+             <i class="fab fa-youtube" style="margin-right: 0.5rem; color: #ef4444"></i> Xem Video YouTube
+           </a>
+         ` : ''}
+      </div>
+
+      <!-- Explore More -->
+      ${otherPortfolios.length > 0 ? `
+        <div style="margin-top: 5rem; padding-top: 3rem; border-top: 1px solid rgba(255,255,255,0.1)">
+          <h3 style="font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 1.5rem">Khám Phá Thêm</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem">
+            ${otherPortfolios.map(p => `
+              <a href="?gallery=${p.id}" style="text-decoration:none; display:block; background: #111; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s">
+                 <div style="width:100%; height:160px; background: url('${p.thumbnail || ''}') center/cover no-repeat; background-color: #222"></div>
+                 <div style="padding: 1rem">
+                    <div style="font-size: 0.65rem; color: var(--primary); font-weight: 800; text-transform: uppercase">${p.category}</div>
+                    <div style="font-size: 0.9rem; font-weight: 800; color: #fff; margin-top: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">${p.jobName}</div>
+                 </div>
+              </a>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+      
+      <footer style="margin-top: 5rem; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.75rem">
+         &copy; ${new Date().getFullYear()} Haru Studio. All rights reserved.
+      </footer>
+    </section>
+  `;
 
   return container;
 }

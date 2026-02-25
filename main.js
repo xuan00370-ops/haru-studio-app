@@ -4,7 +4,8 @@ import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory,
-  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban, renderWatermark, renderStaffPortal, renderEditPhoto
+  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban, renderWatermark, renderStaffPortal, renderEditPhoto,
+  renderGalleryClient, renderPortfolioAdmin
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
@@ -51,7 +52,8 @@ export const state = {
       { username: 'EDIT', password: 'EDIT', role: 'editor', displayName: 'Editor' }
     ]
   },
-  clients: [] // Phase 3 CRM
+  clients: [], // Phase 3 CRM
+  portfolios: [] // Phase 6 Gallery
 };
 
 // Mặc định tháng hiện tại (không ghi đè theo job mới nhất)
@@ -85,7 +87,8 @@ export function saveState() {
       manualTransactions: state.manualTransactions || [],
       settings: state.settings || {},
       history: (state.history || []).slice(0, 200),
-      clients: state.clients || []
+      clients: state.clients || [],
+      portfolios: state.portfolios || []
     };
 
     // Save to LocalStorage for offline speed
@@ -445,6 +448,33 @@ window.showFloatingSaveStatus = (status) => {
     el.style.opacity = '1';
     el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 4000);
   }
+};
+
+window.haruConfirm = (message, onConfirm) => {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn 0.2s';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--bg-card);padding:1.5rem;border-radius:16px;width:90%;max-width:320px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+
+  box.innerHTML = `
+    <div style="font-size:3rem;margin-bottom:0.5rem;line-height:1">🗑️</div>
+    <div style="font-weight:900;font-size:1.15rem;margin-bottom:0.5rem;color:var(--text-main)">Xác nhận xóa</div>
+    <div style="font-size:0.9rem;color:var(--text-dim);margin-bottom:1.5rem;line-height:1.4">${message}</div>
+    <div style="display:flex;gap:0.5rem">
+      <button id="hc-cancel" style="flex:1;padding:0.7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text-main);font-weight:800;font-size:0.9rem;cursor:pointer">Hủy</button>
+      <button id="hc-confirm" style="flex:1;padding:0.7rem;border:none;border-radius:8px;background:#ef4444;color:#fff;font-weight:800;font-size:0.9rem;cursor:pointer">Xóa ngay</button>
+    </div>
+  `;
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  box.querySelector('#hc-cancel').onclick = () => overlay.remove();
+  box.querySelector('#hc-confirm').onclick = () => {
+    overlay.remove();
+    onConfirm();
+  };
 };
 
 // Phase 3 #8: Notification actions
@@ -1272,26 +1302,29 @@ window.toggleTrash = (jobId) => {
   }
 };
 
-// Xóa job (chuyển vào thùng rác) — với confirm
+// Xóa job (chuyển vào thùng rác) — Custom Confirm popup
 window.deleteJob = (jobId) => {
-  if (!confirm('Xóa dự án này vào thùng rác?')) return;
-  const job = state.jobs.find(j => j.id === jobId);
-  if (!job) { console.error('[Haru] Job not found:', jobId); return; }
-  // 1. Mark as trash + save immediately
-  job.isTrash = true;
-  window.addHistory(`Xóa dự án: ${job.client}`);
-  saveState();
-  console.log(`[Haru] Đã xóa dự án: ${job.client} (id: ${jobId})`);
-  // 2. Force-remove quick preview overlay if exists
-  const overlay = document.querySelector('.modal-overlay');
-  if (overlay) overlay.remove();
-  // 3. Reset modal state
-  state.modal.isOpen = false;
-  state.modal.type = null;
-  state.modal.data = null;
-  window._quickPreviewCloseFn = null;
-  // 4. Refresh UI after short delay to ensure DOM is clean
-  setTimeout(() => updateUI(), 50);
+  window.haruConfirm('Bạn có chắc chắn muốn xóa dự án này vào thùng rác không? Bạn có thể khôi phục lại trong cài đặt.', () => {
+    const job = state.jobs.find(j => j.id === jobId);
+    if (!job) { console.error('[Haru] Job not found:', jobId); return; }
+    // 1. Mark as trash + save immediately
+    job.isTrash = true;
+    window.addHistory(`Xóa dự án: ${job.client}`);
+    saveState();
+    console.log(`[Haru] Đã xóa dự án: ${job.client} (id: ${jobId})`);
+
+    // 2. Force-remove all modals/overlays
+    document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
+
+    // 3. Reset modal state
+    state.modal.isOpen = false;
+    state.modal.type = null;
+    state.modal.data = null;
+    window._quickPreviewCloseFn = null;
+
+    // 4. Refresh UI
+    updateUI();
+  });
 };
 
 // ============================================================
@@ -2101,6 +2134,32 @@ function updateUI() {
   window.updateUI = updateUI;
   app.innerHTML = '';
 
+  // ── Phase 6: Cổng Trưng Bày Tự Động (Haru Gallery) ──
+  const urlParams = new URLSearchParams(window.location.search);
+  const galleryId = urlParams.get('gallery');
+  if (galleryId) {
+    document.body.style.overflowY = 'auto'; // Cho phép scroll
+    app.style.display = 'block';
+    app.style.gridTemplateColumns = 'none';
+    // Đổi Title
+    document.title = "Haru Gallery - Khám phá Album";
+    // Tắt các thuộc tính nền body
+    document.body.style.background = '#0a0a0a';
+
+    // Khởi tạo container trống, sau đó chờ Load Data (vì Firebase Load bất đồng bộ)
+    const container = document.createElement('div');
+    container.id = 'gallery-root';
+    app.appendChild(container);
+
+    // Nếu data chưa load xong (ví dụ truy cập thẳng link), chờ 1 chút
+    setTimeout(() => {
+      const resultEl = renderGalleryClient(galleryId, window.state);
+      container.appendChild(resultEl);
+    }, 500);
+
+    return;
+  }
+
   // ── Nếu chưa login → hiển thị Login Screen ──
   if (!state.currentUser) {
     app.style.display = 'flex';
@@ -2162,7 +2221,7 @@ function updateUI() {
   const contentArea = document.createElement('main');
   contentArea.className = 'main-content';
 
-  if (state.activePage !== 'settings' && state.activePage !== 'staff') {
+  if (state.activePage !== 'settings' && state.activePage !== 'staff' && state.activePage !== 'portfolio') {
     const header = document.createElement('div');
     header.className = 'view-header';
     header.appendChild(renderMonthPicker(state, updateMonth));
