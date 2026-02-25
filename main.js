@@ -2820,11 +2820,6 @@ window._processPfUploadQueue = async () => {
 
       const realUrl = data.data.url;
 
-      // IMPORTANT FIX: Save directly to a global state array so we don't lose the photo if the DOM modal closes
-      if (!window._pfActivePortfolioImages.includes(realUrl)) {
-        window._pfActivePortfolioImages.push(realUrl);
-      }
-
       // Update DOM if it's currently open
       if (item.uiElement && document.body.contains(item.uiElement)) {
         const inputUrl = item.uiElement.querySelector('.pf-img-url');
@@ -2833,6 +2828,31 @@ window._processPfUploadQueue = async () => {
         const spinner = item.uiElement.querySelector('.pf-local-spinner');
         if (spinner) spinner.remove();
       }
+
+      // AUTO ZERO-LATENCY SYNC TO FIREBASE:
+      // If the portfolio exists in state (meaning the user clicked Save at least once or it's an existing portfolio),
+      // we push the image into the DB immediately and call saveState()!
+      if (item.portfolioId && state.portfolios) {
+        const pf = state.portfolios.find(p => p.id === item.portfolioId);
+        if (pf) {
+          if (!pf.images) pf.images = [];
+          if (!pf.images.includes(realUrl)) {
+            pf.images.push(realUrl);
+            // Trigger save to Firebase so background worker persists automatically!
+            if (typeof saveState === 'function') saveState();
+
+            // If Hub UI is open, real-time update it? (optional, but good)
+            if (typeof updateUI === 'function') updateUI();
+          }
+        } else {
+          // Portfolio doesn't exist yet (user hasn't clicked Save for a brand new portfolio).
+          // Cache it globally.
+          window._pfPendingUploads = window._pfPendingUploads || {};
+          window._pfPendingUploads[item.portfolioId] = window._pfPendingUploads[item.portfolioId] || [];
+          window._pfPendingUploads[item.portfolioId].push(realUrl);
+        }
+      }
+
     } catch (err) {
       console.error("Background upload failed for", item.file.name, err);
       if (item.uiElement && document.body.contains(item.uiElement)) {
@@ -2951,21 +2971,21 @@ window._savePortfolio = (id) => {
     return;
   }
 
-  // Thu thập danh sách ảnh đang hiển thị trên Modal (bao gồm cả ảnh cũ)
+  // Thu thập danh sách ảnh đang hiển thị trên Modal (đã tải xong)
   const imageInputs = document.querySelectorAll('.pf-img-url');
   const allImages = Array.from(imageInputs).map(inp => inp.value);
 
-  // Lọc bỏ những ảnh còn đang tải ngầm chưa có URL thật
   const domImages = allImages.filter(url => url !== 'PENDING_UPLOAD');
+  const pendingCount = allImages.length - domImages.length;
 
-  if (domImages.length < allImages.length) {
-    const confirmSave = confirm(`Lưu ý: Có ${allImages.length - domImages.length} ảnh vẫn đang được tải lên ngầm.\n\nNếu bạn bấm Lưu bây giờ, những ảnh đang tải dở sẽ bị BỎ QUA.\nNếu bạn muốn đợi tải xong, hãy bấm Cancel và chờ thanh màu xanh dưới góc phải chạy hết rồi ấn Lưu lại.\n\nTiếp tục lưu những ảnh đã xong?`);
+  if (pendingCount > 0) {
+    const confirmSave = confirm(`HỆ THỐNG TẢI NGẦM:\nCó ${pendingCount} ảnh vẫn đang được tải lên mây.\n\nNếu bạn bấm OK (Lưu), bảng này sẽ đóng lại và quá trình tải ảnh vẫn tiếp tục chạy ngầm. Ảnh sẽ tự động được thêm vào Bộ Sưu Tập khi tải xong.\n\nTiếp tục Đóng & Lưu?`);
     if (!confirmSave) return;
   }
 
-  // MERGE: Kết hợp ảnh trên DOM và ảnh lưu trữ ngầm (Trường hợp User tắt Modal khi đang tải)
-  // Loại bỏ các link rỗng hoặc undefined
-  const mergedImages = [...new Set([...domImages, ...(window._pfActivePortfolioImages || [])])].filter(Boolean);
+  // Kết hợp với các ảnh đã nằm chờ nếu có (trường hợp user ấn Upload xong chờ tải rồi mới gõ tên và click Save)
+  const cachedImages = window._pfPendingUploads ? window._pfPendingUploads[id] || [] : [];
+  const mergedImages = [...new Set([...domImages, ...cachedImages])].filter(Boolean);
 
   const pf = {
     id,
