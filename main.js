@@ -94,7 +94,7 @@ function getPublicFirebaseConfig() {
     const legacy = parseFirebaseConfig(localStorage.getItem('haru_app_state_v2'));
     const cfg = parseFirebaseConfig(legacy?.settings?.firebaseConfig || legacy?.firebaseConfig);
     if (cfg?.apiKey && cfg?.databaseURL) return cfg;
-  } catch {}
+  } catch { }
 
   return null;
 }
@@ -319,11 +319,20 @@ async function bootload() {
   } catch (e) { console.warn('Local Load Err:', e); }
 
   // 2. Kích hoạt Firebase nếu có config
-  // Thứ tự ưu tiên: state.settings -> VITE_FIREBASE_CONFIG -> public injected config
-  const envFirebaseConfig = import.meta.env && import.meta.env.VITE_FIREBASE_CONFIG;
-  const effectiveFirebaseConfig = state.settings.firebaseConfig || envFirebaseConfig || getPublicFirebaseConfig();
+  let envFirebaseConfig = null;
+  try {
+    envFirebaseConfig = import.meta.env.VITE_FIREBASE_CONFIG;
+    if (typeof envFirebaseConfig === 'string') {
+      const testParse = JSON.parse(envFirebaseConfig); // validate
+    }
+  } catch (e) {
+    console.warn("Invalid VITE_FIREBASE_CONFIG in .env", e);
+    envFirebaseConfig = null;
+  }
+
+  const effectiveFirebaseConfig = state.settings.firebaseConfig || envFirebaseConfig;
   const isHubMode = urlParams.get('hub') === 'haru' || Boolean(urlParams.get('gallery'));
-  const shouldUseFirebase = Boolean(effectiveFirebaseConfig) && (state.settings.enableFirebaseSync === true || !!envFirebaseConfig || isHubMode || !state.settings.firebaseConfig);
+  const shouldUseFirebase = Boolean(effectiveFirebaseConfig) && (state.settings.enableFirebaseSync === true || !!envFirebaseConfig || isHubMode);
 
   if (shouldUseFirebase) {
     if (!state.settings.firebaseConfig && effectiveFirebaseConfig) {
@@ -333,7 +342,7 @@ async function bootload() {
         : JSON.stringify(effectiveFirebaseConfig);
     }
 
-    const isOk = initFirebase(state.settings.firebaseConfig || effectiveFirebaseConfig);
+    const isOk = initFirebase(state.settings.firebaseConfig);
     if (isOk) {
       // Fetch latest từ Firebase đè lên
       const fbData = await loadFromFirebase();
