@@ -4270,7 +4270,7 @@ export function renderGlobalSearchModal(state) {
 // ============================================================
 export function renderGalleryClient(galleryId, state) {
   const container = document.createElement('div');
-  container.style.cssText = 'min-height: 100vh; background: #0a0a0a; color: #f3f4f6; font-family: "Google Sans", sans-serif; position: relative';
+  container.style.cssText = 'min-height: 100vh; background: #fdfbf7; color: #1c1917; font-family: "Google Sans", sans-serif; position: relative';
 
   const publicPortfolios = (state.portfolios || []).filter(p => p.isVisible);
 
@@ -4286,8 +4286,8 @@ export function renderGalleryClient(galleryId, state) {
       <style>
         .hub-filter-btn {
            background: transparent;
-           border: 1px solid rgba(255,255,255,0.2);
-           color: rgba(255,255,255,0.6);
+           border: 1px solid rgba(0,0,0,0.15);
+           color: rgba(0,0,0,0.6);
            padding: 0.5rem 1.5rem;
            border-radius: 30px;
            font-size: 0.85rem;
@@ -4298,9 +4298,9 @@ export function renderGalleryClient(galleryId, state) {
            text-transform: uppercase;
         }
         .hub-filter-btn.active, .hub-filter-btn:hover {
-           background: #fff;
-           color: #000;
-           border-color: #fff;
+           background: #1c1917;
+           color: #fff;
+           border-color: #1c1917;
         }
         
         .hub-masonry {
@@ -4325,6 +4325,7 @@ export function renderGalleryClient(galleryId, state) {
            border-radius: 4px; /* Slight rounding, more elegant than heavy rounding */
            overflow: hidden;
            aspect-ratio: 3/4; /* Default portrait feel for masonry */
+           background-color: #f0ebe1;
         }
         
         /* Make every 2nd card square and 3rd landscape for asymmetry */
@@ -4348,7 +4349,7 @@ export function renderGalleryClient(galleryId, state) {
         .hub-card-overlay {
            position: absolute;
            inset: 0;
-           background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 40%);
+           background: linear-gradient(to top, rgba(0,0,0,0.15) 0%, transparent 40%);
            opacity: 0;
            transition: opacity 0.5s ease;
         }
@@ -4370,22 +4371,22 @@ export function renderGalleryClient(galleryId, state) {
            font-family: 'Playfair Display', serif;
            font-size: 1.5rem;
            font-weight: 600;
-           color: #fff;
+           color: #1c1917;
            margin-bottom: 0.3rem;
            line-height: 1.2;
         }
       </style>
       
       <header style="padding: 2.5rem 3rem; display: flex; justify-content: space-between; align-items: center; position: absolute; width: 100%; z-index: 10">
-         <div style="font-size: 1.2rem; font-weight: 900; letter-spacing: 4px; color: #fff;">HARU<span style="color: #d4af37">.</span></div>
-         <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,0.7); text-transform: uppercase">Portfolio</div>
+         <div style="font-size: 1.2rem; font-weight: 900; letter-spacing: 4px; color: #1c1917;">HARU<span style="color: #c19b76">.</span></div>
+         <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; color: rgba(0,0,0,0.4); text-transform: uppercase">Portfolio</div>
       </header>
       
       <!-- Premium Hero Section -->
       <section style="position: relative; width: 100%; min-height: 50vh; display: flex; align-items: center; justify-content: center; overflow: hidden; padding-top: 6rem">
          <div style="text-align: center; position: relative; z-index: 2">
-            <h1 style="font-family: 'Playfair Display', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 400; font-style: italic; color: #fff; margin-bottom: 0.5rem; line-height: 1.1; letter-spacing: -1px">Timeless<br><span style="color: #d4af37; font-style: normal; font-weight: 600">Moments</span></h1>
-            <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; margin-top: 1.5rem; font-weight: 300">Curated by Haru Studio</p>
+            <h1 style="font-family: 'Playfair Display', serif; font-size: clamp(3rem, 8vw, 6rem); font-weight: 400; font-style: italic; color: #1c1917; margin-bottom: 0.5rem; line-height: 1.1; letter-spacing: -1px">Timeless<br><span style="color: #c19b76; font-style: normal; font-weight: 600">Moments</span></h1>
+            <p style="color: rgba(0,0,0,0.4); font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; margin-top: 1.5rem; font-weight: 400">Curated by Haru Studio</p>
          </div>
       </section>
       
@@ -4399,23 +4400,23 @@ export function renderGalleryClient(galleryId, state) {
       <!-- Masonry Grid -->
       <section style="max-width: 1400px; margin: 0 auto; padding: 0 2rem 5rem 2rem">
          <div class="hub-masonry" id="hub-grid">
-            ${publicPortfolios.length === 0 ? '<div style="color: rgba(255,255,255,0.4); text-align: center; grid-column: 1/-1; padding: 4rem">Thư viện đang trống.</div>' : publicPortfolios.map(p => `
+            ${publicPortfolios.length === 0 ? '<div style="color: rgba(0,0,0,0.3); text-align: center; grid-column: 1/-1; padding: 4rem">Thư viện đang trống.</div>' : publicPortfolios.map(p => `
               <a href="?gallery=${p.id}" class="hub-card" data-category="${p.category}">
                  <div class="hub-card-img-wrapper">
                     <div class="hub-card-img" style="background-image: url('${p.thumbnail || ''}')"></div>
                     <div class="hub-card-overlay"></div>
                  </div>
                  <div class="hub-card-content">
-                    <div style="font-size: 0.65rem; color: #d4af37; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.4rem">${p.category}</div>
+                    <div style="font-size: 0.65rem; color: #c19b76; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.4rem">${p.category}</div>
                     <div class="hub-title">${p.jobName}</div>
-                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); letter-spacing: 1px; margin-top: 0.4rem; font-family: monospace">${p.date ? new Date(p.date).toLocaleDateString('vi-VN') : ''} / ${p.images?.length || 0} pics</div>
+                    <div style="font-size: 0.75rem; color: rgba(0,0,0,0.4); letter-spacing: 1px; margin-top: 0.4rem; font-family: monospace">${p.date ? new Date(p.date).toLocaleDateString('vi-VN') : ''} / ${p.images?.length || 0} pics</div>
                  </div>
               </a>
             `).join('')}
          </div>
       </section>
       
-      <footer style="padding: 4rem 2rem; text-align: center; color: rgba(255,255,255,0.2); font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.05)">
+      <footer style="padding: 4rem 2rem; text-align: center; color: rgba(0,0,0,0.3); font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid rgba(0,0,0,0.05)">
          &copy; ${new Date().getFullYear()} Haru Studio.
       </footer>
     `;
