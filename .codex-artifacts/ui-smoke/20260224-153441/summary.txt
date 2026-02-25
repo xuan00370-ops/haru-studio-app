@@ -1,0 +1,8 @@
+ui-smoke run
+root=.
+mode=preview
+url=http://127.0.0.1:4173
+out=./.codex-artifacts/ui-smoke/20260224-153441
+server_log=./.codex-artifacts/ui-smoke/20260224-153441/logs/server.log
+smoke_log=./.codex-artifacts/ui-smoke/20260224-153441/logs/playwright-smoke.log
+exit_code=2

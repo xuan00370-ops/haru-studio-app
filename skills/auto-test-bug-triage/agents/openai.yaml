@@ -1,0 +1,3 @@
+interface:
+  display_name: "Auto Test Bug Triage"
+  short_description: "Run app checks, capture failures, and generate a bug-fix report"

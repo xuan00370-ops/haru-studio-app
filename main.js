@@ -1938,10 +1938,8 @@ window.login = (username, password) => {
   }
   state.currentUser = { username: account.username, role: account.role, displayName: account.displayName, staffName: account.staffName || null };
   localStorage.setItem(SESSION_KEY, JSON.stringify(state.currentUser));
-  if (account.role === 'editor') {
-    state.activePage = 'edit_video';
-  } else if (account.role === 'staff') {
-    state.activePage = 'staff_portal';
+  if (account.role === 'editor' || account.role === 'staff') {
+    state.activePage = 'workspace';
   } else {
     state.activePage = 'dashboard';
   }
@@ -2061,6 +2059,7 @@ function updateUI() {
   const periodState = { ...state, jobs: filteredJobs };
 
   switch (state.activePage) {
+    case 'workspace': contentArea.appendChild(renderWorkspace(periodState)); break;
     case 'dashboard': contentArea.appendChild(renderDashboard(periodState, window.navigate)); break;
     case 'jobs': contentArea.appendChild(renderJobs(periodState)); break;
     case 'clients': contentArea.appendChild(renderClients(state)); break;

@@ -1,0 +1,21 @@
+{
+  "url": "http://127.0.0.1:4173",
+  "outDir": "/Users/macbook/Documents/ANTYGRAVYTY/1/.codex-artifacts/ui-smoke/20260224-153441",
+  "status": "SKIPPED",
+  "screenshot": "/Users/macbook/Documents/ANTYGRAVYTY/1/.codex-artifacts/ui-smoke/20260224-153441/page.png",
+  "metrics": {
+    "consoleErrors": 0,
+    "consoleWarnings": 0,
+    "pageErrors": 0,
+    "requestFailures": 0
+  },
+  "details": {
+    "console": [],
+    "pageErrors": [],
+    "requestFailures": []
+  },
+  "notes": [
+    "`playwright` package is not installed. Install it to enable browser smoke tests.",
+    "Import error: Cannot find package 'playwright' imported from /Users/macbook/Documents/ANTYGRAVYTY/1/skills/auto-test-bug-triage/scripts/playwright_smoke_capture.mjs"
+  ]
+}

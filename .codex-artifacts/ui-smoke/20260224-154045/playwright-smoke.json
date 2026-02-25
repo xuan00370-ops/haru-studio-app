@@ -1,0 +1,22 @@
+{
+  "url": "http://127.0.0.1:4173",
+  "outDir": "/Users/macbook/Documents/ANTYGRAVYTY/1/.codex-artifacts/ui-smoke/20260224-154045",
+  "status": "FAIL",
+  "screenshot": "/Users/macbook/Documents/ANTYGRAVYTY/1/.codex-artifacts/ui-smoke/20260224-154045/page.png",
+  "metrics": {
+    "consoleErrors": 0,
+    "consoleWarnings": 0,
+    "pageErrors": 1,
+    "requestFailures": 0
+  },
+  "details": {
+    "console": [],
+    "pageErrors": [
+      "ReferenceError: Cannot access 'J' before initialization\n    at T (http://127.0.0.1:4173/assets/main-dCe8N4LR.js:2457:1895)\n    at Qh (http://127.0.0.1:4173/assets/main-dCe8N4LR.js:2306:2735)\n    at http://127.0.0.1:4173/assets/main-dCe8N4LR.js:2306:3270"
+    ],
+    "requestFailures": []
+  },
+  "notes": [
+    "Navigation response status: 200"
+  ]
+}

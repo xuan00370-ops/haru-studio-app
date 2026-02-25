@@ -1,0 +1,2 @@
+name	status	exit_code	log_file	command
+05-build	PASS	0	logs/05-build.log	npm run build

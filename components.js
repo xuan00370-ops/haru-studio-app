@@ -52,6 +52,11 @@ export function renderSidebar(activePage, navigate) {
         <span style="font-size: 0.65rem; padding: 0.15rem 0.3rem; background: rgba(0,0,0,0.05); border-radius: 4px; color: var(--text-dim)">Cmd+K</span>
       </div>
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1rem 0 0.5rem 0.75rem; text-transform: uppercase;">&#272;iều hành</div>
+      ${window.state?.currentUser?.role !== 'admin' ? `
+      <div class="nav-item ${activePage === 'workspace' ? 'active' : ''}" onclick="window.navigate('workspace')" style="background: rgba(168,85,247,0.1); border-left: 3px solid #a855f7; margin-bottom: 0.5rem; justify-content: space-between;">
+        <span><span class="icon">🚀</span> Không gian làm việc</span>
+      </div>
+      ` : ''}
       <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.navigate('dashboard')">
         <span class="icon">&#128202;</span> Dự án
       </div>
@@ -71,7 +76,7 @@ export function renderSidebar(activePage, navigate) {
         <span class="icon">&#128197;</span> Lịch / Nhắc việc
       </div>
 
-      ${window.state?.staffViewMode === 'staff' ? '' : `
+      ${(window.state?.currentUser?.role === 'admin' || !window.state?.currentUser) ? `
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Quản lý</div>
       <div class="nav-item ${activePage === 'jobs' ? 'active' : ''}" onclick="window.navigate('jobs')">
         <span class="icon">&#128193;</span> Lưu trữ dự án
@@ -111,8 +116,7 @@ export function renderSidebar(activePage, navigate) {
       </div>
       <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.navigate('settings')">
         <span class="icon">&#9881;&#65039;</span> Cài đặt
-      </div>
-      `}
+      </div>` : ''}
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border)">
         <div class="nav-item" onclick="window.toggleTheme();window.updateUI()" style="cursor:pointer">
@@ -216,6 +220,142 @@ export function renderMonthPicker(state, updateMonth) {
   };
 
   return picker;
+}
+// ============================================================
+// MY WORKSPACE (STAFF/EDITOR DASHBOARD)
+// ============================================================
+export function renderWorkspace(state) {
+  const container = document.createElement('div');
+  container.className = 'view-container reveal';
+
+  const user = state.currentUser || {};
+  const myName = user.staffName || user.username || 'Nhân sự';
+  const role = user.role === 'editor' ? 'Editor' : 'Staff';
+
+  // Helper to check if a staff string includes myName
+  const isMe = (staffStr) => {
+    if (!staffStr) return false;
+    return staffStr.toLowerCase().includes(myName.toLowerCase());
+  };
+
+  // 1. Upcoming Shoots
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const upcomingShoots = state.jobs.filter(job => {
+    if (job.isTrash) return false;
+
+    let assigned = false;
+    if (job.services) {
+      if (job.services.some(s => isMe(s.staff))) assigned = true;
+    }
+    if (job.eventDays) {
+      job.eventDays.forEach(day => {
+        if (day.services && day.services.some(s => isMe(s.staff))) assigned = true;
+      });
+    }
+
+    // Only future or today jobs
+    if (assigned) {
+      const d = new Date(job.date);
+      d.setHours(0, 0, 0, 0);
+      if (d >= todayDate) return true;
+    }
+    return false;
+  }).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // 2. Editing Tasks
+  const editingTasks = [];
+  state.jobs.forEach(job => {
+    if (job.isTrash) return;
+    (job.deliverables || []).forEach((del, dIdx) => {
+      if (isMe(del.editor)) {
+        editingTasks.push({ job, del, dIdx });
+      }
+    });
+  });
+
+  // Sort editing tasks by deadline (closest first)
+  editingTasks.sort((a, b) => {
+    const da = new Date(a.job.date);
+    const db = new Date(b.job.date);
+    return da - db;
+  });
+
+  const shootsHtml = upcomingShoots.length === 0
+    ? `<div style="padding:1.5rem;text-align:center;color:var(--text-dim);background:var(--bg-sidebar);border-radius:12px;font-size:0.85rem">Không có lịch đi quay/chụp nào sắp tới.</div>`
+    : `<div style="display:grid;gap:0.75rem">
+        ${upcomingShoots.map(j => {
+      const d = new Date(j.date);
+      const theDate = d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' });
+      return `
+          <div class="glass-panel" style="padding:1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="window.openModal('job_detail', '${j.id}')">
+            <div>
+              <div style="font-weight:800;color:var(--text-main);font-size:1rem;margin-bottom:0.25rem">${j.client}</div>
+              <div style="font-size:0.75rem;color:var(--text-dim)">📍 ${j.venue || 'Chưa rõ địa điểm'}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:0.85rem;font-weight:900;color:var(--primary);background:rgba(22,163,74,0.1);padding:0.25rem 0.6rem;border-radius:8px">${theDate}</div>
+            </div>
+          </div>
+          `;
+    }).join('')}
+       </div>`;
+
+  const editsHtml = editingTasks.length === 0
+    ? `<div style="padding:1.5rem;text-align:center;color:var(--text-dim);background:var(--bg-sidebar);border-radius:12px;font-size:0.85rem">Không có task hậu kỳ nào cần xử lý.</div>`
+    : `<div style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+        ${editingTasks.map(t => {
+      const statusColors = {
+        'Chưa bắt đầu': '#94a3b8',
+        'Đang cắt': '#3b82f6',
+        'Demo 1': '#f59e0b',
+        'Chỉnh sửa': '#8b5cf6',
+        'Hoàn thành': '#22c55e'
+      };
+      const color = statusColors[t.del.editStatus || 'Chưa bắt đầu'] || '#94a3b8';
+      return `
+          <div class="glass-panel" style="padding:1rem;border-left:4px solid ${color}">
+            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.3rem">K/H: <span style="font-weight:700;color:var(--text-main)">${t.job.client}</span></div>
+            <div style="font-weight:800;font-size:0.95rem;margin-bottom:0.75rem">${t.del.name} <span style="font-weight:500;font-size:0.7rem;color:var(--text-dim)">(${t.del.quantity || 1})</span></div>
+            
+            <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.75rem">
+              <select class="input-modern" style="padding:0.3rem 0.6rem;font-size:0.75rem;flex:1;background:var(--bg-sidebar)" onchange="window.updateEditStatus('${t.job.id}', '${t.del.name}', this.value)">
+                ${Object.keys(statusColors).map(s => `<option value="${s}" ${t.del.editStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+            
+            <button class="btn btn-secondary btn-sm" style="width:100%;font-size:0.7rem" onclick="window.openModal('job_detail', '${t.job.id}')">Xem chi tiết Job</button>
+          </div>
+          `;
+    }).join('')}
+       </div>`;
+
+  container.innerHTML = `
+    <div style="padding:1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
+      <h1 style="font-size:1.6rem;font-weight:900;background:-webkit-linear-gradient(-45deg,#a855f7,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem">Xin chào, ${myName}!</h1>
+      <div style="font-size:0.85rem;color:var(--text-dim)">Đây là không gian làm việc của bạn. Vai trò: <strong>${role}</strong></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:2rem">
+      <div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(22,163,74,0.1);color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:1.1rem">🎥</div>
+          <h2 style="font-size:1.1rem;font-weight:800;margin:0">Lịch quay/chụp sắp tới</h2>
+        </div>
+        ${shootsHtml}
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(168,85,247,0.1);color:#a855f7;display:flex;align-items:center;justify-content:center;font-size:1.1rem">💻</div>
+          <h2 style="font-size:1.1rem;font-weight:800;margin:0">Hậu kỳ đang được giao</h2>
+        </div>
+        ${editsHtml}
+      </div>
+    </div>
+  `;
+  return container;
 }
 
 export function renderDashboard(state, navigate) {
