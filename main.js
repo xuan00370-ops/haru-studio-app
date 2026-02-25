@@ -2722,9 +2722,15 @@ window._openPortfolioModal = (id = null) => {
          <button class="btn" onclick="this.closest('.modal-overlay').remove()">Hủy</button>
          <button class="btn btn-primary" onclick="window._savePortfolio('${p.id}')">Lưu Bộ Sưu Tập</button>
       </div>
+      </div>
     </div>
   `;
   document.body.appendChild(overlay);
+
+  // Need to add 'active' class so the modal is visible (transition from opacity 0 to 1)
+  requestAnimationFrame(() => {
+    overlay.classList.add('active');
+  });
 };
 
 window._handleImgBBUpload = async (e, portfolioId) => {
