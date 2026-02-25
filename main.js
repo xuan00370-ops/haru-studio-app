@@ -2941,7 +2941,14 @@ window._savePortfolio = (id) => {
 
   // Thu thập danh sách ảnh
   const imageInputs = document.querySelectorAll('.pf-img-url');
-  const images = Array.from(imageInputs).map(inp => inp.value);
+  const allImages = Array.from(imageInputs).map(inp => inp.value);
+
+  // Lọc bỏ những ảnh còn đang tải ngầm chưa có URL thật
+  const images = allImages.filter(url => url !== 'PENDING_UPLOAD');
+
+  if (images.length < allImages.length) {
+    alert(`Lưu ý: Có ${allImages.length - images.length} ảnh vẫn đang được tải lên ngầm và sẽ không được lưu vào đợt này. Vui lòng đợi tải xong và ấn Lưu lại sau nếu cần thiết.`);
+  }
 
   const pf = {
     id,
