@@ -632,7 +632,7 @@ function renderJobCard(job) {
       </div>
 
       <div class="job-card-footer" style="margin-top: 0.75rem; border-top: 1px dashed var(--border); padding-top: 0.5rem">
-         ${window.state?.staffViewMode === 'staff' ? '' : `
+         ${window.state?.currentUser?.role !== 'admin' ? '' : `
          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
             <div style="font-size: 0.82rem"><span style="color: var(--text-dim)">Gói:</span> ${formatCurrency(job.package)}</div>
             <div style="font-size: 0.82rem"><span style="color: var(--text-dim)">Cọc</span> ${formatCurrency(job.deposit || 0)}</div>
@@ -892,7 +892,7 @@ function renderJobDetailModal(state) {
           </div>
 
           <!-- Row 2: finance -->
-          ${window.state?.staffViewMode === 'staff' ? '' : `
+          ${window.state?.currentUser?.role !== 'admin' ? '' : `
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.875rem; background: rgba(22,163,74,0.04); padding: 1rem; border-radius: 10px; border: 1px solid var(--border)">
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Giá trị gói (VNĐ)</label>
@@ -1025,7 +1025,7 @@ function renderJobDetailModal(state) {
               </div>
               <div class="day-services-container" data-day="${idx}" style="display: flex; flex-direction: column; gap: 0.5rem">
                 ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => `
-                  <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window.state?.staffViewMode === 'staff' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
+                  <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window.state?.currentUser?.role !== 'admin' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
                      <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
                        ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác'].map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                      </select>
@@ -1036,7 +1036,7 @@ function renderJobDetailModal(state) {
                        </select>
                        <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
                      </div>
-                     ${window.state?.staffViewMode === 'staff' ? '' : `
+                     ${window.state?.currentUser?.role !== 'admin' ? '' : `
                      <div style="position: relative">
                         <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
                         <input type="number" class="form-control svc-cost-input" value="${s.cost || 0}" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--danger); font-weight: 700">
@@ -1148,7 +1148,7 @@ function renderJobDetailModal(state) {
         <div style="position: sticky; top: 0; display: flex; flex-direction: column; gap: 1rem">
 
           <!-- Profit card -->
-          ${window.state?.staffViewMode === 'staff' ? '' : `
+          ${window.state?.currentUser?.role !== 'admin' ? '' : `
           <div style="background: ${profit >= 0 ? 'rgba(21,128,61,0.06)' : 'rgba(185,28,28,0.06)'}; border: 2px solid ${profit >= 0 ? 'rgba(21,128,61,0.20)' : 'rgba(185,28,28,0.20)'}; border-radius: 14px; padding: 1.25rem">
             <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem">💰 Ước tính lợi nhuận</div>
             <div style="font-size: 2.2rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}; line-height: 1.1; margin-bottom: 1rem">
@@ -1195,6 +1195,31 @@ function renderJobDetailModal(state) {
             </button>
           </div>
 
+          <!-- Chat / Comments -->
+          <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; height: 320px">
+            <div style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); background: rgba(0,0,0,0.02)">💬 Trao đổi nội bộ</div>
+            
+            <div id="job-chat-messages" style="flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.85rem; background: #fafafa">
+              ${(!job.comments || job.comments.length === 0) ? '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; font-style: italic; margin: auto">Chưa có bình luận nào</div>' : ''}
+              ${(job.comments || []).map(c => {
+        const isMe = c.user === window.state?.currentUser?.username || c.user === window.state?.currentUser?.displayName;
+        return `
+                    <div style="display: flex; flex-direction: column; gap: 0.2rem; align-items: ${isMe ? 'flex-end' : 'flex-start'}">
+                       <div style="font-size: 0.65rem; color: var(--text-dim); font-weight: 700; padding: 0 0.2rem">${c.user} <span style="font-weight: 400; opacity: 0.8">• ${new Date(c.time || Date.now()).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span></div>
+                       <div style="background: ${isMe ? 'var(--primary)' : '#e5e7eb'}; color: ${isMe ? '#fff' : 'var(--text-main)'}; padding: 0.5rem 0.75rem; border-radius: 12px; font-size: 0.85rem; max-width: 90%; line-height: 1.4; word-wrap: break-word; border-bottom-${isMe ? 'right' : 'left'}-radius: 2px">${c.text}</div>
+                    </div>
+                 `;
+      }).join('')}
+            </div>
+
+            <div style="padding: 0.75rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem">
+               <input type="text" id="job-chat-input" placeholder="Nhập tin nhắn..." 
+                 onkeydown="if(event.key === 'Enter') window.addJobComment('${job.id}')"
+                 style="flex: 1; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; background: var(--surface); color: var(--text-main); outline: none">
+               <button type="button" onclick="window.addJobComment('${job.id}')" style="background: var(--primary); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0"><i class="fas fa-paper-plane" style="font-size: 0.8rem"></i></button>
+            </div>
+          </div>
+
         </div><!-- /right -->
       </div>
     </div>
@@ -1217,7 +1242,7 @@ window._addServiceToDayInModal = (dayIdx) => {
   const container = document.querySelector(`.day-services-container[data-day="${dayIdx}"]`);
   if (!container) return;
   const sIdx = Date.now();
-  const isStaffView = window.state?.staffViewMode === 'staff';
+  const isStaffView = window.state?.currentUser?.role !== 'admin';
   const newRow = document.createElement('div');
   newRow.className = 'day-service-row';
   newRow.setAttribute('data-sidx', sIdx);
@@ -1331,7 +1356,7 @@ function renderAddJobModal(state) {
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 1.5rem">
+         <div class="form-group" style="margin-bottom: 1.5rem">
            <label style="font-size: 0.75rem; font-weight: 700">Dịch vụ & Nhân sự</label>
            <div id="service-rows-container" style="display: flex; flex-direction: column; gap: 0.5rem">
               <div class="service-entry-row" style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem">
@@ -1341,10 +1366,13 @@ function renderAddJobModal(state) {
                     <option>QUAY TT</option>
                     <option>CHỤP TT</option>
                  </select>
-                 <select class="form-control" name="service_staff[]">
-                    <option value="">Chọn thợ...</option>
-                    ${state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
-                 </select>
+                 <div style="display: flex; flex-direction: column;">
+                   <select class="form-control" name="service_staff[]" onchange="window._checkConflictUI(this)">
+                      <option value="">Chọn thợ...</option>
+                      ${state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+                   </select>
+                   <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
+                 </div>
                  <input type="number" class="form-control" name="service_cost[]" placeholder="Phí thợ">
                  <input type="number" class="form-control" name="service_edit[]" placeholder="Edit">
               </div>
@@ -1363,7 +1391,7 @@ function renderAddJobModal(state) {
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 1rem">
+        <div class="form-group" style="margin-bottom: 1.5rem">
            <label style="font-weight: 700">Timeline & Giờ</label>
            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem">
               <div class="glass-panel" style="padding: 0.75rem">
@@ -1408,16 +1436,21 @@ function renderAddJobModal(state) {
                     <select class="form-control" name="service_type_d2[]">
                        <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
                     </select>
-                    <select class="form-control" name="service_staff_d2[]">
-                       <option value="">Chọn thợ...</option>
-                       ${state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
-                    </select>
+                    <div style="display: flex; flex-direction: column;">
+                      <select class="form-control" name="service_staff_d2[]" onchange="window._checkConflictUI(this)">
+                         <option value="">Chọn thợ...</option>
+                         ${state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+                      </select>
+                      <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
+                    </div>
                     <input type="number" class="form-control" name="service_cost_d2[]" placeholder="Phí thợ">
                     <input type="number" class="form-control" name="service_edit_d2[]" placeholder="Edit">
                  </div>
               </div>
+              <button type="button" id="add-service-row-d2" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem; font-size: 0.65rem">+ Thêm dòng ngày 2</button>
            </div>
         </div>
+
         <div class="modal-footer">
            <button type="button" class="btn btn-secondary" onclick="window.closeModal()">Hủy bỏ</button>
            <button type="submit" class="btn btn-primary">Xác nhận tạo</button>
@@ -1427,25 +1460,55 @@ function renderAddJobModal(state) {
   `;
 
   // Add Row Logic
-  const addRowBtn = container.querySelector('button[type="button"]');
+  const addRowBtn = container.querySelector('#add-service-row');
   const rowContainer = container.querySelector('#service-rows-container');
-  addRowBtn.onclick = () => {
-    const newRow = document.createElement('div');
-    newRow.className = 'service-entry-row';
-    newRow.style = 'display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem; margin-top: 0.5rem';
-    newRow.innerHTML = `
-        <select class="form-control" name="service_type[]">
-          <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
-        </select>
-        <select class="form-control" name="service_staff[]">
-          <option value="">Chọn thợ...</option>
-          ${state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
-        </select>
-        <input type="number" class="form-control" name="service_cost[]" placeholder="Phí thợ">
-        <input type="number" class="form-control" name="service_edit[]" placeholder="Edit">
-      `;
-    rowContainer.appendChild(newRow);
-  };
+  if (addRowBtn) {
+    addRowBtn.onclick = () => {
+      const newRow = document.createElement('div');
+      newRow.className = 'service-entry-row';
+      newRow.style = 'display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem; margin-top: 0.5rem';
+      newRow.innerHTML = `
+          <select class="form-control" name="service_type[]">
+            <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
+          </select>
+          <div style="display: flex; flex-direction: column;">
+            <select class="form-control" name="service_staff[]" onchange="window._checkConflictUI(this)">
+              <option value="">Chọn thợ...</option>
+              ${state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+            </select>
+            <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
+          </div>
+          <input type="number" class="form-control" name="service_cost[]" placeholder="Phí thợ">
+          <input type="number" class="form-control" name="service_edit[]" placeholder="Edit">
+        `;
+      rowContainer.appendChild(newRow);
+    };
+  }
+
+  // Add Row Logic Day 2
+  const addRowBtnD2 = container.querySelector('#add-service-row-d2');
+  const rowContainerD2 = container.querySelector('#service-rows-day2');
+  if (addRowBtnD2) {
+    addRowBtnD2.onclick = () => {
+      const newRow = document.createElement('div');
+      newRow.style = 'display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem; margin-top: 0.5rem';
+      newRow.innerHTML = `
+          <select class="form-control" name="service_type_d2[]">
+            <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
+          </select>
+          <div style="display: flex; flex-direction: column;">
+            <select class="form-control" name="service_staff_d2[]" onchange="window._checkConflictUI(this)">
+              <option value="">Chọn thợ...</option>
+              ${state.staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+            </select>
+            <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
+          </div>
+          <input type="number" class="form-control" name="service_cost_d2[]" placeholder="Phí thợ">
+          <input type="number" class="form-control" name="service_edit_d2[]" placeholder="Edit">
+        `;
+      rowContainerD2.appendChild(newRow);
+    };
+  }
 
   container.querySelector('#add-job-form').onsubmit = (e) => {
     e.preventDefault();
@@ -1551,7 +1614,7 @@ export function renderStaff(state) {
        <div style="flex: 0.7; min-width: 120px">
           <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">Vai trò</label>
           <select id="new-staff-role" class="form-control" style="font-size: 0.85rem; padding: 0.5rem">
-             <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option><option>Quay Flycam</option><option>Editor</option><option>Hỗ trợ</option>
+             <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option><option>Quay Flycam</option><option>Editor</option><option>Hỗ trợ</option><option>CTV</option>
           </select>
        </div>
        <div style="flex: 0.7; min-width: 120px">
@@ -1592,7 +1655,7 @@ export function renderStaff(state) {
                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
                   <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Tên</label><input class="form-control" id="edit-name-${escapedName}" value="${member.name}" style="font-size: 0.85rem; padding: 0.4rem"></div>
                   <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Vai trò</label><select class="form-control" id="edit-role-${escapedName}" style="font-size: 0.85rem; padding: 0.4rem">
-                     <option ${member.role === 'QUAY PS' ? 'selected' : ''}>QUAY PS</option><option ${member.role === 'CHỤP PS' ? 'selected' : ''}>CHỤP PS</option><option ${member.role === 'QUAY TT' ? 'selected' : ''}>QUAY TT</option><option ${member.role === 'CHỤP TT' ? 'selected' : ''}>CHỤP TT</option><option ${member.role === 'Quay Flycam' ? 'selected' : ''}>Quay Flycam</option><option ${member.role === 'Editor' ? 'selected' : ''}>Editor</option><option ${member.role === 'Hỗ trợ' ? 'selected' : ''}>Hỗ trợ</option>
+                     <option ${member.role === 'QUAY PS' ? 'selected' : ''}>QUAY PS</option><option ${member.role === 'CHỤP PS' ? 'selected' : ''}>CHỤP PS</option><option ${member.role === 'QUAY TT' ? 'selected' : ''}>QUAY TT</option><option ${member.role === 'CHỤP TT' ? 'selected' : ''}>CHỤP TT</option><option ${member.role === 'Quay Flycam' ? 'selected' : ''}>Quay Flycam</option><option ${member.role === 'Editor' ? 'selected' : ''}>Editor</option><option ${member.role === 'Hỗ trợ' ? 'selected' : ''}>Hỗ trợ</option><option ${member.role === 'CTV' ? 'selected' : ''}>CTV</option>
                   </select></div>
                </div>
                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
@@ -3368,11 +3431,33 @@ export function renderLoginScreen() {
         </button>
       </form>
 
+      <button type="button" id="pwa-install-btn" style="display: none; width: 100%; margin-top: 1.25rem; padding: 0.75rem; background: #fff; color: #16a34a; border: 2px solid #16a34a; border-radius: 12px; font-size: 0.95rem; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.2s;"
+        onmouseenter="this.style.background='#16a34a'; this.style.color='#fff'"
+        onmouseleave="this.style.background='#fff'; this.style.color='#16a34a'">
+        📱 Cài đặt Ứng dụng về máy
+      </button>
+
       <p style="font-size: 0.72rem; color: #6b8f6e; margin-top: 1.5rem">Haru Wedding Film © 2026</p>
     </div>
   `;
 
   setTimeout(() => {
+    // Logic cho nút Cài đặt PWA
+    const installBtn = container.querySelector('#pwa-install-btn');
+    if (installBtn && window.deferredPrompt) {
+      installBtn.style.display = 'block';
+    }
+    if (installBtn) {
+      installBtn.onclick = async () => {
+        if (!window.deferredPrompt) return;
+        window.deferredPrompt.prompt();
+        const { outcome } = await window.deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          installBtn.style.display = 'none';
+        }
+        window.deferredPrompt = null;
+      };
+    }
     // Toggle hiện/ẩn mật khẩu
     const toggleBtn = container.querySelector('#toggle-pw-btn');
     const pwInput = container.querySelector('#login-password');

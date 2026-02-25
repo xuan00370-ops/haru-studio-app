@@ -1988,17 +1988,23 @@ window.login = (username, password) => {
   ];
   let account = HARDCODED_ACCOUNTS.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
 
-  // Auto-generate staff accounts: username = tên, password = phone hoặc '1234'
+  // Auto-generate staff/ctv accounts: username = tên, password = phone hoặc '1234'
   if (!account) {
     const staffMember = state.staff.find(s => s.name.toLowerCase() === username.toLowerCase());
     if (staffMember) {
       const staffPwd = staffMember.phone || '1234';
       if (password === staffPwd || password === '1234') {
-        const isEditor = (staffMember.role || '').toLowerCase().includes('edit');
+        const roleStr = (staffMember.role || '').toLowerCase();
+        const isEditor = roleStr.includes('edit');
+        const isCTV = roleStr.includes('ctv');
+        let accountRole = 'staff';
+        if (isEditor) accountRole = 'editor';
+        else if (isCTV) accountRole = 'ctv';
+
         account = {
           username: staffMember.name,
           password: staffPwd,
-          role: isEditor ? 'editor' : 'staff',
+          role: accountRole,
           displayName: staffMember.name,
           staffName: staffMember.name
         };
@@ -2011,7 +2017,7 @@ window.login = (username, password) => {
   }
   state.currentUser = { username: account.username, role: account.role, displayName: account.displayName, staffName: account.staffName || null };
   localStorage.setItem(SESSION_KEY, JSON.stringify(state.currentUser));
-  if (account.role === 'editor' || account.role === 'staff') {
+  if (['editor', 'staff', 'ctv'].includes(account.role)) {
     state.activePage = 'workspace';
   } else {
     state.activePage = 'dashboard';

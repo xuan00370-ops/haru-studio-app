@@ -31,10 +31,26 @@
   <div id="app"></div>
   <script type="module" src="/main.js"></script>
   <script>
-    // Disable SW to avoid stale cached UI/data during active development.
+    // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(registration => {
+          console.log('SW registered: ', registration);
+        }).catch(err => {
+          console.log('SW registration failed: ', err);
+        });
+      });
     }
+
+    // Capture install prompt for PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPrompt = e;
+      const installBtn = document.getElementById('pwa-install-btn');
+      if (installBtn) {
+        installBtn.style.display = 'block';
+      }
+    });
   </script>
 </body>
 
