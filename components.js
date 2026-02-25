@@ -115,7 +115,7 @@ export function renderSidebar(activePage, navigate) {
         <span class="icon">&#128465;&#65039;</span> Thùng rác
       </div>
       <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.navigate('settings')">
-        <span class="icon">&#9881;&#65039;</span> Cài đặt
+        <span class="icon">👑</span> Admin Center
       </div>` : ''}
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border)">
@@ -1597,34 +1597,12 @@ export function renderStaff(state) {
 
   container.innerHTML = `
     <header class="section-header">
-       <h1 class="view-title">👥 Cộng Tác Viên</h1>
-       <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-staff-form').style.display='flex'"><i class="fas fa-plus"></i> Thêm nhân sự</button>
+       <h1 class="view-title">👥 Danh sách Liên hệ & CTV</h1>
     </header>
 
     <div style="display: flex; gap: 0.5rem; margin: 1rem 0 1.5rem">
        <button class="btn ${staffViewMode === 'all' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="window.state.staffViewMode='all'; window.updateUI && updateUI()">Tất cả (${state.staff.length})</button>
        <button class="btn ${staffViewMode === 'month' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="window.state.staffViewMode='month'; window.updateUI && updateUI()">Tháng ${state.currentMonth} (${filteredStaff.length})</button>
-    </div>
-
-    <div id="add-staff-form" style="display: none; gap: 0.75rem; margin: 0 0 1.5rem; padding: 1.25rem; background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.2); border-radius: 12px; flex-wrap: wrap; align-items: flex-end">
-       <div style="flex: 1; min-width: 150px">
-          <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">Tên</label>
-          <input type="text" id="new-staff-name" class="form-control" placeholder="Nguyễn Văn A" style="font-size: 0.85rem; padding: 0.5rem">
-       </div>
-       <div style="flex: 0.7; min-width: 120px">
-          <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">Vai trò</label>
-          <select id="new-staff-role" class="form-control" style="font-size: 0.85rem; padding: 0.5rem">
-             <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option><option>Quay Flycam</option><option>Editor</option><option>Hỗ trợ</option><option>CTV</option>
-          </select>
-       </div>
-       <div style="flex: 0.7; min-width: 120px">
-          <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">SĐT (Zalo)</label>
-          <input type="text" id="new-staff-phone" class="form-control" placeholder="09xxxxxxxx" style="font-size: 0.85rem; padding: 0.5rem">
-       </div>
-       <div style="display: flex; gap: 0.5rem">
-          <button class="btn btn-primary btn-sm" onclick="window.addStaff({name:document.getElementById('new-staff-name').value,role:document.getElementById('new-staff-role').value,phone:document.getElementById('new-staff-phone').value,bank:{no:'',name:'',bank:''}})">Thêm</button>
-          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('add-staff-form').style.display='none'">Hủy</button>
-       </div>
     </div>
 
     <div class="staff-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem">
@@ -1644,28 +1622,6 @@ export function renderStaff(state) {
                      <span class="badge" style="font-size: 0.65rem; background: rgba(34,197,94,0.12); color: #16a34a">${member.role}</span>
                      ${member.phone ? `<span style="font-size: 0.75rem; color: var(--text-dim)">${member.phone}</span>` : ''}
                   </div>
-               </div>
-               <div style="display: flex; gap: 0.3rem">
-                  <button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem" onclick="window.showEditStaff('${escapedName}')" title="Sửa"><i class="fas fa-pen"></i></button>
-                  ${state.currentUser?.role === 'admin' ? `<button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem; font-size: 0.65rem; color: var(--danger)" onclick="if(confirm('Xóa nhân sự ${escapedName}?')) window.removeStaff('${escapedName}')" title="Xóa"><i class="fas fa-trash"></i></button>` : ''}
-               </div>
-            </div>
-
-            <div id="edit-form-${escapedName}" style="display: none; padding: 1rem; background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.15); border-radius: 10px">
-               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
-                  <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Tên</label><input class="form-control" id="edit-name-${escapedName}" value="${member.name}" style="font-size: 0.85rem; padding: 0.4rem"></div>
-                  <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Vai trò</label><select class="form-control" id="edit-role-${escapedName}" style="font-size: 0.85rem; padding: 0.4rem">
-                     <option ${member.role === 'QUAY PS' ? 'selected' : ''}>QUAY PS</option><option ${member.role === 'CHỤP PS' ? 'selected' : ''}>CHỤP PS</option><option ${member.role === 'QUAY TT' ? 'selected' : ''}>QUAY TT</option><option ${member.role === 'CHỤP TT' ? 'selected' : ''}>CHỤP TT</option><option ${member.role === 'Quay Flycam' ? 'selected' : ''}>Quay Flycam</option><option ${member.role === 'Editor' ? 'selected' : ''}>Editor</option><option ${member.role === 'Hỗ trợ' ? 'selected' : ''}>Hỗ trợ</option><option ${member.role === 'CTV' ? 'selected' : ''}>CTV</option>
-                  </select></div>
-               </div>
-               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
-                  <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">SĐT (Zalo)</label><input class="form-control" id="edit-phone-${escapedName}" value="${member.phone || ''}" style="font-size: 0.85rem; padding: 0.4rem"></div>
-                  <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Số TK</label><input class="form-control" id="edit-bankno-${escapedName}" value="${member.bank?.no || ''}" style="font-size: 0.85rem; padding: 0.4rem"></div>
-                  <div><label style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Ngân hàng</label><input class="form-control" id="edit-bankname-${escapedName}" value="${member.bank?.bank || ''}" style="font-size: 0.85rem; padding: 0.4rem"></div>
-               </div>
-               <div style="display: flex; gap: 0.5rem">
-                  <button class="btn btn-primary btn-sm" onclick="window.saveStaffEdit('${escapedName}')">Lưu</button>
-                  <button class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-form-${escapedName}').style.display='none'">Hủy</button>
                </div>
             </div>
 
@@ -2428,8 +2384,8 @@ export function renderSettings(state) {
   const totalStaff = state.staff.length;
   const totalRevenue = state.jobs.filter(j => !j.isTrash).reduce((s, j) => s + (j.package || 0), 0);
   container.innerHTML = `
-  <h1 class="view-title" >⚙️ Cài đặt hệ thống</h1>
-    <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 2rem">Quản lý cấu hình và thông tin studio</div>
+  <h1 class="view-title" >👑 Trung Tâm Quản Trị</h1>
+    <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 2rem">Quản lý cấu hình, người dùng và dữ liệu hệ thống</div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem">
        <div class="glass-panel" style="padding: 1.5rem">
@@ -2479,10 +2435,110 @@ export function renderSettings(state) {
        <div id="debug-health-result" style="margin-bottom: 0.75rem; max-height: 200px; overflow-y: auto; border-radius: 8px"></div>
        <div id="debug-console-result" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.05); border-radius: 8px"></div>
     </div>
+
+    <!-- STAFF MANAGEMENT PANEL -->
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">
+       <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 1.25rem; color: #3b82f6"><i class="fas fa-users" style="margin-right: 0.5rem"></i>Quản lý Nhân sự & CTV</h3>
+       <button class="btn btn-primary btn-sm" onclick="document.getElementById('admin-add-staff-form').style.display='flex'"><i class="fas fa-plus"></i> Thêm nhân sự mới</button>
+       
+       <div id="admin-add-staff-form" style="display: none; gap: 0.75rem; margin: 1rem 0; padding: 1.25rem; background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-radius: 12px; flex-wrap: wrap; align-items: flex-end">
+          <div style="flex: 1; min-width: 150px">
+             <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">Tên</label>
+             <input type="text" id="new-staff-name" class="form-control" placeholder="Nguyễn Văn A" style="font-size: 0.85rem; padding: 0.5rem">
+          </div>
+          <div style="flex: 0.7; min-width: 120px">
+             <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">Vai trò</label>
+             <select id="new-staff-role" class="form-control" style="font-size: 0.85rem; padding: 0.5rem">
+                <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option><option>Quay Flycam</option><option>Editor</option><option>Hỗ trợ</option><option>CTV</option>
+             </select>
+          </div>
+          <div style="flex: 0.7; min-width: 120px">
+             <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">SĐT (Zalo)</label>
+             <input type="text" id="new-staff-phone" class="form-control" placeholder="09xxxxxxxx" style="font-size: 0.85rem; padding: 0.5rem">
+          </div>
+          <div style="display: flex; gap: 0.5rem">
+             <button class="btn btn-primary btn-sm" onclick="window.addStaff({name:document.getElementById('new-staff-name').value,role:document.getElementById('new-staff-role').value,phone:document.getElementById('new-staff-phone').value,bank:{no:'',name:'',bank:''}})">Thêm</button>
+             <button class="btn btn-secondary btn-sm" onclick="document.getElementById('admin-add-staff-form').style.display='none'">Hủy</button>
+          </div>
+       </div>
+
+       <div style="margin-top: 1.5rem; max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px">
+          <table class="data-table" style="width: 100%; border-collapse: collapse">
+            <thead style="background: rgba(0,0,0,0.04); position: sticky; top: 0; z-index: 10">
+               <tr>
+                 <th style="padding: 0.75rem; text-align: left; font-size: 0.75rem">Tên</th>
+                 <th style="padding: 0.75rem; text-align: left; font-size: 0.75rem">Vai trò</th>
+                 <th style="padding: 0.75rem; text-align: left; font-size: 0.75rem">SĐT / TK Ngân Hàng</th>
+                 <th style="padding: 0.75rem; text-align: right; font-size: 0.75rem">Thao tác</th>
+               </tr>
+            </thead>
+            <tbody>
+              ${state.staff.map(member => {
+    const escapedName = member.name.replace(/'/g, "\\'");
+    return `
+                 <tr style="border-top: 1px solid var(--border)">
+                   <td style="padding: 0.75rem; font-size: 0.85rem; font-weight: 700">${member.name}</td>
+                   <td style="padding: 0.75rem; font-size: 0.85rem"><span class="badge" style="background: rgba(59,130,246,0.1); color: #3b82f6">${member.role}</span></td>
+                   <td style="padding: 0.75rem; font-size: 0.85rem">
+                     <div>${member.phone || '-'}</div>
+                     <div style="font-size: 0.7rem; color: var(--text-dim)">${member.bank?.no ? member.bank.no + ' - ' + (member.bank.name || '') : ''}</div>
+                   </td>
+                   <td style="padding: 0.75rem; text-align: right; white-space: nowrap">
+                      <button class="btn btn-secondary btn-sm" onclick="window.showEditStaff('${escapedName}')" title="Sửa"><i class="fas fa-pen"></i></button>
+                      <button class="btn btn-secondary btn-sm" style="color: var(--danger)" onclick="if(confirm('Xóa nhân sự ${escapedName}?')) window.removeStaff('${escapedName}')" title="Xóa"><i class="fas fa-trash"></i></button>
+                   </td>
+                 </tr>
+                 <tr id="edit-form-${escapedName}" style="display: none; background: rgba(59,130,246,0.02)">
+                    <td colspan="4" style="padding: 1rem; border-top: 1px dashed var(--border)">
+                       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
+                          <div><label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Tên</label><input class="form-control" id="edit-name-${escapedName}" value="${member.name}" style="font-size: 0.85rem; padding: 0.4rem"></div>
+                          <div><label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Vai trò</label><select class="form-control" id="edit-role-${escapedName}" style="font-size: 0.85rem; padding: 0.4rem">
+                             <option ${member.role === 'QUAY PS' ? 'selected' : ''}>QUAY PS</option><option ${member.role === 'CHỤP PS' ? 'selected' : ''}>CHỤP PS</option><option ${member.role === 'QUAY TT' ? 'selected' : ''}>QUAY TT</option><option ${member.role === 'CHỤP TT' ? 'selected' : ''}>CHỤP TT</option><option ${member.role === 'Quay Flycam' ? 'selected' : ''}>Quay Flycam</option><option ${member.role === 'Editor' ? 'selected' : ''}>Editor</option><option ${member.role === 'Hỗ trợ' ? 'selected' : ''}>Hỗ trợ</option><option ${member.role === 'CTV' ? 'selected' : ''}>CTV</option>
+                          </select></div>
+                       </div>
+                       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
+                          <div><label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">SĐT (Zalo)</label><input class="form-control" id="edit-phone-${escapedName}" value="${member.phone || ''}" style="font-size: 0.85rem; padding: 0.4rem"></div>
+                          <div><label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Số TK</label><input class="form-control" id="edit-bankno-${escapedName}" value="${member.bank?.no || ''}" style="font-size: 0.85rem; padding: 0.4rem"></div>
+                          <div><label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Ngân hàng</label><input class="form-control" id="edit-bankname-${escapedName}" value="${member.bank?.bank || ''}" style="font-size: 0.85rem; padding: 0.4rem"></div>
+                       </div>
+                       <div style="display: flex; gap: 0.5rem">
+                          <button class="btn btn-primary btn-sm" onclick="window.saveStaffEdit('${escapedName}')">Lưu</button>
+                          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-form-${escapedName}').style.display='none'">Hủy</button>
+                       </div>
+                    </td>
+                 </tr>
+                 `;
+  }).join('')}
+            </tbody>
+          </table>
+       </div>
+    </div>
     ` : ''}
 
+    <!-- SYSTEM OPERATIONS PANEL -->
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border)">
+       <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 1.25rem; color: #f59e0b"><i class="fas fa-server" style="margin-right: 0.5rem"></i>Thao tác Hệ thống & Đồng bộ</h3>
+       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem">
+          <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; display: flex; flex-direction: column; gap: 0.5rem">
+             <div style="font-weight: 800; color: var(--text-main)"><i class="fas fa-sync-alt" style="color: #3b82f6"></i> Google Sheets</div>
+             <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem">Đồng bộ 2 chiều dữ liệu Job với file Sheets.</div>
+             <button class="btn btn-secondary btn-sm" onclick="window.navigate('sync')" style="margin-top: auto; padding: 0.4rem; font-weight: 700">Mở Đồng Bộ</button>
+          </div>
+          <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; display: flex; flex-direction: column; gap: 0.5rem">
+             <div style="font-weight: 800; color: var(--text-main)"><i class="fas fa-database" style="color: #8b5cf6"></i> NAS & Drive</div>
+             <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem">Theo dõi tiến trình Backup & Source.</div>
+             <button class="btn btn-secondary btn-sm" onclick="window.navigate('nas')" style="margin-top: auto; padding: 0.4rem; font-weight: 700">Mở Quản lý NAS</button>
+          </div>
+          <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; display: flex; flex-direction: column; gap: 0.5rem">
+             <div style="font-weight: 800; color: var(--text-main)"><i class="fas fa-trash-alt" style="color: #ef4444"></i> Thùng Rác</div>
+             <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem">Khôi phục dự án hoặc xóa vĩnh viễn dữ liệu rác.</div>
+             <button class="btn btn-secondary btn-sm" onclick="window.navigate('trash')" style="margin-top: auto; padding: 0.4rem; font-weight: 700; color: var(--danger)">Mở Thùng Rác</button>
+          </div>
+       </div>
+    </div>
+
     <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">
-       <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.5rem; color: #f59e0b"><i class="fas fa-cloud" style="margin-right: 0.5rem"></i>Cấu hình Đám Mây (Firebase)</h3>
+       <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.5rem; color: #10b981"><i class="fas fa-cloud" style="margin-right: 0.5rem"></i>Cấu hình Đám Mây (Firebase)</h3>
        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem">Dán đoạn mã JSON Firebase Config để kết nối App với Realtime Database. <a href="#" style="color: var(--accent-blue)">Xem hướng dẫn</a></p>
        <textarea id="setting-firebase-config" class="form-control" placeholder='{\n  "apiKey": "...",\n  "authDomain": "...",\n  "databaseURL": "...",\n  "projectId": "...",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}' style="width: 100%; height: 120px; font-family: monospace; font-size: 0.8rem; padding: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px">${state.settings.firebaseConfig || ''}</textarea>
        <button class="btn btn-primary btn-sm" style="margin-top: 1rem" onclick="window.saveFirebaseConfig()">💾 Lưu Config & Nối mạng</button>

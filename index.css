@@ -1720,3 +1720,44 @@ tr.paid-row {
     font-size: 0.75rem !important;
   }
 }
+
+/* ============ MOBILE RESPONSIVE FIXES (MODAL) ============ */
+@media (max-width: 768px) {
+  /* Fix cut-off grid rows on mobile for Modal (Nhân sự & Thành phẩm) */
+  .day-service-row, .deliverable-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  
+  .day-service-row > .svc-role-input,
+  .day-service-row > div:nth-child(2) {
+    flex: 1 1 calc(50% - 1.5rem) !important;
+    min-width: 100px !important;
+  }
+  
+  .day-service-row > button.btn.block, .deliverable-row > button.btn.block {
+    flex: 0 0 32px !important;
+    min-width: 32px !important;
+    width: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .day-service-row > div:nth-child(3),
+  .day-service-row > div:nth-child(4) {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+    min-width: 120px !important;
+  }
+  
+  .deliverable-row > .del-name-input {
+    flex: 1 1 100% !important;
+  }
+  
+  .deliverable-row > .del-type-input,
+  .deliverable-row > .del-qty-input {
+    flex: 1 1 calc(50% - 1.5rem) !important;
+    min-width: 80px !important;
+  }
+}
