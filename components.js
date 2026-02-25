@@ -1006,7 +1006,7 @@ function renderJobDetailModal(state) {
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.4rem">🎬 Hạng mục quay/chụp</label>
               <div style="display: flex; flex-wrap: wrap; gap: 0.35rem">
-                ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT'].map(cat => {
+                ${(window.state?.settings?.eventCategories || []).map(cat => {
             const active = (day.categories || []).includes(cat);
             return `<label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.65rem; border-radius: 8px; cursor: pointer; border: 1.5px solid ${active ? 'var(--primary-light)' : 'var(--border)'}; background: ${active ? 'rgba(22,163,74,0.08)' : '#fff'}; color: ${active ? 'var(--primary)' : 'var(--text-dim)'}; transition: all 0.2s">
                     <input type="checkbox" class="day-cat-check" data-day="${idx}" value="${cat}" ${active ? 'checked' : ''} style="display:none"> ${cat}
@@ -1027,7 +1027,7 @@ function renderJobDetailModal(state) {
                 ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => `
                   <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window.state?.currentUser?.role !== 'admin' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
                      <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
-                       ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác'].map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                       ${(window.state?.settings?.serviceRoles || []).map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                      </select>
                      <div style="display:flex; flex-direction:column">
                        <select class="form-control svc-staff-input" data-date="${day.date || job.date}" data-job-id="${job.id || ''}" onchange="window._checkConflictUI(this)" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
@@ -1249,7 +1249,7 @@ window._addServiceToDayInModal = (dayIdx) => {
   newRow.style.cssText = `display: grid; grid-template-columns: 1fr 1.2fr ${isStaffView ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
   newRow.innerHTML = `
      <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
-       <option value="QUAY PS">QUAY PS</option><option value="CHỤP PS">CHỤP PS</option><option value="QUAY TT">QUAY TT</option><option value="CHỤP TT">CHỤP TT</option><option value="Quay Flycam">Quay Flycam</option><option value="Editor">Editor</option><option value="Hỗ trợ">Hỗ trợ</option><option value="Quản lý">Quản lý</option><option value="Khác">Khác</option>
+       ${(window.state?.settings?.serviceRoles || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
      </select>
      <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
        <option value="Chưa xếp">-- Chọn người --</option>
@@ -1361,10 +1361,7 @@ function renderAddJobModal(state) {
            <div id="service-rows-container" style="display: flex; flex-direction: column; gap: 0.5rem">
               <div class="service-entry-row" style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem">
                  <select class="form-control" name="service_type[]">
-                    <option>QUAY PS</option>
-                    <option>CHỤP PS</option>
-                    <option>QUAY TT</option>
-                    <option>CHỤP TT</option>
+                    ${(window.state?.settings?.serviceRoles || []).map(opt => `<option>${opt}</option>`).join('')}
                  </select>
                  <div style="display: flex; flex-direction: column;">
                    <select class="form-control" name="service_staff[]" onchange="window._checkConflictUI(this)">
@@ -1434,7 +1431,7 @@ function renderAddJobModal(state) {
               <div id="service-rows-day2" style="display: flex; flex-direction: column; gap: 0.5rem">
                  <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem">
                     <select class="form-control" name="service_type_d2[]">
-                       <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
+                       ${(window.state?.settings?.serviceRoles || []).map(opt => `<option>${opt}</option>`).join('')}
                     </select>
                     <div style="display: flex; flex-direction: column;">
                       <select class="form-control" name="service_staff_d2[]" onchange="window._checkConflictUI(this)">
@@ -1469,7 +1466,7 @@ function renderAddJobModal(state) {
       newRow.style = 'display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem; margin-top: 0.5rem';
       newRow.innerHTML = `
           <select class="form-control" name="service_type[]">
-            <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
+            ${(window.state?.settings?.serviceRoles || []).map(opt => `<option>${opt}</option>`).join('')}
           </select>
           <div style="display: flex; flex-direction: column;">
             <select class="form-control" name="service_staff[]" onchange="window._checkConflictUI(this)">
@@ -1494,7 +1491,7 @@ function renderAddJobModal(state) {
       newRow.style = 'display: grid; grid-template-columns: 1.5fr 1fr 1fr 100px; gap: 0.5rem; margin-top: 0.5rem';
       newRow.innerHTML = `
           <select class="form-control" name="service_type_d2[]">
-            <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
+            ${(window.state?.settings?.serviceRoles || []).map(opt => `<option>${opt}</option>`).join('')}
           </select>
           <div style="display: flex; flex-direction: column;">
             <select class="form-control" name="service_staff_d2[]" onchange="window._checkConflictUI(this)">
@@ -2449,7 +2446,7 @@ export function renderSettings(state) {
           <div style="flex: 0.7; min-width: 120px">
              <label style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem">Vai trò</label>
              <select id="new-staff-role" class="form-control" style="font-size: 0.85rem; padding: 0.5rem">
-                <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option><option>Quay Flycam</option><option>Editor</option><option>Hỗ trợ</option><option>CTV</option>
+                ${(window.state?.settings?.serviceRoles || []).map(opt => `<option>${opt}</option>`).join('')}
              </select>
           </div>
           <div style="flex: 0.7; min-width: 120px">
@@ -2493,7 +2490,7 @@ export function renderSettings(state) {
                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
                           <div><label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Tên</label><input class="form-control" id="edit-name-${escapedName}" value="${member.name}" style="font-size: 0.85rem; padding: 0.4rem"></div>
                           <div><label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Vai trò</label><select class="form-control" id="edit-role-${escapedName}" style="font-size: 0.85rem; padding: 0.4rem">
-                             <option ${member.role === 'QUAY PS' ? 'selected' : ''}>QUAY PS</option><option ${member.role === 'CHỤP PS' ? 'selected' : ''}>CHỤP PS</option><option ${member.role === 'QUAY TT' ? 'selected' : ''}>QUAY TT</option><option ${member.role === 'CHỤP TT' ? 'selected' : ''}>CHỤP TT</option><option ${member.role === 'Quay Flycam' ? 'selected' : ''}>Quay Flycam</option><option ${member.role === 'Editor' ? 'selected' : ''}>Editor</option><option ${member.role === 'Hỗ trợ' ? 'selected' : ''}>Hỗ trợ</option><option ${member.role === 'CTV' ? 'selected' : ''}>CTV</option>
+                             ${(window.state?.settings?.serviceRoles || []).map(opt => `<option ${member.role === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                           </select></div>
                        </div>
                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
@@ -2535,6 +2532,24 @@ export function renderSettings(state) {
              <button class="btn btn-secondary btn-sm" onclick="window.navigate('trash')" style="margin-top: auto; padding: 0.4rem; font-weight: 700; color: var(--danger)">Mở Thùng Rác</button>
           </div>
        </div>
+    </div>
+
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">
+       <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 1.25rem; color: #8b5cf6"><i class="fas fa-tags" style="margin-right: 0.5rem"></i>Quản lý Danh mục (Categories)</h3>
+       
+       <div style="margin-bottom: 1.5rem">
+         <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-main); display: block; margin-bottom: 0.5rem">Hạng mục Sự kiện (Event Categories)</label>
+         <p style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem">Nhập các hạng mục phân tách nhau bằng dấu phẩy (,)</p>
+         <input type="text" id="setting-event-categories" class="form-control" value="${(state.settings.eventCategories || []).join(', ')}" style="font-size: 0.85rem; padding: 0.6rem">
+       </div>
+
+       <div style="margin-bottom: 1.5rem">
+         <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-main); display: block; margin-bottom: 0.5rem">Vai trò Dịch vụ (Service Roles)</label>
+         <p style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem">Nhập các vai trò phân tách nhau bằng dấu phẩy (,)</p>
+         <input type="text" id="setting-service-roles" class="form-control" value="${(state.settings.serviceRoles || []).join(', ')}" style="font-size: 0.85rem; padding: 0.6rem">
+       </div>
+
+       <button class="btn btn-primary btn-sm" onclick="window.saveCategories()">💾 Lưu Danh mục</button>
     </div>
 
     <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">

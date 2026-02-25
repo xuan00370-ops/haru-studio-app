@@ -43,6 +43,8 @@ export const state = {
     taxRate: 0.1,
     depositPercent: 0.2,
     firebaseConfig: '',
+    eventCategories: ['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT'],
+    serviceRoles: ['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác', 'CTV'],
     rates: mockData.settings?.rates || {},
     accounts: [
       { username: 'ADMIN', password: 'ADMIN', role: 'admin', displayName: 'Admin' },
@@ -1064,6 +1066,48 @@ window.saveJobDetail = (jobId, closeModalAfter = true) => {
 };
 
 // ============================================================
+// JOB CHAT (Trao đổi nội bộ)
+// ============================================================
+window.addJobComment = (jobId) => {
+  const inputEl = document.getElementById('job-chat-input');
+  if (!inputEl) return;
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+
+  if (!job.comments) job.comments = [];
+
+  const currentUser = window.state?.currentUser?.displayName || window.state?.currentUser?.username || 'Ẩn danh';
+  const newComment = {
+    user: currentUser,
+    text: text,
+    time: new Date().toISOString()
+  };
+  job.comments.push(newComment);
+
+  saveState();
+  inputEl.value = '';
+
+  const msgContainer = document.getElementById('job-chat-messages');
+  if (msgContainer) {
+    const timeStr = new Date(newComment.time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const htmlObj = `
+      <div style="display: flex; flex-direction: column; gap: 0.2rem; align-items: flex-end">
+         <div style="font-size: 0.65rem; color: var(--text-dim); font-weight: 700; padding: 0 0.2rem">${newComment.user} <span style="font-weight: 400; opacity: 0.8">• ${timeStr}</span></div>
+         <div style="background: var(--primary); color: #fff; padding: 0.5rem 0.75rem; border-radius: 12px; font-size: 0.85rem; max-width: 90%; line-height: 1.4; word-wrap: break-word; border-bottom-right-radius: 2px">${newComment.text}</div>
+      </div>
+    `;
+    if (job.comments.length === 1) {
+      msgContainer.innerHTML = '';
+    }
+    msgContainer.insertAdjacentHTML('beforeend', htmlObj);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
+};
+
+// ============================================================
 // MULTI-DAY TAB HELPERS (for renderJobDetailModal)
 // ============================================================
 window._switchDayTab = (idx) => {
@@ -1162,7 +1206,7 @@ window._addDayTab = () => {
       <div>
         <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.4rem">🎬 Hạng mục quay/chụp</label>
         <div style="display: flex; flex-wrap: wrap; gap: 0.35rem">
-          ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT'].map(cat => `<label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.65rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--text-dim); transition: all 0.2s">
+          ${(window.state?.settings?.eventCategories || []).map(cat => `<label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.65rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--text-dim); transition: all 0.2s">
             <input type="checkbox" class="day-cat-check" data-day="${newIdx}" value="${cat}" style="display:none"> ${cat}
           </label>`).join('')}
         </div>
@@ -1703,7 +1747,7 @@ window.addServiceRowInModal = () => {
   const newRow = document.createElement('tr');
   newRow.innerHTML = `
     <td><select class="form-control" style="font-size:0.8rem;padding:0.3rem">
-      <option>QUAY PS</option><option>CHỤP PS</option><option>QUAY TT</option><option>CHỤP TT</option>
+      ${(window.state?.settings?.serviceRoles || []).map(opt => `<option>${opt}</option>`).join('')}
     </select></td>
     <td><select class="form-control" style="font-size:0.8rem;padding:0.3rem">
       <option value="">-- Chọn thợ --</option>${staffOptions}
@@ -2449,6 +2493,24 @@ window.removeClient = (id) => {
   window.addHistory('Xóa khách hàng ID: ' + id);
   saveState();
   updateUI();
+};
+
+window.saveCategories = () => {
+  const catInput = document.getElementById('setting-event-categories');
+  const roleInput = document.getElementById('setting-service-roles');
+
+  if (catInput && roleInput) {
+    const categories = catInput.value.split(',').map(s => s.trim()).filter(Boolean);
+    const roles = roleInput.value.split(',').map(s => s.trim()).filter(Boolean);
+
+    state.settings.eventCategories = categories;
+    state.settings.serviceRoles = roles;
+
+    window.addHistory('Cập nhật Danh mục & Vai trò');
+    saveState();
+    window.sendNotification('Thành công', 'Đã lưu cấu hình danh mục sự kiện và nhân sự!', '✅');
+    updateUI();
+  }
 };
 
 // ============================================================
