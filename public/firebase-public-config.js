@@ -5,7 +5,7 @@
 window.HARU_PUBLIC_FIREBASE_CONFIG = {
   apiKey: "AIzaSyCzyL0JG6gnSmmaSpUnCfMQJOiiNijQ4Gk",
   authDomain: "haru-studio-6917a.firebaseapp.com",
-  databaseURL: "https://haru-studio-6917a-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: "https://haru-studio-6917a-default-rtdb.firebaseio.com",
   projectId: "haru-studio-6917a",
   storageBucket: "haru-studio-6917a.firebasestorage.app",
   messagingSenderId: "812528617751",
