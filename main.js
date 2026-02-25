@@ -76,6 +76,30 @@ export const state = {
 // Deliverables migration moved to bootload() — runs after real data loads
 
 // ============================================================
+// FIREBASE PUBLIC CONFIG FALLBACK (for shared/public access)
+// ============================================================
+function parseFirebaseConfig(raw) {
+  if (!raw) return null;
+  if (typeof raw === 'object') return raw;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+function getPublicFirebaseConfig() {
+  // 1) Global injected config (firebase-public-config.js)
+  const globalCfg = parseFirebaseConfig(window.HARU_PUBLIC_FIREBASE_CONFIG || window.HARU_FIREBASE_CONFIG);
+  if (globalCfg?.apiKey && globalCfg?.databaseURL) return globalCfg;
+
+  // 2) Legacy localStorage key used by some builds
+  try {
+    const legacy = parseFirebaseConfig(localStorage.getItem('haru_app_state_v2'));
+    const cfg = parseFirebaseConfig(legacy?.settings?.firebaseConfig || legacy?.firebaseConfig);
+    if (cfg?.apiKey && cfg?.databaseURL) return cfg;
+  } catch {}
+
+  return null;
+}
+
+// ============================================================
 // PERSISTENCE — localStorage + Firebase
 // ============================================================
 export function saveState() {
@@ -294,13 +318,22 @@ async function bootload() {
     }
   } catch (e) { console.warn('Local Load Err:', e); }
 
-  // 2. Kích hoạt Firebase nếu có config (opt-in only or via .env)
+  // 2. Kích hoạt Firebase nếu có config
+  // Thứ tự ưu tiên: state.settings -> VITE_FIREBASE_CONFIG -> public injected config
   const envFirebaseConfig = import.meta.env && import.meta.env.VITE_FIREBASE_CONFIG;
-  const activeFirebaseConfig = state.settings.firebaseConfig || envFirebaseConfig;
-  const isSyncEnabled = state.settings.enableFirebaseSync === true || !!envFirebaseConfig;
+  const effectiveFirebaseConfig = state.settings.firebaseConfig || envFirebaseConfig || getPublicFirebaseConfig();
+  const isHubMode = urlParams.get('hub') === 'haru' || Boolean(urlParams.get('gallery'));
+  const shouldUseFirebase = Boolean(effectiveFirebaseConfig) && (state.settings.enableFirebaseSync === true || !!envFirebaseConfig || isHubMode || !state.settings.firebaseConfig);
 
-  if (activeFirebaseConfig && (isSyncEnabled || urlParams.get('hub') === 'haru' || urlParams.get('gallery'))) {
-    const isOk = initFirebase(activeFirebaseConfig);
+  if (shouldUseFirebase) {
+    if (!state.settings.firebaseConfig && effectiveFirebaseConfig) {
+      // gán runtime để hàm initFirebase nhận được config ổn định trên máy mới
+      state.settings.firebaseConfig = typeof effectiveFirebaseConfig === 'string'
+        ? effectiveFirebaseConfig
+        : JSON.stringify(effectiveFirebaseConfig);
+    }
+
+    const isOk = initFirebase(state.settings.firebaseConfig || effectiveFirebaseConfig);
     if (isOk) {
       // Fetch latest từ Firebase đè lên
       const fbData = await loadFromFirebase();
