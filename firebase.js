@@ -32,10 +32,11 @@ export async function syncToFirebase(state) {
             jobs: state.jobs,
             staff: state.staff,
             financeMetadata: state.financeMetadata,
-            manualTransactions: state.manualTransactions,
-            settings: state.settings,
+            manualTransactions: state.manualTransactions || [],
+            settings: state.settings || {},
             history: state.history,
-            clients: state.clients || [] // Chuẩn bị cho Phase 3: CRM
+            clients: state.clients || [], // Chuẩn bị cho Phase 3: CRM
+            portfolios: state.portfolios || []
         };
         await set(ref(db, 'haru_state'), payload);
     } catch (err) {

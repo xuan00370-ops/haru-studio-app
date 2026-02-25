@@ -284,7 +284,8 @@ async function bootload() {
             manualTransactions: localData.manualTransactions || [],
             settings: localData.settings || state.settings,
             history: localData.history || state.history,
-            clients: localData.clients || []
+            clients: localData.clients || [],
+            portfolios: localData.portfolios || []
           });
         } else {
           console.warn('[Haru] Bỏ qua local cache vì dữ liệu quá ít:', parsedJobs);
@@ -307,7 +308,8 @@ async function bootload() {
           manualTransactions: fbData.manualTransactions || state.manualTransactions,
           settings: fbData.settings || state.settings,
           history: fbData.history || state.history,
-          clients: fbData.clients || state.clients
+          clients: fbData.clients || state.clients,
+          portfolios: fbData.portfolios || state.portfolios
         });
         console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase!");
       }
@@ -2665,7 +2667,15 @@ window._openPortfolioModal = (id = null) => {
 
             <div class="form-group">
                <label>Ảnh Bìa (Thumbnail URL) *</label>
-               <input type="url" id="pf-thumbnail" class="form-control" value="${p.thumbnail}" placeholder="https://domain.com/anh-bia.jpg">
+               <div style="display:flex; gap:0.5rem; align-items:center;">
+                 <input type="url" id="pf-thumbnail" class="form-control" value="${p.thumbnail}" placeholder="https://domain.com/anh-bia.jpg" style="flex:1;">
+                 <label for="pf-thumb-upload" class="btn" style="cursor:pointer; padding: 0.5rem 1rem; white-space:nowrap; border:1px solid var(--border); background:var(--bg-body)">
+                    <i class="fas fa-upload"></i> Tải ảnh lên
+                 </label>
+                 <input type="file" id="pf-thumb-upload" accept="image/*" style="display:none" onchange="window._handleThumbnailUpload(event)">
+               </div>
+               <div id="pf-thumb-preview" style="display:${p.thumbnail ? 'block' : 'none'}; width:100%; height:120px; border-radius:8px; background:url('${p.thumbnail}') center/cover; border:1px solid var(--border); margin-top:0.5rem"></div>
+               <div id="pf-thumb-status" style="font-size:0.8rem; font-weight:800; color:var(--primary); display:none; margin-top:0.3rem">Đang tải lên...</div>
                <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.3rem">Khuyên dùng ảnh ngang 16:9 chất lượng cao.</div>
             </div>
 
@@ -2740,8 +2750,8 @@ window._handleImgBBUpload = async (e, portfolioId) => {
   const statusEl = document.getElementById('pf-upload-status');
   const previewContainer = document.getElementById('pf-gallery-preview');
 
-  // ImgBB API Key (Provided by user context / free tier)
-  const IMGBB_API_KEY = '6e7ce3b6ca2830f30501a4db6d18ae4e'; // Free tier API key for Haru Studio
+  // ImgBB API Key
+  const IMGBB_API_KEY = '06a22bc9051f55716fb1cd1d54658ba3';
 
   statusEl.style.display = 'block';
   statusEl.innerText = `Đang xử lý ${files.length} ảnh...`;
@@ -2783,6 +2793,48 @@ window._handleImgBBUpload = async (e, portfolioId) => {
   statusEl.innerText = `Đã tải xong ${successCount} ảnh!`;
   setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
   // Reset input so throwing same file works again
+  e.target.value = '';
+};
+
+window._handleThumbnailUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('pf-thumb-status');
+  const previewEl = document.getElementById('pf-thumb-preview');
+  const inputEl = document.getElementById('pf-thumbnail');
+
+  const IMGBB_API_KEY = '06a22bc9051f55716fb1cd1d54658ba3';
+
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--primary)';
+  statusEl.innerText = 'Đang tải lên ảnh bìa...';
+
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error?.message || 'Upload failed');
+
+    const imageUrl = data.data.url;
+    inputEl.value = imageUrl;
+    previewEl.style.display = 'block';
+    previewEl.style.backgroundImage = `url('${imageUrl}')`;
+    statusEl.innerText = 'Tải lên thành công!';
+  } catch (err) {
+    console.error("Upload failed for thumbnail", file.name, err);
+    statusEl.innerText = 'Lỗi tải lên: ' + err.message;
+    statusEl.style.color = 'var(--danger)';
+  }
+
+  setTimeout(() => {
+    if (statusEl.innerText === 'Tải lên thành công!') statusEl.style.display = 'none';
+  }, 3000);
   e.target.value = '';
 };
 
