@@ -2079,16 +2079,77 @@ window.saveFirebaseConfig = () => {
   try {
     // Validate JSON
     JSON.parse(configStr);
-    // Actually we imported initFirebase at top of main.js
 
-    // We can't easily dynamically re-import since it's an ES6 module, but we already imported it.
-    // However, it's safer to just set the state and reload the page.
     state.settings.firebaseConfig = configStr;
     state.settings.enableFirebaseSync = true;
     saveState();
     alert('Đã lưu cấu hình Đám Mây! Vui lòng tải lại trang (F5) để kết nối Database.');
   } catch (err) {
     alert('Lỗi: Cấu hình JSON không hợp lệ. Vui lòng kiểm tra lại!');
+  }
+};
+
+window.migrateLocalPortfolioToFirebase = async () => {
+  try {
+    const collectFromState = Array.isArray(state.portfolios) ? state.portfolios : [];
+
+    const collectFromLegacy = [];
+    const legacyKeys = ['haru_state_v1', 'haru_state_v2', 'haru_app_state_v2'];
+    for (const key of legacyKeys) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed?.portfolios)) {
+          collectFromLegacy.push(...parsed.portfolios);
+        }
+      } catch {}
+    }
+
+    const merged = [...collectFromState, ...collectFromLegacy].filter(Boolean);
+    const uniqueMap = new Map();
+    for (const p of merged) {
+      const k = String(p.id || p.slug || p.title || Math.random());
+      if (!uniqueMap.has(k)) uniqueMap.set(k, p);
+    }
+    const portfolios = Array.from(uniqueMap.values());
+
+    if (!portfolios.length) {
+      alert('Không tìm thấy portfolio local để migrate.');
+      return;
+    }
+
+    let configRaw = state.settings.firebaseConfig;
+    if (!configRaw) {
+      const envCfg = (() => {
+        try { return import.meta.env?.VITE_FIREBASE_CONFIG || null; } catch { return null; }
+      })();
+      const publicCfg = window.HARU_PUBLIC_FIREBASE_CONFIG || window.HARU_FIREBASE_CONFIG || null;
+      configRaw = envCfg || (publicCfg ? JSON.stringify(publicCfg) : '');
+    }
+
+    if (!configRaw) {
+      alert('Thiếu Firebase Config. Vào Cài đặt dán config trước khi migrate.');
+      return;
+    }
+
+    const ok = initFirebase(configRaw);
+    if (!ok) {
+      alert('Không thể kết nối Firebase. Kiểm tra lại cấu hình.');
+      return;
+    }
+
+    state.settings.firebaseConfig = typeof configRaw === 'string' ? configRaw : JSON.stringify(configRaw);
+    state.settings.enableFirebaseSync = true;
+    state.portfolios = portfolios;
+
+    await syncToFirebase(state);
+    saveState();
+
+    alert(`✅ Đã migrate ${portfolios.length} portfolio lên Firebase.`);
+  } catch (err) {
+    console.error('migrateLocalPortfolioToFirebase error:', err);
+    alert('Migrate thất bại. Xem console để biết chi tiết.');
   }
 };
 

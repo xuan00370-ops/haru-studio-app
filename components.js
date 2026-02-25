@@ -2560,6 +2560,7 @@ export function renderSettings(state) {
        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem">Dán đoạn mã JSON Firebase Config để kết nối App với Realtime Database. <a href="#" style="color: var(--accent-blue)">Xem hướng dẫn</a></p>
        <textarea id="setting-firebase-config" class="form-control" placeholder='{\n  "apiKey": "...",\n  "authDomain": "...",\n  "databaseURL": "...",\n  "projectId": "...",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}' style="width: 100%; height: 120px; font-family: monospace; font-size: 0.8rem; padding: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px">${state.settings.firebaseConfig || ''}</textarea>
        <button class="btn btn-primary btn-sm" style="margin-top: 1rem" onclick="window.saveFirebaseConfig()">💾 Lưu Config & Nối mạng</button>
+       <button class="btn btn-secondary btn-sm" style="margin-top: 0.6rem" onclick="window.migrateLocalPortfolioToFirebase()">🚀 Migrate Local Portfolio → Firebase</button>
     </div>
 
     <div class="glass-panel" style="padding: 1.5rem">
