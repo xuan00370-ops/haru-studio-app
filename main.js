@@ -2761,56 +2761,129 @@ window._openPortfolioModal = (id = null, importData = null) => {
   });
 };
 
-window._handleImgBBUpload = async (e, portfolioId) => {
-  const files = e.target.files;
-  if (!files || files.length === 0) return;
+// Global Upload Queue State
+window._pfUploadQueue = window._pfUploadQueue || {
+  isUploading: false,
+  totalItems: 0,
+  completedItems: 0,
+  items: [] // { file, uiElement }
+};
 
-  const statusEl = document.getElementById('pf-upload-status');
-  const previewContainer = document.getElementById('pf-gallery-preview');
+window._processPfUploadQueue = async () => {
+  if (window._pfUploadQueue.isUploading || window._pfUploadQueue.items.length === 0) return;
+  window._pfUploadQueue.isUploading = true;
 
-  // ImgBB API Key
   const IMGBB_API_KEY = '06a22bc9051f55716fb1cd1d54658ba3';
 
-  statusEl.style.display = 'block';
-  statusEl.innerText = `Đang xử lý ${files.length} ảnh...`;
+  // Create UI Toast if not exists
+  let toast = document.getElementById('pf-global-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'pf-global-toast';
+    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#fff; border-left:4px solid var(--primary); box-shadow:0 10px 25px rgba(0,0,0,0.1); padding:1rem 1.5rem; border-radius:8px; z-index:99999; display:flex; flex-direction:column; gap:0.5rem; font-family:"Google Sans", sans-serif; min-width:300px; transform:translateY(150%); transition:transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);';
+    toast.innerHTML = `
+      <div style="font-weight:700; color:var(--text-main); font-size:0.95rem; display:flex; justify-content:space-between; align-items:center;">
+        <span><i class="fas fa-cloud-upload-alt" style="color:var(--primary); margin-right:0.5rem"></i>Đang tải kho ảnh...</span>
+        <span id="pf-toast-count" style="color:var(--text-dim); font-size:0.85rem">0/0</span>
+      </div>
+      <div style="width:100%; background:#e2e8f0; height:6px; border-radius:3px; overflow:hidden;">
+        <div id="pf-toast-bar" style="height:100%; width:0%; background:var(--primary); transition:width 0.3s ease;"></div>
+      </div>
+      <div id="pf-toast-note" style="font-size:0.75rem; color:var(--text-dim);">Vui lòng không đóng trình duyệt...</div>
+    `;
+    document.body.appendChild(toast);
+  }
 
-  if (previewContainer.innerHTML.includes('Chưa có ảnh nào')) previewContainer.innerHTML = '';
+  // Show Toast
+  setTimeout(() => toast.style.transform = 'translateY(0)', 10);
 
-  let successCount = 0;
-  for (let i = 0; i < files.length; i++) {
-    statusEl.innerText = `Đang tải lên ${i + 1}/${files.length}...`;
+  while (window._pfUploadQueue.items.length > 0) {
+    const item = window._pfUploadQueue.items[0]; // peek
+
+    // Update Toast UI
+    const total = window._pfUploadQueue.totalItems;
+    const current = window._pfUploadQueue.completedItems + 1;
+    document.getElementById('pf-toast-count').innerText = `${current}/${total}`;
+    document.getElementById('pf-toast-bar').style.width = `${(current / total) * 100}%`;
+
     try {
       const formData = new FormData();
-      formData.append('image', files[i]);
-      // Note: In a real prod it's better to route this through a backend to hide the key, 
-      // but for client-only Haru Studio, we use the direct ImgBB API endpoint as requested.
+      formData.append('image', item.file);
       const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
         method: 'POST',
         body: formData
       });
-
       const data = await res.json();
       if (!data.success) throw new Error(data.error?.message || 'Upload failed');
 
-      const imageUrl = data.data.url;
+      const realUrl = data.data.url;
+      // Replace the local URL hidden input with the real uploaded URL
+      if (item.uiElement) {
+        const inputUrl = item.uiElement.querySelector('.pf-img-url');
+        if (inputUrl) inputUrl.value = realUrl;
 
-      const div = document.createElement('div');
-      div.className = 'pf-img-item';
-      div.style.cssText = `position:relative; padding-bottom:100%; border-radius:8px; overflow:hidden; background:url('${imageUrl}') center/cover; border:1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.1)`;
-      div.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.9); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3)">×</button>
-        <input type="hidden" class="pf-img-url" value="${imageUrl}">
-      `;
-      previewContainer.appendChild(div);
-      successCount++;
+        // Remove loading spinner overlay from the image item
+        const spinner = item.uiElement.querySelector('.pf-local-spinner');
+        if (spinner) spinner.remove();
+      }
     } catch (err) {
-      console.error("Upload failed for file", files[i].name, err);
+      console.error("Background upload failed for", item.file.name, err);
+      if (item.uiElement) item.uiElement.style.border = '2px solid red';
     }
+
+    // Dequeue
+    window._pfUploadQueue.items.shift();
+    window._pfUploadQueue.completedItems++;
   }
 
-  statusEl.innerText = `Đã tải xong ${successCount} ảnh!`;
-  setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
-  // Reset input so throwing same file works again
+  // Finished everything in queue
+  document.getElementById('pf-toast-count').innerText = `${window._pfUploadQueue.completedItems}/${window._pfUploadQueue.totalItems}`;
+  document.getElementById('pf-toast-bar').style.width = `100%`;
+  document.getElementById('pf-toast-note').innerText = 'Hoàn tất tải lên!';
+  document.getElementById('pf-toast-note').style.color = 'var(--primary)';
+
+  setTimeout(() => {
+    toast.style.transform = 'translateY(150%)';
+    // Reset global state for next batch
+    window._pfUploadQueue.totalItems = 0;
+    window._pfUploadQueue.completedItems = 0;
+    window._pfUploadQueue.isUploading = false;
+  }, 3000);
+};
+
+window._handleImgBBUpload = (e, portfolioId) => {
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+
+  const previewContainer = document.getElementById('pf-gallery-preview');
+  if (previewContainer.innerHTML.includes('Chưa có ảnh nào')) previewContainer.innerHTML = '';
+
+  // 1. Instantly display Local Previews
+  Array.from(files).forEach(file => {
+    const localUrl = URL.createObjectURL(file);
+
+    const div = document.createElement('div');
+    div.className = 'pf-img-item pf-local-preview'; // mark as local
+    div.style.cssText = `position:relative; padding-bottom:100%; border-radius:8px; overflow:hidden; background:url('${localUrl}') center/cover; border:1px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1)`;
+    div.innerHTML = `
+      <div class="pf-local-spinner" style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:0.5rem; transition:opacity 0.3s">
+         <i class="fas fa-circle-notch fa-spin" style="color:var(--primary); font-size:1.5rem"></i>
+         <span style="font-size:0.7rem; font-weight:700; color:var(--primary)">Chờ tải...</span>
+      </div>
+      <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.9); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:10">×</button>
+      <input type="hidden" class="pf-img-url" value="PENDING_UPLOAD">
+    `;
+    previewContainer.appendChild(div);
+
+    // 2. Add to Global Background Queue
+    window._pfUploadQueue.items.push({ file, uiElement: div });
+    window._pfUploadQueue.totalItems++;
+  });
+
+  // 3. Trigger Background Worker non-blocking
+  window._processPfUploadQueue();
+
+  // Reset input
   e.target.value = '';
 };
 

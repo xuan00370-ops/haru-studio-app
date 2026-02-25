@@ -4282,8 +4282,8 @@ export function renderGalleryClient(galleryId, state) {
     // Extract unique categories for filtering
     const categories = ['Tất cả', ...new Set(publicPortfolios.map(p => p.category).filter(Boolean))];
 
-    // Fonts: Caveat for handwriting, Special Elite for typewriter
-    const fontStr = `<style>@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap');</style>`;
+    // Fonts: Patrick Hand for handwriting (great Vietnamese support), Space Mono for typewriter
+    const fontStr = `<style>@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');</style>`;
 
     container.innerHTML = fontStr + `
       <style>
@@ -4301,7 +4301,7 @@ export function renderGalleryClient(galleryId, state) {
            text-align: center;
         }
         .scrapbook-hero h1 {
-           font-family: 'Caveat', cursive;
+           font-family: 'Patrick Hand', cursive;
            font-size: clamp(4rem, 10vw, 7rem);
            color: #2c2925;
            margin: 0;
@@ -4309,7 +4309,7 @@ export function renderGalleryClient(galleryId, state) {
            transform: rotate(-2deg);
         }
         .scrapbook-hero p {
-           font-family: 'Special Elite', monospace;
+           font-family: 'Space Mono', monospace;
            font-size: 1rem;
            color: #5c554b;
            margin-top: 1rem;
@@ -4321,7 +4321,7 @@ export function renderGalleryClient(galleryId, state) {
            border: 1px dashed rgba(0,0,0,0.3);
            color: #4a443a;
            padding: 0.5rem 1.2rem;
-           font-family: 'Special Elite', monospace;
+           font-family: 'Space Mono', monospace;
            font-size: 0.85rem;
            cursor: pointer;
            transition: all 0.3s ease;
@@ -4387,7 +4387,7 @@ export function renderGalleryClient(galleryId, state) {
         }
         
         .scrapbook-title {
-           font-family: 'Caveat', cursive;
+           font-family: 'Patrick Hand', cursive;
            font-size: 2.2rem;
            line-height: 1.1;
            margin-top: 1rem;
@@ -4399,7 +4399,7 @@ export function renderGalleryClient(galleryId, state) {
            position: absolute;
            bottom: 1rem;
            right: 1.5rem;
-           font-family: 'Special Elite', monospace;
+           font-family: 'Space Mono', monospace;
            font-size: 0.65rem;
            color: #666;
            transform: rotate(-3deg);
@@ -4438,7 +4438,7 @@ export function renderGalleryClient(galleryId, state) {
         
         /* Additional styling for decorative elements */
         .washi-text {
-            font-family: 'Caveat', cursive;
+            font-family: 'Patrick Hand', cursive;
             font-size: 1rem;
             color: #4a443a;
             position: absolute;
