@@ -2947,7 +2947,8 @@ window._savePortfolio = (id) => {
   const images = allImages.filter(url => url !== 'PENDING_UPLOAD');
 
   if (images.length < allImages.length) {
-    alert(`Lưu ý: Có ${allImages.length - images.length} ảnh vẫn đang được tải lên ngầm và sẽ không được lưu vào đợt này. Vui lòng đợi tải xong và ấn Lưu lại sau nếu cần thiết.`);
+    const confirmSave = confirm(`Lưu ý: Có ${allImages.length - images.length} ảnh vẫn đang được tải lên ngầm.\n\nNếu bạn bấm Lưu bây giờ, những ảnh đang tải dở sẽ bị BỎ QUA.\nNếu bạn muốn đợi tải xong, hãy bấm Cancel và chờ thanh màu xanh chạy hết rồi ấn Lưu lại.\n\nTiếp tục lưu những ảnh đã xong?`);
+    if (!confirmSave) return;
   }
 
   const pf = {
