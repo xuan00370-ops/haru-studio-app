@@ -130,3 +130,11 @@ Lợi nhuận ròng  = Doanh thu - Tổng chi phí - Thuế
 - **Autosave:** `showFloatingSaveStatus()` thay cho toast cũ
 - **Notification:** `addHistory()` tự push vào `state.notificationLog`
 - **Multi-month:** `state.extraMonth = { month, year }` — `null` = chỉ 1 tháng
+
+---
+
+## 10. PHÂN PHỐI & DEPLOYMENT (QUAN TRỌNG)
+
+- **Nguyên tắc triển khai:** Mọi cập nhật mã nguồn dự án bắt buộc **phải đi qua luồng GitHub** (commit & push lên nhánh chính của repository).
+- Không deploy trực tiếp thông qua các công cụ bên thứ 3 khác (ví dụ: không gõ `npx vercel` hay `firebase deploy` trực tiếp từ máy nhánh) để đảm bảo đồng bộ luồng CI/CD.
+- **Web Server Chính Thức:** `https://service.haruweddingfilm.com/`
