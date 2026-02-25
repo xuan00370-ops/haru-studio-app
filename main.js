@@ -2878,8 +2878,8 @@ window._savePortfolio = (id) => {
     category,
     date: document.getElementById('pf-date').value || new Date().toISOString(),
     thumbnail,
-    videoLink: document.getElementById('pf-video').value.trim(),
-    photoLink: document.getElementById('pf-photo').value.trim(),
+    videoLink: document.getElementById('pf-video')?.value?.trim() || '',
+    photoLink: document.getElementById('pf-photo')?.value?.trim() || '',
     description: document.getElementById('pf-desc').value.trim(),
     images,
     isVisible: document.getElementById('pf-visible').checked
