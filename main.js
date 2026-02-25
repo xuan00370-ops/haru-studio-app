@@ -323,26 +323,56 @@ async function bootload() {
   try {
     envFirebaseConfig = import.meta.env.VITE_FIREBASE_CONFIG;
     if (typeof envFirebaseConfig === 'string') {
-      const testParse = JSON.parse(envFirebaseConfig); // validate
+      JSON.parse(envFirebaseConfig); // validate
     }
   } catch (e) {
     console.warn("Invalid VITE_FIREBASE_CONFIG in .env", e);
     envFirebaseConfig = null;
   }
 
-  const effectiveFirebaseConfig = state.settings.firebaseConfig || envFirebaseConfig;
+  // ──────────────────────────────────────────────────────────
+  // FIX: Luôn ưu tiên window.HARU_PUBLIC_FIREBASE_CONFIG
+  // (được load từ /firebase-public-config.js trước main.js)
+  // Điều này đảm bảo BẤT KỲ thiết bị nào mở app đều có config
+  // đúng, không phụ thuộc localStorage hay settings của máy đó.
+  // ──────────────────────────────────────────────────────────
+  const publicWindowCfg = parseFirebaseConfig(
+    window.HARU_PUBLIC_FIREBASE_CONFIG || window.HARU_FIREBASE_CONFIG
+  );
+
+  // Thứ tự ưu tiên: public window config > settings > env
+  const effectiveFirebaseConfig = publicWindowCfg
+    || parseFirebaseConfig(state.settings.firebaseConfig)
+    || parseFirebaseConfig(envFirebaseConfig);
+
+  // ──────────────────────────────────────────────────────────
+  // FIX: Validate & canonicalize databaseURL
+  // Ensure dùng đúng endpoint mặc định (không phải asia-southeast1)
+  // ──────────────────────────────────────────────────────────
+  if (effectiveFirebaseConfig && effectiveFirebaseConfig.databaseURL) {
+    // Nếu databaseURL dùng regional host sai, ghi đè về default
+    if (effectiveFirebaseConfig.databaseURL.includes('asia-southeast1.firebasedatabase.app')) {
+      const projectId = effectiveFirebaseConfig.projectId;
+      if (projectId) {
+        effectiveFirebaseConfig.databaseURL = `https://${projectId}-default-rtdb.firebaseio.com`;
+        console.warn(`[Haru] Fixed databaseURL → ${effectiveFirebaseConfig.databaseURL}`);
+      }
+    }
+  }
+
   const isHubMode = urlParams.get('hub') === 'haru' || Boolean(urlParams.get('gallery'));
-  const shouldUseFirebase = Boolean(effectiveFirebaseConfig) && (state.settings.enableFirebaseSync === true || !!envFirebaseConfig || isHubMode);
+  // Hub/gallery mode ALWAYS needs Firebase, regardless of enableFirebaseSync setting
+  const shouldUseFirebase = Boolean(effectiveFirebaseConfig) &&
+    (state.settings.enableFirebaseSync === true || !!envFirebaseConfig || !!publicWindowCfg || isHubMode);
 
   if (shouldUseFirebase) {
-    if (!state.settings.firebaseConfig && effectiveFirebaseConfig) {
-      // gán runtime để hàm initFirebase nhận được config ổn định trên máy mới
-      state.settings.firebaseConfig = typeof effectiveFirebaseConfig === 'string'
-        ? effectiveFirebaseConfig
-        : JSON.stringify(effectiveFirebaseConfig);
-    }
+    // Gán config chuẩn hóa vào state để các hàm khác dùng được
+    const cfgStr = typeof effectiveFirebaseConfig === 'string'
+      ? effectiveFirebaseConfig
+      : JSON.stringify(effectiveFirebaseConfig);
+    state.settings.firebaseConfig = cfgStr;
 
-    const isOk = initFirebase(state.settings.firebaseConfig);
+    const isOk = initFirebase(cfgStr);
     if (isOk) {
       // Fetch latest từ Firebase đè lên
       const fbData = await loadFromFirebase();
@@ -354,7 +384,7 @@ async function bootload() {
           staff: fbData.staff || state.staff,
           financeMetadata: fbData.financeMetadata || state.financeMetadata,
           manualTransactions: fbData.manualTransactions || state.manualTransactions,
-          settings: fbData.settings || state.settings,
+          settings: { ...fbData.settings, firebaseConfig: cfgStr }, // giữ config đúng
           history: fbData.history || state.history,
           clients: fbData.clients || state.clients,
           portfolios: fbData.portfolios || state.portfolios
@@ -746,6 +776,37 @@ window.emergencySync = async () => {
     console.error('Emergency sync error:', e);
   }
 };
+
+// ============================================================
+// MIGRATE LOCAL PORTFOLIOS → FIREBASE (1 chạm)
+// Dùng khi máy này có album local mà Firebase chưa có
+// ============================================================
+window.migrateLocalToFirebase = async () => {
+  const localPortfolios = state.portfolios || [];
+  if (localPortfolios.length === 0) {
+    alert('⚠️ Không có portfolio nào trong local để migrate!');
+    return;
+  }
+  const confirmed = await new Promise(resolve => {
+    window.haruConfirm
+      ? window.haruConfirm(`Migrate ${localPortfolios.length} album lên Firebase để tất cả thiết bị thấy?`, () => resolve(true))
+      : resolve(confirm(`Migrate ${localPortfolios.length} album lên Firebase?`));
+  });
+  if (!confirmed) return;
+
+  window.showFloatingSaveStatus('saving');
+  try {
+    await syncToFirebase(state);     // đẩy toàn bộ state (có portfolios)
+    await triggerForceSync();         // báo tất cả client reload
+    window.showFloatingSaveStatus('saved');
+    window.showToast && window.showToast(`🚀 Đã migrate ${localPortfolios.length} album lên Firebase! Tất cả thiết bị đang cập nhật...`);
+  } catch (e) {
+    window.showFloatingSaveStatus('error');
+    alert('❌ Lỗi migrate: ' + e.message);
+  }
+};
+
+
 
 
 window.openModal = (type, data = null) => {
@@ -2147,7 +2208,7 @@ window.migrateLocalPortfolioToFirebase = async () => {
         if (Array.isArray(parsed?.portfolios)) {
           collectFromLegacy.push(...parsed.portfolios);
         }
-      } catch {}
+      } catch { }
     }
 
     const merged = [...collectFromState, ...collectFromLegacy].filter(Boolean);
@@ -2321,6 +2382,32 @@ function updateUI() {
     // Chờ 500ms cho Firebase bootload hoàn tất rồi render
     setTimeout(doRender, 500);
 
+    // ──────────────────────────────────────────────────────────
+    // FIX: REST fallback fetch — khi portfolios vẫn rỗng sau 1s
+    // (Firebase SDK lỗi hoặc chưa init), fetch thẳng từ RTDB REST API
+    // Endpoint này không cần auth vì Firebase Rules cho phép read public
+    // ──────────────────────────────────────────────────────────
+    setTimeout(async () => {
+      if (Array.isArray(state.portfolios) && state.portfolios.filter(p => p.isVisible).length > 0) {
+        return; // đã có data, không cần fallback
+      }
+      try {
+        const cfg = window.HARU_PUBLIC_FIREBASE_CONFIG;
+        if (!cfg || !cfg.databaseURL) return;
+        const rtdbUrl = cfg.databaseURL.replace(/\/$/, '');
+        const resp = await fetch(`${rtdbUrl}/haru_state/portfolios.json`);
+        if (!resp.ok) return;
+        const portfolios = await resp.json();
+        if (Array.isArray(portfolios) && portfolios.length > 0) {
+          console.log('🌐 [REST Fallback] Lấy được', portfolios.length, 'portfolios từ RTDB REST');
+          state.portfolios = portfolios;
+          doRender();
+        }
+      } catch (e) {
+        console.warn('[REST Fallback] Lỗi fetch portfolios:', e.message);
+      }
+    }, 1500);
+
     // Nếu là hub mode (không phải single gallery), lắng nghe real-time
     // để tự cập nhật khi thiết bị khác thêm/sửa album
     if (!galleryId) {
@@ -2347,6 +2434,7 @@ function updateUI() {
 
     return;
   }
+
 
   // ── Nếu chưa login → hiển thị Login Screen ──
   if (!state.currentUser) {

@@ -4718,6 +4718,10 @@ export function renderPortfolioAdmin(state) {
         <button class="btn" onclick="navigator.clipboard.writeText(window.location.origin + '?hub=haru').then(() => alert('Đã copy link trang Portfolio tĩnh!'))" style="background:var(--bg-body); border:1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-weight:600">
            <i class="fas fa-link" style="color:var(--primary); margin-right: 0.4rem;"></i> Copy Link Hub Khách
         </button>
+        <button class="btn" onclick="window.migrateLocalToFirebase && window.migrateLocalToFirebase()" style="background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;font-weight:700;box-shadow:0 4px 12px rgba(249,115,22,0.3)" title="Đẩy toàn bộ album từ máy này lên Firebase để tất cả thiết bị thấy">
+           🚀 Migrate Local → Firebase
+        </button>
+
         <button class="btn btn-primary" onclick="window._openPortfolioModal()" style="box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.2); font-weight:600">+ Tạo Bộ sưu tập mới</button>
       </div>
     </div>
