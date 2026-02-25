@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get, onValue, off } from "firebase/database";
+import { getDatabase, ref, set, get, onValue, off, update } from "firebase/database";
 
 let db = null;
 let isInitialized = false;
@@ -95,3 +95,52 @@ export function watchPortfolios(onUpdate) {
     _portfoliosUnsubscribe = unsubscribe;
     return unsubscribe;
 }
+
+/**
+ * Kích hoạt đồng bộ khẩn cấp — ghi timestamp lên Firebase để báo cho tất cả client.
+ * Admin bấm nút → tất cả thiết bị đang mở app sẽ tự động reload data từ Firebase.
+ */
+export async function triggerForceSync() {
+    if (!isInitialized || !db) return false;
+    try {
+        await update(ref(db, 'haru_state'), {
+            forceSyncAt: Date.now(),
+            forceSyncBy: 'admin'
+        });
+        console.log("🚨 ForceSync triggered!");
+        return true;
+    } catch (err) {
+        console.error("triggerForceSync error:", err);
+        return false;
+    }
+}
+
+/**
+ * Lắng nghe tín hiệu đồng bộ khẩn cấp từ Firebase.
+ * Mọi client (admin, hub, mobile,...) gọi hàm này lúc boot.
+ * @param {Function} onSignal - callback() khi có tín hiệu force sync
+ * @returns {Function} unsubscribe
+ */
+export function watchForceSync(onSignal) {
+    if (!isInitialized || !db) return () => { };
+
+    let lastKnown = null;
+    const syncRef = ref(db, 'haru_state/forceSyncAt');
+
+    const unsubscribe = onValue(syncRef, (snapshot) => {
+        const val = snapshot.val();
+        if (val && val !== lastKnown) {
+            if (lastKnown !== null) {
+                // Chỉ trigger nếu đây không phải lần đọc đầu tiên
+                console.log("🚨 [ForceSync] Signal received — reloading data...");
+                onSignal(val);
+            }
+            lastKnown = val;
+        }
+    }, (err) => {
+        console.warn("watchForceSync error:", err);
+    });
+
+    return unsubscribe;
+}
+

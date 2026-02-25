@@ -8,7 +8,7 @@ import {
   renderGalleryClient, renderPortfolioAdmin
 } from './components.js';
 
-import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios } from './firebase.js';
+import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync } from './firebase.js';
 
 // ============================================================
 // STATE INITIALIZATION & FIREBASE
@@ -363,6 +363,27 @@ async function bootload() {
       } else {
         console.log("🔥 Firebase init successful, but no valid fbData.jobs block found. Portfolios not merged.");
       }
+
+      // Lắng nghe tín hiệu Force Sync từ admin
+      watchForceSync(async () => {
+        console.log("🚨 ForceSync received — pulling latest from Firebase...");
+        window.showFloatingSaveStatus('saving');
+        const freshData = await loadFromFirebase();
+        if (freshData && freshData.jobs) {
+          Object.assign(state, {
+            jobs: freshData.jobs || state.jobs,
+            staff: freshData.staff || state.staff,
+            financeMetadata: freshData.financeMetadata || state.financeMetadata,
+            manualTransactions: freshData.manualTransactions || state.manualTransactions,
+            settings: freshData.settings || state.settings,
+            history: freshData.history || state.history,
+            clients: freshData.clients || state.clients,
+            portfolios: freshData.portfolios || state.portfolios
+          });
+        }
+        window.showFloatingSaveStatus('saved');
+        updateUI();
+      });
     }
   }
 
@@ -703,6 +724,29 @@ window.navigate = (page) => {
   state.modal.isOpen = false;
   updateUI();
 };
+
+// ============================================================
+// EMERGENCY SYNC (bấm nút → đồng bộ toàn hệ thống ngay lập tức)
+// ============================================================
+window.emergencySync = async () => {
+  const btn = document.getElementById('emergency-sync-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⟳'; btn.style.animation = 'spin 1s linear infinite'; }
+  window.showFloatingSaveStatus('saving');
+  try {
+    // 1. Đẩy state hiện tại lên Firebase ngay
+    await syncToFirebase(state);
+    // 2. Ghi tín hiệu ForceSync để tất cả client khác reload
+    await triggerForceSync();
+    window.showFloatingSaveStatus('saved');
+    if (btn) { btn.disabled = false; btn.innerHTML = '🚨'; btn.style.animation = ''; }
+    window.showToast && window.showToast('✅ Đã đồng bộ khẩn cấp! Tất cả thiết bị đang cập nhật...');
+  } catch (e) {
+    window.showFloatingSaveStatus('error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '🚨'; btn.style.animation = ''; }
+    console.error('Emergency sync error:', e);
+  }
+};
+
 
 window.openModal = (type, data = null) => {
   state.modal.isOpen = true;
@@ -2516,7 +2560,52 @@ function updateUI() {
     const modalOverlay = renderModalOverlay(state, window.closeModal);
     app.appendChild(modalOverlay);
   }
+
+  // Nút Đồng bộ khẩn cấp — chỉ hiện cho admin, luôn nằm ở góc phải dưới
+  if (state.currentUser?.role === 'admin') {
+    const existingBtn = document.getElementById('emergency-sync-btn');
+    if (!existingBtn) {
+      const syncBtn = document.createElement('button');
+      syncBtn.id = 'emergency-sync-btn';
+      syncBtn.title = 'Đồng bộ khẩn cấp — đẩy data lên tất cả thiết bị ngay lập tức';
+      syncBtn.onclick = () => window.emergencySync();
+      syncBtn.style.cssText = [
+        'position: fixed',
+        'bottom: 5.5rem',
+        'right: 1.25rem',
+        'z-index: 99999',
+        'width: 48px',
+        'height: 48px',
+        'border-radius: 50%',
+        'border: none',
+        'background: linear-gradient(135deg, #ef4444, #dc2626)',
+        'color: #fff',
+        'font-size: 1.2rem',
+        'cursor: pointer',
+        'box-shadow: 0 4px 16px rgba(239,68,68,0.45)',
+        'display: flex',
+        'align-items: center',
+        'justify-content: center',
+        'transition: transform 0.2s, box-shadow 0.2s',
+      ].join(';');
+      syncBtn.innerHTML = '🚨';
+      syncBtn.onmouseenter = () => {
+        syncBtn.style.transform = 'scale(1.1)';
+        syncBtn.style.boxShadow = '0 6px 24px rgba(239,68,68,0.6)';
+      };
+      syncBtn.onmouseleave = () => {
+        syncBtn.style.transform = '';
+        syncBtn.style.boxShadow = '0 4px 16px rgba(239,68,68,0.45)';
+      };
+      document.body.appendChild(syncBtn);
+    }
+  } else {
+    // Xóa nút nếu không phải admin
+    const oldBtn = document.getElementById('emergency-sync-btn');
+    if (oldBtn) oldBtn.remove();
+  }
 }
+
 
 // ============================================================
 // PHASE 3: CLIENT & CRM FUNCTIONS
