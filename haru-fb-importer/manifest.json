@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "Haru FB Importer",
+    "version": "1.0",
+    "description": "Quét và lấy ảnh từ bài viết Facebook để lưu thẳng vào Haru Portfolio.",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "tabs"
+    ],
+    "host_permissions": [
+        "https://*.facebook.com/*",
+        "https://service.haruweddingfilm.com/*",
+        "http://localhost:*/*"
+    ],
+    "action": {
+        "default_title": "Import to Haru Portfolio"
+    },
+    "background": {
+        "service_worker": "background.js"
+    }
+}

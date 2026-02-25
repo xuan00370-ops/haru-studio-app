@@ -2616,17 +2616,17 @@ window.importGoLiveData = async () => {
 // ============================================================
 // PHASE 6: PORTFOLIO MANAGEMENT
 // ============================================================
-window._openPortfolioModal = (id = null) => {
+window._openPortfolioModal = (id = null, importData = null) => {
   let p = {
     id: 'PF-' + Date.now(),
-    jobName: '',
+    jobName: importData?.description || '',
     category: 'Sự kiện',
-    description: '',
+    description: importData?.url ? `Tự động nhập từ: ${importData.url}` : '',
     date: new Date().toISOString().split('T')[0],
-    thumbnail: '',
+    thumbnail: importData?.images?.[0] || '',
     videoLink: '',
     photoLink: '',
-    images: [],
+    images: importData?.images || [],
     isVisible: true
   };
 
@@ -2997,3 +2997,30 @@ window._lightboxNav = (dir) => {
 };
 
 updateUI();
+
+// ============================================================
+// EXTENSION IMPORT LISTENER
+// ============================================================
+
+window.addEventListener('haruExternalImport', (e) => {
+  const data = e.detail;
+  if (data) {
+    window.showPage('portfolios');
+    window._openPortfolioModal(null, data);
+  }
+});
+
+// Check local storage on load with a slight delay to ensure UI is ready
+setTimeout(() => {
+  const fbDataStr = localStorage.getItem('haru_fb_import');
+  if (fbDataStr) {
+    try {
+      const fbData = JSON.parse(fbDataStr);
+      localStorage.removeItem('haru_fb_import');
+      window.showPage('portfolios');
+      window._openPortfolioModal(null, fbData);
+    } catch (err) {
+      console.error("Error parsing FB Import data:", err);
+    }
+  }
+}, 1500);
