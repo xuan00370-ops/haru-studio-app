@@ -2766,8 +2766,10 @@ window._pfUploadQueue = window._pfUploadQueue || {
   isUploading: false,
   totalItems: 0,
   completedItems: 0,
-  items: [] // { file, uiElement }
+  items: [] // { file, uiElement, portfolioId }
 };
+
+window._pfActivePortfolioImages = window._pfActivePortfolioImages || [];
 
 window._processPfUploadQueue = async () => {
   if (window._pfUploadQueue.isUploading || window._pfUploadQueue.items.length === 0) return;
@@ -2817,18 +2819,25 @@ window._processPfUploadQueue = async () => {
       if (!data.success) throw new Error(data.error?.message || 'Upload failed');
 
       const realUrl = data.data.url;
-      // Replace the local URL hidden input with the real uploaded URL
-      if (item.uiElement) {
+
+      // IMPORTANT FIX: Save directly to a global state array so we don't lose the photo if the DOM modal closes
+      if (!window._pfActivePortfolioImages.includes(realUrl)) {
+        window._pfActivePortfolioImages.push(realUrl);
+      }
+
+      // Update DOM if it's currently open
+      if (item.uiElement && document.body.contains(item.uiElement)) {
         const inputUrl = item.uiElement.querySelector('.pf-img-url');
         if (inputUrl) inputUrl.value = realUrl;
 
-        // Remove loading spinner overlay from the image item
         const spinner = item.uiElement.querySelector('.pf-local-spinner');
         if (spinner) spinner.remove();
       }
     } catch (err) {
       console.error("Background upload failed for", item.file.name, err);
-      if (item.uiElement) item.uiElement.style.border = '2px solid red';
+      if (item.uiElement && document.body.contains(item.uiElement)) {
+        item.uiElement.style.border = '2px solid red';
+      }
     }
 
     // Dequeue
@@ -2858,6 +2867,9 @@ window._handleImgBBUpload = (e, portfolioId) => {
   const previewContainer = document.getElementById('pf-gallery-preview');
   if (previewContainer.innerHTML.includes('Chưa có ảnh nào')) previewContainer.innerHTML = '';
 
+  // Ensure global persistence array exists for this session
+  window._pfActivePortfolioImages = window._pfActivePortfolioImages || [];
+
   // 1. Instantly display Local Previews
   Array.from(files).forEach(file => {
     const localUrl = URL.createObjectURL(file);
@@ -2876,7 +2888,7 @@ window._handleImgBBUpload = (e, portfolioId) => {
     previewContainer.appendChild(div);
 
     // 2. Add to Global Background Queue
-    window._pfUploadQueue.items.push({ file, uiElement: div });
+    window._pfUploadQueue.items.push({ file, uiElement: div, portfolioId });
     window._pfUploadQueue.totalItems++;
   });
 
@@ -2939,17 +2951,21 @@ window._savePortfolio = (id) => {
     return;
   }
 
-  // Thu thập danh sách ảnh
+  // Thu thập danh sách ảnh đang hiển thị trên Modal (bao gồm cả ảnh cũ)
   const imageInputs = document.querySelectorAll('.pf-img-url');
   const allImages = Array.from(imageInputs).map(inp => inp.value);
 
   // Lọc bỏ những ảnh còn đang tải ngầm chưa có URL thật
-  const images = allImages.filter(url => url !== 'PENDING_UPLOAD');
+  const domImages = allImages.filter(url => url !== 'PENDING_UPLOAD');
 
-  if (images.length < allImages.length) {
-    const confirmSave = confirm(`Lưu ý: Có ${allImages.length - images.length} ảnh vẫn đang được tải lên ngầm.\n\nNếu bạn bấm Lưu bây giờ, những ảnh đang tải dở sẽ bị BỎ QUA.\nNếu bạn muốn đợi tải xong, hãy bấm Cancel và chờ thanh màu xanh chạy hết rồi ấn Lưu lại.\n\nTiếp tục lưu những ảnh đã xong?`);
+  if (domImages.length < allImages.length) {
+    const confirmSave = confirm(`Lưu ý: Có ${allImages.length - domImages.length} ảnh vẫn đang được tải lên ngầm.\n\nNếu bạn bấm Lưu bây giờ, những ảnh đang tải dở sẽ bị BỎ QUA.\nNếu bạn muốn đợi tải xong, hãy bấm Cancel và chờ thanh màu xanh dưới góc phải chạy hết rồi ấn Lưu lại.\n\nTiếp tục lưu những ảnh đã xong?`);
     if (!confirmSave) return;
   }
+
+  // MERGE: Kết hợp ảnh trên DOM và ảnh lưu trữ ngầm (Trường hợp User tắt Modal khi đang tải)
+  // Loại bỏ các link rỗng hoặc undefined
+  const mergedImages = [...new Set([...domImages, ...(window._pfActivePortfolioImages || [])])].filter(Boolean);
 
   const pf = {
     id,
@@ -2960,7 +2976,7 @@ window._savePortfolio = (id) => {
     videoLink: document.getElementById('pf-video').value.trim(),
     photoLink: document.getElementById('pf-photo').value.trim(),
     description: document.getElementById('pf-desc').value.trim(),
-    images,
+    images: mergedImages,
     isVisible: document.getElementById('pf-visible').checked
   };
 
