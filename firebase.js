@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get } from "firebase/database";
+import { getDatabase, ref, set, get, onValue, off } from "firebase/database";
 
 let db = null;
 let isInitialized = false;
+let _portfoliosUnsubscribe = null; // Real-time listener handle
 
 /**
  * Khởi tạo Firebase từ chuỗi JSON Config
@@ -58,4 +59,39 @@ export async function loadFromFirebase() {
         console.error("Firebase load error:", err);
     }
     return null;
+}
+
+/**
+ * Lắng nghe real-time thay đổi portfolios từ Firebase.
+ * Dùng cho Hub/Gallery mode để tự cập nhật khi thiết bị khác thêm album.
+ * @param {Function} onUpdate - callback(portfolios: Array) khi có dữ liệu mới
+ * @returns {Function} unsubscribe - gọi để dừng lắng nghe
+ */
+export function watchPortfolios(onUpdate) {
+    if (!isInitialized || !db) return () => { };
+
+    // Dừng listener cũ nếu có
+    if (_portfoliosUnsubscribe) {
+        _portfoliosUnsubscribe();
+        _portfoliosUnsubscribe = null;
+    }
+
+    const portfoliosRef = ref(db, 'haru_state/portfolios');
+
+    const unsubscribe = onValue(portfoliosRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const portfolios = snapshot.val();
+            if (Array.isArray(portfolios)) {
+                console.log("🔥 [Real-time] Portfolios updated:", portfolios.length, "albums");
+                onUpdate(portfolios);
+            }
+        } else {
+            onUpdate([]);
+        }
+    }, (err) => {
+        console.warn("Firebase watchPortfolios error:", err);
+    });
+
+    _portfoliosUnsubscribe = unsubscribe;
+    return unsubscribe;
 }

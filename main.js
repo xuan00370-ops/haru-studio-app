@@ -8,7 +8,7 @@ import {
   renderGalleryClient, renderPortfolioAdmin
 } from './components.js';
 
-import { initFirebase, syncToFirebase, loadFromFirebase } from './firebase.js';
+import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios } from './firebase.js';
 
 // ============================================================
 // STATE INITIALIZATION & FIREBASE
@@ -2206,11 +2206,39 @@ function updateUI() {
     container.id = 'gallery-root';
     app.appendChild(container);
 
-    // Nếu data chưa load xong (ví dụ truy cập thẳng link), chờ 1 chút
-    setTimeout(() => {
+    // Render ban đầu với dữ liệu hiện có (sau khi bootload đã load Firebase)
+    const doRender = () => {
+      container.innerHTML = '';
       const resultEl = renderGalleryClient(galleryId || 'home', window.state);
       container.appendChild(resultEl);
-    }, 500);
+    };
+
+    // Chờ 500ms cho Firebase bootload hoàn tất rồi render
+    setTimeout(doRender, 500);
+
+    // Nếu là hub mode (không phải single gallery), lắng nghe real-time
+    // để tự cập nhật khi thiết bị khác thêm/sửa album
+    if (!galleryId) {
+      let _hubRenderTimer = null;
+      watchPortfolios((newPortfolios) => {
+        // Debounce 300ms để tránh re-render liên tục
+        clearTimeout(_hubRenderTimer);
+        _hubRenderTimer = setTimeout(() => {
+          if (Array.isArray(newPortfolios)) {
+            const changed = JSON.stringify(newPortfolios) !== JSON.stringify(state.portfolios);
+            if (changed) {
+              state.portfolios = newPortfolios;
+              // Chỉ re-render phần gallery-root, không updateUI() toàn bộ
+              const root = document.getElementById('gallery-root');
+              if (root) {
+                root.innerHTML = '';
+                root.appendChild(renderGalleryClient('home', window.state));
+              }
+            }
+          }
+        }, 300);
+      });
+    }
 
     return;
   }
