@@ -4352,7 +4352,8 @@ export function renderGalleryClient(galleryId, state) {
            border-radius: 2px;
            text-decoration: none;
            color: #333;
-           width: 320px; /* Fixed width for polaroid look */
+           width: 100%;
+           max-width: 320px; /* Fixed max-width for polaroid look while responsive */
            position: relative;
            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, z-index 0s;
            z-index: 1;
@@ -4369,6 +4370,28 @@ export function renderGalleryClient(galleryId, state) {
            transform: scale(1.08) rotate(0deg) translateY(0) !important;
            box-shadow: 8px 15px 30px rgba(0,0,0,0.25);
            z-index: 100;
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+           .scrapbook-hero { padding: 4rem 1rem 2rem; }
+           .scrapbook-hero h1 { font-size: 3.5rem; transform: rotate(0deg); }
+           .scrapbook-grid { gap: 1.5rem; padding: 1rem 1rem 4rem 1rem; }
+           
+           /* Reduce rotation and translations on mobile to save horizontal space and prevent overflow */
+           .scrapbook-card {
+              padding: 0.75rem 0.75rem 2.5rem 0.75rem;
+              transform: rotate(calc(var(--rot) * 0.4deg)) translateY(calc(var(--y) * 0.5px));
+              max-width: 280px;
+           }
+           
+           /* Disable hover zoom on mobile for smoother scrolling, keep shadow */
+           .scrapbook-card:hover {
+              transform: rotate(0deg) translateY(0) !important;
+           }
+           
+           .scrapbook-title { font-size: 1.8rem; margin-top: 0.75rem; }
+           .scrapbook-meta { bottom: 0.75rem; right: 1rem; font-size: 0.55rem; }
         }
         
         .scrapbook-img-wrapper {
