@@ -294,9 +294,13 @@ async function bootload() {
     }
   } catch (e) { console.warn('Local Load Err:', e); }
 
-  // 2. Kích hoạt Firebase nếu có config (opt-in only)
-  if (state.settings.firebaseConfig && state.settings.enableFirebaseSync === true) {
-    const isOk = initFirebase(state.settings.firebaseConfig);
+  // 2. Kích hoạt Firebase nếu có config (opt-in only or via .env)
+  const envFirebaseConfig = import.meta.env && import.meta.env.VITE_FIREBASE_CONFIG;
+  const activeFirebaseConfig = state.settings.firebaseConfig || envFirebaseConfig;
+  const isSyncEnabled = state.settings.enableFirebaseSync === true || !!envFirebaseConfig;
+
+  if (activeFirebaseConfig && (isSyncEnabled || urlParams.get('hub') === 'haru' || urlParams.get('gallery'))) {
+    const isOk = initFirebase(activeFirebaseConfig);
     if (isOk) {
       // Fetch latest từ Firebase đè lên
       const fbData = await loadFromFirebase();
@@ -2034,6 +2038,7 @@ window.saveFirebaseConfig = () => {
     // We can't easily dynamically re-import since it's an ES6 module, but we already imported it.
     // However, it's safer to just set the state and reload the page.
     state.settings.firebaseConfig = configStr;
+    state.settings.enableFirebaseSync = true;
     saveState();
     alert('Đã lưu cấu hình Đám Mây! Vui lòng tải lại trang (F5) để kết nối Database.');
   } catch (err) {
