@@ -2139,12 +2139,14 @@ function updateUI() {
   // ── Phase 6: Cổng Trưng Bày Tự Động (Haru Gallery) ──
   const urlParams = new URLSearchParams(window.location.search);
   const galleryId = urlParams.get('gallery');
-  if (galleryId) {
+  const hubParam = urlParams.get('hub');
+
+  if (galleryId || hubParam === 'haru') {
     document.body.style.overflowY = 'auto'; // Cho phép scroll
     app.style.display = 'block';
     app.style.gridTemplateColumns = 'none';
     // Đổi Title
-    document.title = "Haru Gallery - Khám phá Album";
+    document.title = galleryId ? "Haru Gallery - Khám phá Album" : "Haru Studio - Portfolio Hub";
     // Tắt các thuộc tính nền body
     document.body.style.background = '#0a0a0a';
 
@@ -2155,7 +2157,7 @@ function updateUI() {
 
     // Nếu data chưa load xong (ví dụ truy cập thẳng link), chờ 1 chút
     setTimeout(() => {
-      const resultEl = renderGalleryClient(galleryId, window.state);
+      const resultEl = renderGalleryClient(galleryId || 'home', window.state);
       container.appendChild(resultEl);
     }, 500);
 
@@ -2636,102 +2638,118 @@ window._openPortfolioModal = (id = null) => {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay portfolio-modal';
   overlay.innerHTML = `
-    <div class="modal" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
-      <div class="modal-header">
-         <h3>${id ? 'Chỉnh sửa Portfolio' : 'Tạo Portfolio mới'}</h3>
-         <button onclick="this.closest('.modal-overlay').remove()">×</button>
+    <div class="modal" style="width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+         <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin: 0;">${id ? 'Chỉnh sửa Portfolio' : 'Tạo Portfolio mới'}</h3>
+         <button onclick="this.closest('.modal-overlay').remove()" style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-dim); transition: all 0.2s;">
+            <i class="fas fa-times"></i>
+         </button>
       </div>
-      <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+      <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
          
          <!-- CỘT TRÁI: THÔNG TIN CƠ BẢN -->
-         <div style="display:flex; flex-direction:column; gap:1rem">
+         <div style="display:flex; flex-direction:column; gap:1.25rem">
             <div class="form-group">
-               <label>Tên Bộ sưu tập (Tên KH / Sự kiện) *</label>
-               <input type="text" id="pf-name" class="form-control" value="${p.jobName}" placeholder="VD: Đám cưới Duy & Trinh">
+               <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Tên Bộ sưu tập (Tên KH / Sự kiện) <span style="color: var(--danger)">*</span></label>
+               <input type="text" id="pf-name" class="form-control" value="${p.jobName}" placeholder="VD: Đám cưới Duy & Trinh" style="border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
               <div class="form-group">
-                 <label>Phân loại *</label>
-                 <select id="pf-category" class="form-control">
+                 <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Phân loại <span style="color: var(--danger)">*</span></label>
+                 <select id="pf-category" class="form-control" style="border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                     ${(state.settings?.eventCategories || ['Pre-wedding', 'Phóng sự', 'Sự kiện', 'Khác']).map(c => `
                        <option value="${c}" ${p.category === c ? 'selected' : ''}>${c}</option>
                     `).join('')}
                  </select>
               </div>
               <div class="form-group">
-                 <label>Ngày thực hiện</label>
-                 <input type="date" id="pf-date" class="form-control" value="${p.date ? p.date.split('T')[0] : ''}">
+                 <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Ngày thực hiện</label>
+                 <input type="date" id="pf-date" class="form-control" value="${p.date ? p.date.split('T')[0] : ''}" style="border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
               </div>
             </div>
 
             <div class="form-group">
-               <label>Ảnh Bìa (Thumbnail URL) *</label>
+               <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Ảnh Bìa (Thumbnail HTML) <span style="color: var(--danger)">*</span></label>
                <div style="display:flex; gap:0.5rem; align-items:center;">
-                 <input type="url" id="pf-thumbnail" class="form-control" value="${p.thumbnail}" placeholder="https://domain.com/anh-bia.jpg" style="flex:1;">
-                 <label for="pf-thumb-upload" class="btn" style="cursor:pointer; padding: 0.5rem 1rem; white-space:nowrap; border:1px solid var(--border); background:var(--bg-body)">
-                    <i class="fas fa-upload"></i> Tải ảnh lên
+                 <input type="url" id="pf-thumbnail" class="form-control" value="${p.thumbnail}" placeholder="https://domain.com/anh-bia.jpg" style="flex:1; border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                 <label for="pf-thumb-upload" class="btn" style="cursor:pointer; padding: 0.75rem 1rem; white-space:nowrap; border:1px solid var(--border); background:var(--bg-body); border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: background 0.2s;">
+                    <i class="fas fa-image" style="color: var(--primary); margin-right: 0.4rem;"></i> Tải ảnh
                  </label>
                  <input type="file" id="pf-thumb-upload" accept="image/*" style="display:none" onchange="window._handleThumbnailUpload(event)">
                </div>
-               <div id="pf-thumb-preview" style="display:${p.thumbnail ? 'block' : 'none'}; width:100%; height:120px; border-radius:8px; background:url('${p.thumbnail}') center/cover; border:1px solid var(--border); margin-top:0.5rem"></div>
-               <div id="pf-thumb-status" style="font-size:0.8rem; font-weight:800; color:var(--primary); display:none; margin-top:0.3rem">Đang tải lên...</div>
-               <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.3rem">Khuyên dùng ảnh ngang 16:9 chất lượng cao.</div>
+               
+               <div id="pf-thumb-preview" style="display:${p.thumbnail ? 'block' : 'none'}; width:100%; height:160px; border-radius:12px; background:url('${p.thumbnail}') center/cover; border:1px solid var(--border); margin-top:0.75rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);"></div>
+               <div id="pf-thumb-status" style="font-size:0.85rem; font-weight:600; color:var(--primary); display:none; margin-top:0.5rem; display:flex; align-items:center; gap:0.4rem;"><i class="fas fa-spinner fa-spin"></i> Đang tải lên...</div>
+               <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.5rem"><i class="fas fa-info-circle"></i> Khuyên dùng ảnh ngang 16:9 chất lượng cao.</div>
             </div>
 
             <div class="form-group">
-               <label>Link Video Youtube / Vimeo (Tùy chọn)</label>
-               <input type="url" id="pf-video" class="form-control" value="${p.videoLink || ''}" placeholder="https://youtube.com/watch?v=...">
+               <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Link Video Youtube / Vimeo (Tùy chọn)</label>
+               <input type="url" id="pf-video" class="form-control" value="${p.videoLink || ''}" placeholder="https://youtube.com/watch?v=..." style="border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
             </div>
             
             <div class="form-group">
-               <label>Link Google Drive Trả Khách (Tùy chọn)</label>
-               <input type="url" id="pf-photo" class="form-control" value="${p.photoLink || ''}" placeholder="https://drive.google.com/...">
-            </div>
-
-            <div class="form-group">
-               <label>Mô tả / Lời dẫn (Tùy chọn)</label>
-               <textarea id="pf-desc" class="form-control" rows="3" placeholder="Vài dòng cảm nghĩ về bộ ảnh...">${p.description || ''}</textarea>
+               <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Mô tả / Lời dẫn (Tùy chọn)</label>
+               <textarea id="pf-desc" class="form-control" rows="3" placeholder="Vài dòng cảm nghĩ về bộ ảnh..." style="border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); resize: vertical;">${p.description || ''}</textarea>
             </div>
             
-            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top: 0.5rem; background: var(--bg-body); padding: 0.8rem; border-radius: 8px">
-               <input type="checkbox" id="pf-visible" ${p.isVisible ? 'checked' : ''} style="width: 18px; height: 18px">
-               <label for="pf-visible" style="margin:0; font-weight:800; cursor:pointer">Công khai Bộ sưu tập này</label>
+            <div class="form-group" style="display:flex; align-items:center; gap:0.75rem; margin-top: 0.5rem; background: var(--bg-body); padding: 1rem; border-radius: 12px; border: 1px solid var(--primary); box-shadow: 0 2px 5px rgba(22, 163, 74, 0.1);">
+               <input type="checkbox" id="pf-visible" ${p.isVisible ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer;">
+               <div>
+                 <label for="pf-visible" style="margin:0; font-weight:800; cursor:pointer; color: var(--primary); display:block; font-size: 1rem;">Công khai Bộ sưu tập này</label>
+                 <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem;">Khách hàng sẽ nhìn thấy bộ sưu tập này trên trang Haru Portfolio Hub.</div>
+               </div>
             </div>
          </div>
 
          <!-- CỘT PHẢI: QUẢN LÝ ẢNH (MASONRY GRID) -->
-         <div style="display:flex; flex-direction:column; gap:1rem; border-left: 1px solid var(--border); padding-left: 1.5rem">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end">
+         <div style="display:flex; flex-direction:column; gap:1.25rem; background: #f8fafc; padding: 1.5rem; border-radius: 16px; border: 1px dashed #cbd5e1;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
                <div>
-                 <label style="font-weight:800; color:var(--text-main); display:block; margin-bottom:0.2rem">Kho Ảnh Triển Lãm (Grid)</label>
-                 <div style="font-size: 0.75rem; color: var(--text-dim)">Ảnh tải lên sẽ được hiển thị tự do đa kích thước.</div>
+                 <label style="font-weight:800; font-size: 1.1rem; color:var(--text-main); display:block; margin-bottom:0.3rem">Kho Ảnh Triển Lãm</label>
+                 <div style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.4;">Ảnh tải lên sẽ được hiển thị tự do đa kích thước trên trang Gallery. (Khuyên dùng ảnh dọc/ngang xáo trộn)</div>
                </div>
-               <label for="pf-upload" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor:pointer; font-size:0.8rem">
-                  <i class="fas fa-upload"></i> Tải ảnh lên
+               <label for="pf-upload" class="btn btn-primary" style="padding: 0.6rem 1.2rem; cursor:pointer; font-size:0.9rem; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.2);">
+                  <i class="fas fa-cloud-upload-alt" style="margin-right: 0.4rem;"></i> Tải nhiều ảnh
                </label>
                <input type="file" id="pf-upload" multiple accept="image/*" style="display:none" onchange="window._handleImgBBUpload(event, '${id || ''}')">
             </div>
 
-            <div id="pf-gallery-preview" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; overflow-y:auto; max-height:450px; padding-right:0.5rem">
+            <div id="pf-upload-status" style="font-size:0.9rem; font-weight:600; padding: 0.75rem; background: #dcfce7; color:var(--primary); text-align:center; border-radius: 8px; display:none; align-items:center; justify-content:center; gap:0.5rem;">
+               <i class="fas fa-spinner fa-spin"></i> <span>Đang xử lý...</span>
+            </div>
+
+            <div id="pf-gallery-preview" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; overflow-y:auto; max-height:500px; padding-right:0.5rem; align-content: start;">
                <!-- Images will be rendered here -->
-               ${p.images.length === 0 ? '<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color:var(--text-dim); background:var(--bg-body); border-radius:8px">Chưa có ảnh nào.</div>' : ''}
+               ${p.images.length === 0 ? `
+                  <div style="grid-column: 1/-1; text-align:center; padding: 3rem 1rem; color:var(--text-dim); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 1rem;">
+                     <div style="width: 64px; height: 64px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-images" style="font-size: 1.5rem; color: #94a3b8;"></i>
+                     </div>
+                     <div>
+                        <div style="font-weight: 600; color: #64748b; margin-bottom: 0.25rem;">Chưa có ảnh nào được thêm</div>
+                        <div style="font-size: 0.85rem;">Bấm "Tải nhiều ảnh" để bắt đầu nạp ảnh vào thư viện.</div>
+                     </div>
+                  </div>
+               ` : ''}
                ${p.images.map((imgUrl, i) => `
-                 <div class="pf-img-item" style="position:relative; padding-bottom:100%; border-radius:8px; overflow:hidden; background:url('${imgUrl}') center/cover; border:1px solid var(--border); group">
-                   <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.9); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3)">×</button>
+                 <div class="pf-img-item" style="position:relative; padding-bottom:100%; border-radius:10px; overflow:hidden; background:url('${imgUrl}') center/cover; border:1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                   <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:6px; right:6px; width:28px; height:28px; border-radius:50%; background:rgba(239,68,68,0.9); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); backdrop-filter: blur(4px); transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='rgba(239,68,68,0.9)'">
+                      <i class="fas fa-times" style="font-size: 0.8rem;"></i>
+                   </button>
                    <input type="hidden" class="pf-img-url" value="${imgUrl}">
                  </div>
                `).join('')}
             </div>
-            
-            <div id="pf-upload-status" style="font-size:0.8rem; font-weight:800; color:var(--primary); text-align:center; display:none">Đang tải lên: 0%</div>
          </div>
 
       </div>
-      <div class="modal-footer" style="margin-top:2rem">
-         <button class="btn" onclick="this.closest('.modal-overlay').remove()">Hủy</button>
-         <button class="btn btn-primary" onclick="window._savePortfolio('${p.id}')">Lưu Bộ Sưu Tập</button>
-      </div>
+      <div class="modal-footer" style="margin-top:2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display:flex; justify-content:flex-end; gap: 1rem;">
+         <button class="btn" onclick="this.closest('.modal-overlay').remove()" style="padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600;">Huỷ bỏ</button>
+         <button class="btn btn-primary" onclick="window._savePortfolio('${p.id}')" style="padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.2);">
+            <i class="fas fa-check-circle" style="margin-right: 0.4rem;"></i> Lưu Bộ Sưu Tập
+         </button>
       </div>
     </div>
   `;
