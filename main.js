@@ -346,6 +346,8 @@ async function bootload() {
     if (isOk) {
       // Fetch latest từ Firebase đè lên
       const fbData = await loadFromFirebase();
+      console.log("🔥 PRE-MERGE FIREBASE DATA:", fbData?.portfolios);
+      console.log("🔥 PRE-MERGE LOCAL DATA:", state.portfolios);
       if (fbData && fbData.jobs) {
         Object.assign(state, {
           jobs: fbData.jobs || state.jobs,
@@ -357,7 +359,9 @@ async function bootload() {
           clients: fbData.clients || state.clients,
           portfolios: fbData.portfolios || state.portfolios
         });
-        console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase!");
+        console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase! Portfolios:", state.portfolios);
+      } else {
+        console.log("🔥 Firebase init successful, but no valid fbData.jobs block found. Portfolios not merged.");
       }
     }
   }
