@@ -1029,10 +1029,13 @@ function renderJobDetailModal(state) {
                      <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
                        ${['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác'].map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                      </select>
-                     <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
-                       <option value="Chưa xếp">-- Chọn người --</option>
-                       ${window.state?.staff?.map(staff => `<option value="${staff.name}" ${s.staff === staff.name ? 'selected' : ''}>${staff.name}</option>`).join('') || ''}
-                     </select>
+                     <div style="display:flex; flex-direction:column">
+                       <select class="form-control svc-staff-input" data-date="${day.date || job.date}" data-job-id="${job.id || ''}" onchange="window._checkConflictUI(this)" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
+                         <option value="Chưa xếp">-- Chọn người --</option>
+                         ${window.state?.staff?.map(staff => `<option value="${staff.name}" ${s.staff === staff.name ? 'selected' : ''}>${staff.name}</option>`).join('') || ''}
+                       </select>
+                       <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
+                     </div>
                      ${window.state?.staffViewMode === 'staff' ? '' : `
                      <div style="position: relative">
                         <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>

@@ -642,6 +642,79 @@ window.closeModal = () => {
   updateUI();
 };
 
+window.checkStaffConflict = (staffName, dateStr, excludeJobId = null) => {
+  if (!staffName || staffName === 'Chưa xếp' || staffName === '' || !dateStr) return [];
+  const conflicts = [];
+  const targetDate = new Date(dateStr);
+  targetDate.setHours(0, 0, 0, 0);
+
+  state.jobs.forEach(job => {
+    if (job.isTrash || job.status === 'Đã hoàn thành') return;
+    if (job.id === excludeJobId) return;
+
+    let isConflict = false;
+
+    // Multi-day events handling
+    if (job.eventDays && job.eventDays.length > 0) {
+      job.eventDays.forEach((day, idx) => {
+        const dDate = new Date(day.date || job.date);
+        dDate.setHours(0, 0, 0, 0);
+        if (dDate.getTime() === targetDate.getTime()) {
+          // Check services matching this day
+          const dayServices = (job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0));
+          if (dayServices.some(s => s.staff && s.staff.toLowerCase().includes(staffName.toLowerCase()))) {
+            isConflict = true;
+          }
+        }
+      });
+    } else {
+      // Single day job
+      const jDate = new Date(job.date);
+      jDate.setHours(0, 0, 0, 0);
+      if (jDate.getTime() === targetDate.getTime()) {
+        if ((job.services || []).some(s => s.staff && s.staff.toLowerCase().includes(staffName.toLowerCase()))) {
+          isConflict = true;
+        }
+      }
+    }
+
+    if (isConflict) conflicts.push(job);
+  });
+
+  return conflicts;
+};
+
+window._checkConflictUI = (selectEl) => {
+  const staffName = selectEl.value;
+  // Fallback to searching nearby date inputs if data-date is not statically available
+  let dateStr = selectEl.getAttribute('data-date');
+  if (!dateStr || dateStr === 'undefined') {
+    // For Add Job Modal: find the closest date input
+    const container = selectEl.closest('.form-group') || selectEl.closest('.day-tab-content') || document;
+    const dateInput = container.querySelector('input[type="date"]');
+    if (dateInput) dateStr = dateInput.value;
+  }
+
+  const jobId = selectEl.getAttribute('data-job-id');
+  const warningEl = selectEl.parentElement.querySelector('.conflict-warning');
+
+  if (!warningEl) return;
+
+  if (staffName === 'Chưa xếp' || staffName === '' || !dateStr) {
+    warningEl.style.display = 'none';
+    return;
+  }
+
+  const conflicts = window.checkStaffConflict(staffName, dateStr, jobId);
+  if (conflicts.length > 0) {
+    const jobStr = conflicts.map(j => `#${j.jobNo || j.id.slice(0, 4)} ${j.client}`).join(', ');
+    warningEl.innerHTML = `⚠️ Trùng: ${jobStr}`;
+    warningEl.style.display = 'block';
+  } else {
+    warningEl.style.display = 'none';
+  }
+};
+
 // ==========================================
 // GLOBAL SEARCH LOGIC
 // ==========================================
