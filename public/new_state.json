@@ -943,6 +943,503 @@
       "status": "Chưa bắt đầu",
       "isTrash": false,
       "createdAt": "2026-02-26T08:31:41.413Z"
+    },
+    {
+      "id": "59-T7",
+      "jobNo": 1,
+      "client": "Hà Mi",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Địa chỉ \n CD: 797 Xô Viết Nghệ Tĩnh P26 Q Bình Thạnh, Tp Hồ Chí Minh\n CR: Tp Hồng Ngự \n Địa chỉ nhà hàng: Nhà hàng Capella ParkView",
+      "package": 20000000,
+      "deposit": 4000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "CAN",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY TT",
+          "staff": "HIẾU",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "100 ẢNH ALBUM",
+          "staff": "",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "004- T1",
+      "jobNo": 2,
+      "client": "Phuong Linh",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Nhà hàng GEM CENTER, 8 Nguyễn Bỉnh Khiêm, Đa Kao, Quận 1, Thành phố Hồ Chí Minh",
+      "package": 13000000,
+      "deposit": 2000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 0,
+          "paid": true,
+          "edit": 0,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "TUẤN ANH",
+          "cost": 0,
+          "paid": true,
+          "edit": 0,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "LONG",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "71- T9",
+      "jobNo": 3,
+      "client": "Thuy Chi Nguyen",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "TRUNG TÂM HỘI NGHỊ TIỆC CƯỚI THANH TÙNG, 99 Đ. số 9, Dĩ An, Bình Dương.\n( TIỆC TRƯA)",
+      "package": 36000000,
+      "deposit": 8000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "HÙNG",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "TRƯƠNG MINH",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "BẢO",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "ANH TRẦN",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "BẢO",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "MINH ĐỨC",
+          "cost": 1000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "53-T7",
+      "jobNo": 4,
+      "client": "Nguyễn Thảo Hiền",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Nhà thờ Thánh Phao lô, 280 Vành Đai Trong, Bình Trị Đông B, Quận Bình Tân, TP HCM",
+      "package": 53000000,
+      "deposit": 10000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "CHỤP PS HALF DAY",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "TIẾN",
+          "cost": 1000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "HÙNG",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "HIẾU",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "NGHĨA",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY DỌC TIKTOK",
+          "staff": "HIẾU",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "76- T10",
+      "jobNo": 5,
+      "client": "Nguyen Vo",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": " Nhà cô dâu: Ấp Đồng, Xã Trung An, Mỹ Tho, Tiền Giang\nNhà CR: 95 Đinh Tiên Hoàng, Phường Đa Kao, Q1\nNhà hàng: Maison De Charm",
+      "package": 11000000,
+      "deposit": 2000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "CHỤP PS",
+          "staff": "THỐNG",
+          "cost": 0,
+          "paid": true,
+          "edit": 0,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "HIẾU",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "54-T7",
+      "jobNo": 6,
+      "client": "CD Thuý- Planner Diệu Nghi",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Nhà thờ Nhà Thờ Thạnh An, 2891 QL80, Thị trấn Thanh An, Vĩnh Thạnh, Cần Thơ \nNhà cô dâu: 3878 QL80, TT. Thạnh An, H. Vĩnh Thạnh, TP. Cần Thơ\n Địa điểm tổ chức tiệc nhà gái: Sân Bóng Đá Mini Hoàng Bảo (xéo nhà CD)",
+      "package": 39000000,
+      "deposit": 7000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "CAN",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "TUYỀN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS HALF DAY",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS HALF DAY",
+          "staff": "BÌNH",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "T12",
+      "jobNo": 7,
+      "client": "Tuyết Vân\ntiệc 20 bàn",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Địa điểm tổ chức : tư gia ( 1239 đường Vĩnh Lộc , xã Vĩnh lộc b , bình chánh , tphcm)",
+      "package": 7000000,
+      "deposit": 1000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
     }
   ],
   "clients": [
