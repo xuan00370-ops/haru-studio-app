@@ -400,7 +400,7 @@ async function bootload() {
       const fbData = await loadFromFirebase();
       console.log("🔥 PRE-MERGE FIREBASE DATA:", fbData?.portfolios);
       console.log("🔥 PRE-MERGE LOCAL DATA:", state.portfolios);
-      if (fbData && fbData.jobs) {
+      if (fbData) {
         Object.assign(state, {
           jobs: fbData.jobs || state.jobs,
           staff: fbData.staff || state.staff,
@@ -413,7 +413,7 @@ async function bootload() {
         });
         console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase! Portfolios:", state.portfolios);
       } else {
-        console.log("🔥 Firebase init successful, but no valid fbData.jobs block found. Portfolios not merged.");
+        console.log("🔥 Firebase init successful, but no fbData found.");
       }
 
       // Lắng nghe real-time toàn bộ thay đổi Firebase data từ các user/thiết bị khác
