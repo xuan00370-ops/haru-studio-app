@@ -2352,6 +2352,64 @@ window.migrateLocalPortfolioToFirebase = async () => {
   }
 };
 
+window.reconcilePortfolioNow = async () => {
+  try {
+    let configRaw = state.settings.firebaseConfig;
+    if (!configRaw) {
+      const envCfg = (() => {
+        try { return import.meta.env?.VITE_FIREBASE_CONFIG || null; } catch { return null; }
+      })();
+      const publicCfg = window.HARU_PUBLIC_FIREBASE_CONFIG || window.HARU_FIREBASE_CONFIG || null;
+      configRaw = envCfg || (publicCfg ? JSON.stringify(publicCfg) : '');
+    }
+
+    if (!configRaw) {
+      alert('Thiếu Firebase Config để reconcile.');
+      return;
+    }
+
+    const ok = initFirebase(configRaw);
+    if (!ok) {
+      alert('Không thể kết nối Firebase.');
+      return;
+    }
+
+    const remote = await loadFromFirebase();
+    const remotePortfolios = Array.isArray(remote?.portfolios) ? remote.portfolios : [];
+    const localPortfolios = Array.isArray(state.portfolios) ? state.portfolios : [];
+
+    const byId = new Map();
+    const put = (p) => {
+      if (!p) return;
+      const id = p.id || `PF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const old = byId.get(id);
+      if (!old) byId.set(id, { ...p, id });
+      else {
+        const oldScore = (old.thumbnail ? 1 : 0) + ((old.images || []).length > 0 ? 1 : 0);
+        const newScore = (p.thumbnail ? 1 : 0) + ((p.images || []).length > 0 ? 1 : 0);
+        byId.set(id, newScore >= oldScore ? { ...old, ...p, id } : { ...p, ...old, id });
+      }
+    };
+
+    remotePortfolios.forEach(put);
+    localPortfolios.forEach(put);
+    const merged = Array.from(byId.values());
+
+    state.portfolios = merged;
+    state.settings.enableFirebaseSync = true;
+    state.settings.firebaseConfig = typeof configRaw === 'string' ? configRaw : JSON.stringify(configRaw);
+
+    await syncToFirebase(state);
+    saveState();
+    updateUI();
+
+    alert(`✅ Reconcile xong. Local: ${localPortfolios.length} | Remote: ${remotePortfolios.length} | Sau gộp: ${merged.length}`);
+  } catch (err) {
+    console.error('reconcilePortfolioNow error:', err);
+    alert('Reconcile thất bại. Xem console để biết chi tiết.');
+  }
+};
+
 // ============================================================
 // AUTH SYSTEM
 // ============================================================
