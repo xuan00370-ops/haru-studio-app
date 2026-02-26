@@ -376,8 +376,15 @@ export function renderDashboard(state, navigate) {
   // Get all unique staff names for filter chips
   const allStaffNames = [...new Set(state.jobs.flatMap(j => j.services.map(s => s.staff)))].sort();
 
-  // Apply filters
-  let monthJobs = state.jobs.filter(j => !j.isTrash);
+  // Apply filters — lọc theo tháng/năm trước, sau đó mới lọc theo các bộ lọc khác
+  // Nếu đang tìm kiếm hoặc lọc QUÁ HẠN thì tìm toàn bộ jobs để không bỏ sót
+  const isMonthSearch = state.searchQuery || state.statusFilter === 'QUÁ HẠN';
+  let monthJobs = state.jobs.filter(j => {
+    if (j.isTrash) return false;
+    if (isMonthSearch) return true; // Tìm kiếm toàn bộ
+    // Lọc theo tháng/năm hiện tại
+    return j.month == state.currentMonth && j.year == state.currentYear;
+  });
 
   const isOverdueJob = (job) => {
     if (!job?.date) return false;
@@ -423,6 +430,34 @@ export function renderDashboard(state, navigate) {
   const allStatuses = [...new Set(state.jobs.map(j => j.status))].sort();
   const overdueCount = state.jobs.filter(j => !j.isTrash).filter(isOverdueJob).length;
 
+  // === Year Summary Chart ===
+  const yearMonthStats = Array.from({ length: 12 }, (_, i) => {
+    const m = i + 1;
+    const mJobs = state.jobs.filter(j => !j.isTrash && j.month == m && j.year == state.currentYear);
+    return { month: m, count: mJobs.length, revenue: mJobs.reduce((s, j) => s + (j.package || 0), 0) };
+  });
+  const maxRevenue = Math.max(...yearMonthStats.map(s => s.revenue), 1);
+  const yearChartHtml = `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.75rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
+        <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;color:var(--text-dim)">📊 Doanh thu ${state.currentYear}</span>
+        <span style="font-size:0.65rem;color:var(--text-dim)">${yearMonthStats.filter(s => s.count > 0).length} tháng có doanh thu</span>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:44px">
+        ${yearMonthStats.map(s => {
+    const barH = s.revenue > 0 ? Math.max(4, Math.round((s.revenue / maxRevenue) * 44)) : 4;
+    const isCur = s.month === state.currentMonth;
+    const barColor = isCur ? 'var(--primary)' : s.revenue > 0 ? '#3b82f6' : 'var(--border)';
+    return `<div onclick="window.navigate&&window.navigate('dashboard');window.updateMonth&&window.updateMonth(${s.month},${state.currentYear})" title="T${s.month}: ${s.count} job — ${s.revenue.toLocaleString('vi-VN')}đ"
+              style="flex:1;height:${barH}px;background:${barColor};border-radius:3px 3px 0 0;cursor:pointer;opacity:${s.revenue > 0 ? 1 : 0.35};transition:opacity 0.2s;min-width:0"
+              onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=${s.revenue > 0 ? 1 : 0.35}"></div>`;
+  }).join('')}
+      </div>
+      <div style="display:flex;gap:3px;margin-top:3px">
+        ${yearMonthStats.map(s => `<div style="flex:1;text-align:center;font-size:0.45rem;color:${s.month === state.currentMonth ? 'var(--primary)' : 'var(--text-dim)'};font-weight:${s.month === state.currentMonth ? '900' : '600'};min-width:0;overflow:hidden">T${s.month}</div>`).join('')}
+      </div>
+    </div>`;
+
   container.innerHTML = `
     <header class="section-header">
       <div>
@@ -453,6 +488,8 @@ export function renderDashboard(state, navigate) {
         <button onclick="window.setStaffFilter('${name}')" class="btn btn-sm" style="font-size: 0.82rem; padding: 0.2rem 0.6rem; border-radius: 20px; ${state.staffFilter === name ? 'background: var(--accent); color: #000; border: none' : 'background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border)'}">${name}</button>
       `).join('')}
     </div>
+
+    ${yearChartHtml}
 
     ${state.staffFilter && state.staffFilter !== 'TẤT CẢ' ? (() => {
       const sName = state.staffFilter;
@@ -698,6 +735,25 @@ function renderJobCard(job) {
       </div>
 
       <div onclick="event.stopPropagation()" style="border-top:1px solid var(--border);padding-top:0.4rem;margin-top:0.3rem">
+        <!-- ✅ Checklist progress dots -->
+        ${(() => {
+      const cl = job.checklist || {};
+      const items = [
+        { key: 'contractSigned', label: 'HĐ', color: '#2563eb' },
+        { key: 'depositReceived', label: 'Cọc', color: '#16a34a' },
+        { key: 'albumDelivered', label: 'Album', color: '#9333ea' },
+        { key: 'fullyPaid', label: 'Tất toán', color: '#dc2626' },
+      ];
+      const doneCount = items.filter(it => cl[it.key]).length;
+      const dotColor = doneCount === 4 ? '#16a34a' : doneCount > 0 ? '#f59e0b' : 'var(--text-dim)';
+      return `<div style="display:flex;align-items:center;gap:0.35rem;margin-bottom:0.35rem">
+          ${items.map(it => {
+        const bg = cl[it.key] ? it.color : 'var(--border)';
+        return `<span title="${it.label}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${bg};flex-shrink:0"></span>`;
+      }).join('')}
+          <span style="font-size:0.58rem;font-weight:800;color:${dotColor};margin-left:2px">${doneCount}/4${doneCount === 4 ? ' ✅' : ''}</span>
+        </div>`;
+    })()}
         <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.3rem">
           <span style="font-size:0.65rem;color:var(--text-dim);font-weight:700">Đánh giá:</span>
           ${[1, 2, 3, 4, 5].map(i => `<span onclick="window.updateClientRating('${job.id}',${i})" style="cursor:pointer;font-size:0.85rem;opacity:${(job.clientRating || 0) >= i ? 1 : 0.3}">${(job.clientRating || 0) >= i ? '⭐' : '☆'}</span>`).join('')}
@@ -2893,22 +2949,33 @@ export function renderKanban(state) {
     });
   });
 
+  // Editor filter
+  const allEditors = [...new Set(clips.map(c => c.editor).filter(e => e && e !== '—'))].sort();
+  const kanbanEditorFilter = state.kanbanEditorFilter || 'TẤT CẢ';
+  const displayClips = kanbanEditorFilter === 'TẤT CẢ' ? clips : clips.filter(c => c.editor === kanbanEditorFilter);
+
   container.innerHTML = `
     <header class="section-header">
       <h1 class="view-title">📋 Kanban Board</h1>
-      <span style="font-size:0.85rem;color:var(--text-dim)">${clips.length} clip</span>
+      <span style="font-size:0.85rem;color:var(--text-dim)">${displayClips.length}/${clips.length} clip</span>
     </header>
 
-    <div class="kanban-board" style="display:flex;gap:0.6rem;margin-top:1rem;overflow-x:auto;padding-bottom:1rem;min-height:400px">
+    <!-- Editor filter chips -->
+    <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.75rem;margin-bottom:0.75rem">
+      <button onclick="window.setKanbanEditorFilter('TẤT CẢ')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">Tất cả (${clips.length})</button>
+      ${allEditors.map(e => `<button onclick="window.setKanbanEditorFilter('${e}')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === e ? 'background:#a855f7;color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">✏️ ${e} (${clips.filter(c => c.editor === e).length})</button>`).join('')}
+    </div>
+
+    <div class="kanban-board" style="display:flex;gap:0.6rem;overflow-x:auto;padding-bottom:1rem;min-height:400px">
       ${stages.map(s => `
         <div class="kanban-column" style="flex:1;min-width:200px;background:var(--bg-card);border-radius:12px;padding:0.6rem;border:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.8rem;padding-bottom:0.5rem;border-bottom:2px solid ${s.color}">
             <span>${s.icon}</span>
             <span style="font-size:0.78rem;font-weight:800;color:${s.color}">${s.label}</span>
-            <span style="font-size:0.65rem;background:${s.color}20;color:${s.color};padding:0.1rem 0.4rem;border-radius:10px;font-weight:800;margin-left:auto">${clips.filter(c => c.editStatus === s.id).length}</span>
+            <span style="font-size:0.65rem;background:${s.color}20;color:${s.color};padding:0.1rem 0.4rem;border-radius:10px;font-weight:800;margin-left:auto">${displayClips.filter(c => c.editStatus === s.id).length}</span>
           </div>
           <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
-            ${clips.filter(c => c.editStatus === s.id).map(c => `
+            ${displayClips.filter(c => c.editStatus === s.id).map(c => `
               <div class="kanban-card" onclick="window.openQuickPreview('${c.jobId}')" data-job-id="${c.jobId}" data-sidx="${c.sIdx}"
                 style="background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
       : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'

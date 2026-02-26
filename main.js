@@ -474,6 +474,42 @@ async function bootload() {
     saveState();
   }
 
+  // === Feature #B: Reminder — jobs sắp đến trong 3 ngày tới ===
+  try {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const in3Days = new Date(today); in3Days.setDate(in3Days.getDate() + 3);
+    const upcoming = state.jobs.filter(j => {
+      if (j.isTrash) return false;
+      if ((j.status || '').includes('hoàn thành')) return false;
+      const d = new Date(j.date); d.setHours(0, 0, 0, 0);
+      return d >= today && d <= in3Days;
+    }).sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (upcoming.length > 0) {
+      const names = upcoming.map(j => `${j.client} (${new Date(j.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })})`).join(', ');
+      const msg = `⚠️ ${upcoming.length} job sắp đến: ${names}`;
+      if (!state.notificationLog) state.notificationLog = [];
+      // Tránh duplicate: chỉ thêm nếu chưa có cùng message hôm nay
+      const todayStr = today.toISOString().slice(0, 10);
+      const alreadyAdded = state.notificationLog.some(n => n.action === msg && (n.time || '').startsWith(todayStr));
+      if (!alreadyAdded) {
+        state.notificationLog.unshift({ time: new Date().toISOString(), action: msg, user: 'Tự động', read: false });
+        if (state.notificationLog.length > 50) state.notificationLog.pop();
+        // Toast nhắc nhở
+        setTimeout(() => {
+          if (window.showToast) {
+            window.showToast(msg, 'var(--warning)');
+          } else {
+            const t = document.createElement('div');
+            t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9999;background:#f59e0b;color:#fff;padding:0.6rem 1.25rem;border-radius:12px;font-size:0.85rem;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:90vw;text-align:center';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.4s'; setTimeout(() => t.remove(), 400); }, 5000);
+          }
+        }, 1500);
+      }
+    }
+  } catch (e) { console.warn('[Haru] Reminder check error:', e); }
+
   // Khởi động UI Component render
   updateUI();
 
@@ -1537,7 +1573,7 @@ function _updateStaffPaymentMetrics(staffName) {
   const fmt = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
   // Staff card lives inside #staff-card-<name>
-  const card = document.getElementById(`staff - card - ${staffName.replace(/'/g, "\\'")} `);
+  const card = document.getElementById(`staff-card-${staffName.replace(/'/g, "\\'")}`);
   if (!card) return; // not visible right now, skip
   const vals = card.querySelectorAll('.payment-metric');
   // vals[0]=Tổng thu, vals[1]=Đã trả, vals[2]=Còn nợ (set during renderStaff)
@@ -1553,13 +1589,12 @@ function showPaymentToast(msg, color) {
   const toast = document.createElement('div');
   toast.id = 'haru-pay-toast';
   toast.style.cssText = `
-        position: fixed; bottom: 1.5rem; right: 1.5rem; z - index: 9999;
+        position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
         background: ${color}; color: #fff;
-        padding: 0.6rem 1.25rem; border - radius: 100px;
-        font - size: 0.9rem; font - weight: 700;
-        box - shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        animation: toastIn 0.25s cubic - bezier(0.16, 1, 0.3, 1);
-        pointer - events: none;
+        padding: 0.6rem 1.25rem; border-radius: 100px;
+        font-size: 0.9rem; font-weight: 700;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        pointer-events: none;
         `;
   toast.textContent = msg;
   document.body.appendChild(toast);
@@ -1805,18 +1840,18 @@ window.removeStaff = (name) => {
 };
 
 window.showEditStaff = (name) => {
-  const form = document.getElementById(`edit - form - ${name} `);
+  const form = document.getElementById(`edit-form-${name}`);
   if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 };
 
 window.saveStaffEdit = (originalName) => {
   const member = state.staff.find(s => s.name === originalName);
   if (!member) return;
-  const newName = document.getElementById(`edit - name - ${originalName} `)?.value?.trim() || member.name;
-  const newRole = document.getElementById(`edit - role - ${originalName} `)?.value || member.role;
-  const newPhone = document.getElementById(`edit - phone - ${originalName} `)?.value || member.phone;
-  const newBankNo = document.getElementById(`edit - bankno - ${originalName} `)?.value || '';
-  const newBankBank = document.getElementById(`edit - bankname - ${originalName} `)?.value || '';
+  const newName = document.getElementById(`edit-name-${originalName}`)?.value?.trim() || member.name;
+  const newRole = document.getElementById(`edit-role-${originalName}`)?.value || member.role;
+  const newPhone = document.getElementById(`edit-phone-${originalName}`)?.value || member.phone;
+  const newBankNo = document.getElementById(`edit-bankno-${originalName}`)?.value || '';
+  const newBankBank = document.getElementById(`edit-bankname-${originalName}`)?.value || '';
   if (!newName) { alert('Tên nhân sự không được để trống'); return; }
   member.name = newName;
   member.role = newRole;
@@ -1842,6 +1877,7 @@ window.setEditPhotoStatusFilter = (filter) => { state.editPhotoStatusFilter = fi
 window.toggleEditPhotoView = (view) => { state.editPhotoView = view; updateUI(); };
 window.setEditVideoStatusFilter = (filter) => { state.editVideoStatusFilter = filter; updateUI(); };
 window.toggleEditVideoView = (view) => { state.editVideoView = view; updateUI(); };
+window.setKanbanEditorFilter = (editor) => { state.kanbanEditorFilter = editor; updateUI(); };
 
 // ============================================================
 // MANUAL TRANSACTIONS
