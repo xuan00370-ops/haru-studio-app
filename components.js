@@ -4278,7 +4278,17 @@ export function renderGalleryClient(galleryId, state) {
   const container = document.createElement('div');
   container.style.cssText = 'min-height: 100vh; background: #dcd7ce; color: #333; position: relative';
 
-  const publicPortfolios = (state.portfolios || []).filter(p => p.isVisible);
+  const toPortfolioTime = (p) => {
+    const byDate = Date.parse(p?.date || '');
+    if (!Number.isNaN(byDate) && byDate > 0) return byDate;
+    const byId = Number(String(p?.id || '').replace('PF-', ''));
+    if (!Number.isNaN(byId) && byId > 0) return byId;
+    return 0;
+  };
+
+  const publicPortfolios = (state.portfolios || [])
+    .filter(p => p.isVisible)
+    .sort((a, b) => toPortfolioTime(b) - toPortfolioTime(a));
 
   // 1. HUB VIEW (Trang chủ chọn Album)
   if (galleryId === 'home') {
@@ -4714,6 +4724,15 @@ export function renderPortfolioAdmin(state) {
   // Make sure state.portfolios is an array
   if (!state.portfolios) state.portfolios = [];
 
+  const toPortfolioTime = (p) => {
+    const byDate = Date.parse(p?.date || '');
+    if (!Number.isNaN(byDate) && byDate > 0) return byDate;
+    const byId = Number(String(p?.id || '').replace('PF-', ''));
+    if (!Number.isNaN(byId) && byId > 0) return byId;
+    return 0;
+  };
+  const sortedPortfolios = [...state.portfolios].sort((a, b) => toPortfolioTime(b) - toPortfolioTime(a));
+
   container.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem">
       <h2 style="font-size: 1.5rem; font-weight: 800; display:flex; align-items:center; gap:0.5rem">
@@ -4740,7 +4759,7 @@ export function renderPortfolioAdmin(state) {
         <div style="text-align: right">Thao tác</div>
       </div>
       <div>
-        ${state.portfolios.length === 0 ? '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Chưa có bộ sưu tập nào. Nhấn "+ Tạo mới" để bắt đầu!</div>' : state.portfolios.map(p => `
+        ${sortedPortfolios.length === 0 ? '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Chưa có bộ sưu tập nào. Nhấn "+ Tạo mới" để bắt đầu!</div>' : sortedPortfolios.map(p => `
           <div style="display: grid; grid-template-columns: 80px 1.5fr 1fr 1fr 100px; padding: 1rem; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.2s">
             <div style="width: 60px; height: 60px; border-radius: 8px; background: url('${p.thumbnail || ''}') center/cover; background-color: var(--border)"></div>
             <div>
