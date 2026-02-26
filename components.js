@@ -493,13 +493,33 @@ export function renderDashboard(state, navigate) {
         <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap">
           <div class="stat-card" style="min-width:50px">
             <span class="label" style="font-size: 0.5rem">Tổng Dự án</span>
-            <div class="value" style="font-size: 0.9rem; font-weight: 800">${monthJobs.length}</div>
+            <div class="value" style="font-size: 0.9rem; font-weight: 800">${monthJobs.length}${(() => {
+      const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
+      const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
+      const prevJobs = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py);
+      if (!prevJobs.length) return '';
+      const diff = monthJobs.length - prevJobs.length;
+      const pct = prevJobs.length > 0 ? Math.round((diff / prevJobs.length) * 100) : 0;
+      const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
+      const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+      return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
+    })()}</div>
           </div>
           <div style="width:1px;height:28px;background:var(--border)"></div>
           <div style="display: flex; gap: 0.8rem; flex-wrap: wrap">
             <div style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Doanh thu</span>
-              <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency(revenue)}</div>
+              <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency(revenue)}${(() => {
+      const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
+      const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
+      const prevRev = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py).reduce((s, j) => s + (j.package || 0), 0);
+      if (!prevRev) return '';
+      const diff = revenue - prevRev;
+      const pct = Math.round((diff / prevRev) * 100);
+      const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
+      const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+      return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
+    })()}</div>
             </div>
             <div style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Nhân sự/Edit</span>
@@ -511,7 +531,22 @@ export function renderDashboard(state, navigate) {
             </div>
             <div style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Lợi nhuận ròng</span>
-              <div style="font-size: 1rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(netProfit)}</div>
+              <div style="font-size: 1rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                ${formatCurrency(netProfit)}${(() => {
+      const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
+      const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
+      const prevJobs2 = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py);
+      const prevRev2 = prevJobs2.reduce((s, j) => s + (j.package || 0), 0);
+      const prevStaff = prevJobs2.reduce((s, j) => s + (j.services || []).filter(isValidServiceRow).reduce((ss, ser) => ss + (ser.cost || 0) + (ser.edit || 0), 0), 0);
+      const prevNet = prevRev2 - prevStaff;
+      if (!prevRev2) return '';
+      const diff = netProfit - prevNet;
+      const pct = prevNet !== 0 ? Math.round((diff / Math.abs(prevNet)) * 100) : 0;
+      const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
+      const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+      return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
+    })()}
+              </div>
             </div>
           </div>
         </div>
@@ -524,6 +559,8 @@ export function renderDashboard(state, navigate) {
         </div>
       </div>
     </div>
+
+
 
       <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem">
          <button class="btn btn-primary btn-sm" onclick="window.viewPA3Report('${monthKey}')">📊 Xem PA3</button>
@@ -785,10 +822,44 @@ function renderQuickPreviewModal(state, closeModal) {
     })()}
       </div>
       ${job.linkNAS ? `<div style="padding:0.5rem 0.8rem;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:6px;margin-top:0.25rem"><div style="font-size:0.62rem;color:var(--text-dim);margin-bottom:0.15rem">📂 NAS Path</div><div style="font-size:0.72rem;font-weight:700;color:#3b82f6;word-break:break-all">${job.linkNAS}</div></div>` : ''}
+
+      <!-- ✅ CHECKLIST nhanh -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.75rem;margin-top:0.5rem">
+        <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.5rem">✅ Tiến trình hợp đồng</div>
+        ${[
+      { key: 'contractSigned', label: '📄 Hợp đồng đã ký', color: '#2563eb' },
+      { key: 'depositReceived', label: '💰 Đã nhận cọc', color: '#16a34a' },
+      { key: 'albumDelivered', label: '🖼️ Đã giao album', color: '#9333ea' },
+      { key: 'fullyPaid', label: '✅ Đã tất toán', color: '#dc2626' },
+    ].map(item => {
+      const checked = !!(job.checklist || {})[item.key];
+      return `<label style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0.4rem;cursor:pointer;border-radius:6px;${checked ? `background:${item.color}10` : ''}">
+            <input type="checkbox" ${checked ? 'checked' : ''} onchange="window.toggleJobChecklist('${job.id}','${item.key}',this.checked)"
+              style="width:14px;height:14px;accent-color:${item.color};cursor:pointer;flex-shrink:0">
+            <span style="font-size:0.78rem;font-weight:${checked ? '800' : '600'};color:${checked ? item.color : 'var(--text-dim)'};text-decoration:${checked ? 'line-through' : 'none'}">${item.label}</span>
+          </label>`;
+    }).join('')}
+      </div>
+
+      <!-- 💬 ZALO nhanh -->
+      <div style="background:var(--bg-card);border:1px solid rgba(0,132,255,0.2);border-radius:10px;padding:0.75rem;margin-top:0.4rem">
+        <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;color:#0084ff;margin-bottom:0.5rem">💬 Nhắn Zalo nhanh</div>
+        <div style="display:flex;flex-direction:column;gap:0.3rem">
+          ${[
+      { label: '📅 Nhắc ngày chụp', msg: `Chào anh/chị ${job.client}! 🌸\nHaru Studio xin nhắc lịch ngày ${new Date(job.date).toLocaleDateString('vi-VN')} của mình ạ.\nCảm ơn anh/chị! 💕` },
+      { label: '🖼️ Album đã xong', msg: `Chào anh/chị ${job.client}! 🌸\nAlbum của mình đã hoàn thành! Xem tại:\n${job.linkCustomer || '[Chèn link album]'}\nHaru Studio mong nhận feedback của anh/chị! 💕` },
+      { label: '💰 Nhắc thanh toán', msg: `Chào anh/chị ${job.client}! 🌸\nPhần thanh toán còn lại: ${((job.package || 0) - (job.deposit || 0)).toLocaleString('vi-VN')}đ.\nAnh/chị vui lòng sắp xếp. Cảm ơn! 💕` },
+    ].map(t => `<button onclick="navigator.clipboard.writeText('${t.msg.replace(/'/g, "\\'")}').then(()=>window.showToast&&window.showToast('📋 Đã copy tin nhắn!'))"
+            style="text-align:left;padding:0.35rem 0.55rem;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;border:1px solid rgba(0,132,255,0.15);background:rgba(0,132,255,0.04);color:#0050b3"
+            onmouseover="this.style.background='rgba(0,132,255,0.1)'" onmouseout="this.style.background='rgba(0,132,255,0.04)'">${t.label}</button>`).join('')}
+        </div>
+      </div>
+
       <div style="margin-top:auto;padding-top:1rem;display:flex;flex-direction:column;gap:0.5rem">
         <button onclick="window.closeModal(); setTimeout(() => window.openModal('job_detail', '${job.id}'), 100)" style="width:100%;padding:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(22,163,74,0.2)">✏️ Chỉnh sửa nâng cao</button>
         <button onclick="window.deleteJob('${job.id}')" style="width:100%;padding:0.6rem;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer">🗑 Xóa dự án</button>
       </div>
+
 
     </div>
   `;
@@ -1193,6 +1264,42 @@ function renderJobDetailModal(state) {
           </div>
           `}
 
+          <!-- ✅ JOB CHECKLIST (#10) -->
+          <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 1rem">
+            <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.75rem">✅ Tiến trình hợp đồng</div>
+            ${[
+      { key: 'contractSigned', label: '📄 Hợp đồng đã ký', color: '#2563eb' },
+      { key: 'depositReceived', label: '💰 Đã nhận cọc', color: '#16a34a' },
+      { key: 'albumDelivered', label: '🖼️ Đã giao album', color: '#9333ea' },
+      { key: 'fullyPaid', label: '✅ Đã tất toán', color: '#dc2626' },
+    ].map(item => {
+      const checked = !!(job.checklist || {})[item.key];
+      return `<label style="display:flex;align-items:center;gap:0.6rem;padding:0.45rem 0.5rem;cursor:pointer;border-radius:8px;transition:0.15s;${checked ? `background:${item.color}10` : ''}" onmouseover="this.style.background='${item.color}08'" onmouseout="this.style.background='${checked ? item.color + '10' : ''}'">
+                <input type="checkbox" ${checked ? 'checked' : ''} onchange="window.toggleJobChecklist('${job.id}','${item.key}',this.checked)"
+                  style="width:16px;height:16px;accent-color:${item.color};cursor:pointer;flex-shrink:0">
+                <span style="font-size:0.85rem;font-weight:${checked ? '800' : '600'};color:${checked ? item.color : 'var(--text-dim)'};text-decoration:${checked ? 'line-through' : 'none'};transition:0.2s">${item.label}</span>
+              </label>`;
+    }).join('')}
+          </div>
+
+          <!-- 💬 ZALO TEMPLATES (#7) -->
+          <div style="background: #fff; border: 1.5px solid rgba(0,132,255,0.25); border-radius: 12px; padding: 1rem">
+            <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #0084ff; margin-bottom: 0.6rem">💬 Nhắn Zalo nhanh</div>
+            <div style="display: flex; flex-direction: column; gap: 0.4rem">
+              ${[
+      { label: '📅 Nhắc ngày chụp', icon: '📅', tpl: `Chào anh/chị ${job.client}! 🌸\nHaru Studio xin nhắc lịch ngày ${new Date(job.date).toLocaleDateString('vi-VN')} của mình ạ.\nVui lòng liên hệ nếu cần điều chỉnh. Cảm ơn anh/chị! 💕` },
+      { label: '🖼️ Album đã sẵn sàng', icon: '🖼️', tpl: `Chào anh/chị ${job.client}! 🌸\nAlbum ảnh cưới của mình đã hoàn thành và sẵn sàng xem tại:\n${job.linkCustomer || '[Chèn link album]'}\nHaru Studio rất mong nhận được feedback của anh/chị! 💕` },
+      { label: '💰 Nhắc thanh toán', icon: '💰', tpl: `Chào anh/chị ${job.client}! 🌸\nHaru Studio xin nhắc nhở phần thanh toán còn lại: ${formatCurrency(Math.max(0, (job.package || 0) - (job.deposit || 0)))} ạ.\nAnh/chị vui lòng liên hệ để sắp xếp. Cảm ơn! 💕` },
+    ].map(t => `
+                <button onclick="navigator.clipboard.writeText(\`${t.tpl.replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`).then(()=>{ window.showToast && window.showToast('📋 Đã copy tin nhắn Zalo!'); })"
+                  style="text-align:left;padding:0.45rem 0.65rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;border:1px solid rgba(0,132,255,0.2);background:rgba(0,132,255,0.04);color:#0050b3;transition:0.15s"
+                  onmouseover="this.style.background='rgba(0,132,255,0.1)'" onmouseout="this.style.background='rgba(0,132,255,0.04)'">
+                  ${t.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
           <!-- Action buttons -->
           <div style="display: flex; flex-direction: column; gap: 0.6rem">
             <button class="btn btn-primary" style="width: 100%; font-size: 1rem; padding: 0.85rem" onclick="window.saveJobDetail('${job.id}')">
@@ -1203,6 +1310,7 @@ function renderJobDetailModal(state) {
             </button>
           </div>
 
+
           <!-- Chat / Comments -->
           <div style="background: #fff; border: 1.5px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; height: 320px">
             <div style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); background: rgba(0,0,0,0.02)">💬 Trao đổi nội bộ</div>
@@ -1210,14 +1318,14 @@ function renderJobDetailModal(state) {
             <div id="job-chat-messages" style="flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.85rem; background: #fafafa">
               ${(!job.comments || job.comments.length === 0) ? '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; font-style: italic; margin: auto">Chưa có bình luận nào</div>' : ''}
               ${(job.comments || []).map(c => {
-        const isMe = c.user === window.state?.currentUser?.username || c.user === window.state?.currentUser?.displayName;
-        return `
+      const isMe = c.user === window.state?.currentUser?.username || c.user === window.state?.currentUser?.displayName;
+      return `
                     <div style="display: flex; flex-direction: column; gap: 0.2rem; align-items: ${isMe ? 'flex-end' : 'flex-start'}">
                        <div style="font-size: 0.65rem; color: var(--text-dim); font-weight: 700; padding: 0 0.2rem">${c.user} <span style="font-weight: 400; opacity: 0.8">• ${new Date(c.time || Date.now()).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span></div>
                        <div style="background: ${isMe ? 'var(--primary)' : '#e5e7eb'}; color: ${isMe ? '#fff' : 'var(--text-main)'}; padding: 0.5rem 0.75rem; border-radius: 12px; font-size: 0.85rem; max-width: 90%; line-height: 1.4; word-wrap: break-word; border-bottom-${isMe ? 'right' : 'left'}-radius: 2px">${c.text}</div>
                     </div>
                  `;
-      }).join('')}
+    }).join('')}
             </div>
 
             <div style="padding: 0.75rem; border-top: 1px solid var(--border); background: #fff; display: flex; gap: 0.5rem">
@@ -2802,14 +2910,23 @@ export function renderKanban(state) {
           <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
             ${clips.filter(c => c.editStatus === s.id).map(c => `
               <div class="kanban-card" onclick="window.openQuickPreview('${c.jobId}')" data-job-id="${c.jobId}" data-sidx="${c.sIdx}"
-                style="background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${s.color};position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+                style="background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
+      : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+        : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+          : s.color
+    };position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)${c.daysLeft != null && c.daysLeft <= 3 ? ';background:rgba(239,68,68,0.03)' : c.daysLeft != null && c.daysLeft <= 7 ? ';background:rgba(245,158,11,0.03)' : ''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
                   <span style="font-size:0.75rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${c.client}">${c.client}</span>
                   <button onclick="event.stopPropagation();if(confirm('Xoá clip này?'))window.deleteVideoClip&&window.deleteVideoClip('${c.jobId}','${c.sIdx}')" style="background:none;border:none;cursor:pointer;font-size:0.65rem;color:#ef4444;padding:0.1rem 0.2rem;border-radius:4px;opacity:0.5" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">🗑️</button>
                 </div>
                 <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.service}">🎥 ${c.service} <strong style="color:var(--text-main)">(x${c.qty})</strong></div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
-                  <span style="font-size:0.55rem;font-weight:700;color:${c.daysLeft != null ? (c.daysLeft > 0 ? 'var(--text-dim)' : '#ef4444') : 'var(--text-muted)'}">⏰ ${c.deadlineStr || '—'}</span>
+                  <span style="font-size:0.55rem;font-weight:700;color:${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
+      : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+        : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+          : 'var(--text-dim)'
+    }">⏰ ${c.deadlineStr || '—'}${c.daysLeft != null && c.daysLeft <= 3 && c.daysLeft > 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 7 && c.daysLeft > 3 ? ` <span style="background:#f59e0b20;color:#f59e0b;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">QH</span>` : ''
+    }</span>
                   <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${c.editor || 'Chưa gán'}">✏️ ${c.editor || 'Trống'}</span>
                 </div>
               </div>

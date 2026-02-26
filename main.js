@@ -1756,6 +1756,25 @@ window.markJobFullyPaid = (jobId) => {
   }
 };
 
+// ============================================================
+// JOB CHECKLIST TOGGLE (tích/bỏ tích các bước quan trọng)
+// ============================================================
+window.toggleJobChecklist = (jobId, key, checked) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  if (!job.checklist) job.checklist = {};
+  job.checklist[key] = checked;
+  saveState();
+  // Nếu Firebase sync bật, push ngay
+  if (window._firebaseSyncEnabled !== false) {
+    import('./firebase.js').then(fb => {
+      if (fb.syncToFirebase) fb.syncToFirebase(state);
+    }).catch(() => { });
+  }
+};
+
+
+
 
 // ============================================================
 // STAFF CRUD
