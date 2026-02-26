@@ -2562,8 +2562,8 @@ export function renderSettings(state) {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
              <div style="padding: 0.75rem; background: rgba(0,0,0,0.1); border-radius: 8px">
                 <div style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700">Phiên bản</div>
-                <div style="font-size: 1rem; font-weight: 800">v3.1.0-Premium</div>
-                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.2rem">Cập nhật: 24/02/2026 14:56</div>
+                <div style="font-size: 1rem; font-weight: 800">v${__APP_VERSION__}</div>
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.2rem">Cập nhật lúc: ${__APP_BUILD_TIME__}</div>
              </div>
              <div style="padding: 0.75rem; background: rgba(0,0,0,0.1); border-radius: 8px">
                 <div style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700">Tổng dự án</div>
