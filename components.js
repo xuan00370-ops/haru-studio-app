@@ -4383,6 +4383,8 @@ export function renderGlobalSearchModal(state) {
 
   // Phase 3 #7: Command hints
   const commandHint = state.globalSearchCommandHint;
+  const query = state.globalSearchQuery || '';
+  const results = state.globalSearchResults || [];
   const COMMANDS = [
     { label: '➕ Tạo dự án mới', cmd: 'tạo job', keys: '> tạo job' },
     { label: '📅 Lịch nhắc việc', cmd: 'lịch', keys: '> lịch' },

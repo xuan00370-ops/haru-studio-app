@@ -429,10 +429,30 @@ async function bootload() {
     }
   }
 
-  // Fallback an toàn: nếu dữ liệu rỗng thì khôi phục từ mockData đã sync
+  // Fallback an toàn: nếu dữ liệu rỗng thì khôi phục từ mockData đã sync định dạng json
   if (!Array.isArray(state.jobs) || state.jobs.length === 0) {
-    state.jobs = [...mockData.jobs];
-    if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
+    try {
+      console.log('🔄 Auto-fetching initial state from new_state.json...');
+      const res = await fetch('/new_state.json?t=' + Date.now());
+      if (res.ok) {
+        const liveData = await res.json();
+        state.jobs = liveData.jobs || [];
+        if (liveData.staff && liveData.staff.length > 0) state.staff = liveData.staff;
+        console.log('✅ Auto-loaded', state.jobs.length, 'jobs from new_state.json');
+
+        // Auto-save this as the baseline to Firebase now that we've hydrated it
+        setTimeout(() => {
+          saveState();
+        }, 1500);
+      } else {
+        state.jobs = [...mockData.jobs];
+        if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
+      }
+    } catch (err) {
+      console.warn('⚠️ Auto-fetch new_state.json failed, using static mockData', err);
+      state.jobs = [...mockData.jobs];
+      if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
+    }
   }
 
   // Deduplicate services for existing jobs (fixes API merged cells bug data retention)
