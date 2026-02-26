@@ -360,6 +360,28 @@ async function bootload() {
     }
   }
 
+  // Fallback an toàn MẠNH (BLOCKING): nếu dữ liệu rỗng HOÀN TOÀN,
+  // khôi phục từ new_state.json ngay từ đầu (TRƯỚC KHI BẬT FIREBASE)
+  // để tránh Firebase watch listener đè thành mảng rỗng do race condition.
+  if (!Array.isArray(state.jobs) || state.jobs.length === 0) {
+    try {
+      console.log('🔄 Auto-fetching initial state from new_state.json (Strict Before Firebase)...');
+      const res = await fetch('/new_state.json?t=' + Date.now());
+      if (res.ok) {
+        const liveData = await res.json();
+        state.jobs = liveData.jobs || [];
+        if (liveData.staff && liveData.staff.length > 0) state.staff = liveData.staff;
+        console.log('✅ Auto-loaded', state.jobs.length, 'jobs from new_state.json successfully.');
+      } else {
+        throw new Error("HTTP Fetch failed");
+      }
+    } catch (err) {
+      console.warn('⚠️ Auto-fetch new_state.json failed, falling back to static mockData', err);
+      state.jobs = [...mockData.jobs];
+      if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
+    }
+  }
+
   const isHubMode = urlParams.get('hub') === 'haru' || Boolean(urlParams.get('gallery'));
   // Hub/gallery mode ALWAYS needs Firebase, regardless of enableFirebaseSync setting
   const shouldUseFirebase = Boolean(effectiveFirebaseConfig) &&
@@ -374,7 +396,7 @@ async function bootload() {
 
     const isOk = initFirebase(cfgStr);
     if (isOk) {
-      // Fetch latest từ Firebase đè lên
+      // Fetch latest từ Firebase đè lên (nếu có)
       const fbData = await loadFromFirebase();
       console.log("🔥 PRE-MERGE FIREBASE DATA:", fbData?.portfolios);
       console.log("🔥 PRE-MERGE LOCAL DATA:", state.portfolios);
@@ -428,32 +450,7 @@ async function bootload() {
       });
     }
   }
-
-  // Fallback an toàn: nếu dữ liệu rỗng thì khôi phục từ mockData đã sync định dạng json
-  if (!Array.isArray(state.jobs) || state.jobs.length === 0) {
-    try {
-      console.log('🔄 Auto-fetching initial state from new_state.json...');
-      const res = await fetch('/new_state.json?t=' + Date.now());
-      if (res.ok) {
-        const liveData = await res.json();
-        state.jobs = liveData.jobs || [];
-        if (liveData.staff && liveData.staff.length > 0) state.staff = liveData.staff;
-        console.log('✅ Auto-loaded', state.jobs.length, 'jobs from new_state.json');
-
-        // Auto-save this as the baseline to Firebase now that we've hydrated it
-        setTimeout(() => {
-          saveState();
-        }, 1500);
-      } else {
-        state.jobs = [...mockData.jobs];
-        if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
-      }
-    } catch (err) {
-      console.warn('⚠️ Auto-fetch new_state.json failed, using static mockData', err);
-      state.jobs = [...mockData.jobs];
-      if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
-    }
-  }
+  // (Fallback cũ đã được dời lên trên dòng Firebase Init)
 
   // Deduplicate services for existing jobs (fixes API merged cells bug data retention)
   if (Array.isArray(state.jobs)) {
