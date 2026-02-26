@@ -156,7 +156,9 @@ export function renderBottomNav(activePage, navigate) {
   // Chỉ hiện các nút quan trọng nhất cho Mobile
   const items = [
     { id: 'dashboard', icon: '📊', label: 'Dự án' },
+    { id: 'portfolio', icon: '🖼️', label: 'Album' },
     { id: 'staff', icon: '🎭', label: 'Nhân sự' },
+    { id: 'edit_photo', icon: '📷', label: 'Edit Photo' },
     { id: 'edit_video', icon: '🎞️', label: 'Edit' },
     { id: 'calendar', icon: '📅', label: 'Lịch' }
   ];
