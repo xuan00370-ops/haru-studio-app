@@ -382,8 +382,10 @@ export function renderDashboard(state, navigate) {
   let monthJobs = state.jobs.filter(j => {
     if (j.isTrash) return false;
     if (isMonthSearch) return true; // Tìm kiếm toàn bộ
-    // Lọc theo tháng/năm hiện tại
-    return j.month == state.currentMonth && j.year == state.currentYear;
+    // Lọc theo tháng/năm hiện tại dựa trên field date (yyyy-mm-dd)
+    const d = new Date(j.date);
+    if (Number.isNaN(d.getTime())) return false;
+    return (d.getMonth() + 1) === state.currentMonth && d.getFullYear() === state.currentYear;
   });
 
   const isOverdueJob = (job) => {

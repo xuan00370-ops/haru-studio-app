@@ -33,15 +33,9 @@
   <div id="app"></div>
   <script type="module" src="/main.js"></script>
   <script>
-    // Register Service Worker for PWA
+    // Disable SW during active development/hotfix period to avoid stale cached bundles across devices.
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(registration => {
-          console.log('SW registered: ', registration);
-        }).catch(err => {
-          console.log('SW registration failed: ', err);
-        });
-      });
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
     }
 
     // Capture install prompt for PWA
