@@ -51,6 +51,13 @@ export function renderSidebar(activePage, navigate) {
         <span><span class="icon">&#128270;</span> Tìm kiếm</span>
         <span style="font-size: 0.65rem; padding: 0.15rem 0.3rem; background: rgba(0,0,0,0.05); border-radius: 4px; color: var(--text-dim)">Cmd+K</span>
       </div>
+
+      ${(window.state?.currentUser?.role === 'admin' || !window.state?.currentUser) ? `
+      <div class="nav-item ${activePage === 'portfolio' ? 'active' : ''}" onclick="window.navigate('portfolio')" style="background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25); margin-bottom: 0.75rem; font-weight: 800;">
+        <span class="icon">🖼️</span> Album
+        <span style="font-size:0.6rem;background:rgba(249,115,22,0.15);color:#f97316;padding:0.15rem 0.4rem;border-radius:6px;font-weight:900;margin-left:auto">HUB</span>
+      </div>` : ''}
+
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1rem 0 0.5rem 0.75rem; text-transform: uppercase;">&#272;iều hành</div>
       ${window.state?.currentUser?.role !== 'admin' ? `
       <div class="nav-item ${activePage === 'workspace' ? 'active' : ''}" onclick="window.navigate('workspace')" style="background: rgba(168,85,247,0.1); border-left: 3px solid #a855f7; margin-bottom: 0.5rem; justify-content: space-between;">
@@ -114,12 +121,10 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'trash' ? 'active' : ''}" onclick="window.navigate('trash')">
         <span class="icon">&#128465;&#65039;</span> Thùng rác
       </div>
-      <div class="nav-item ${activePage === 'portfolio' ? 'active' : ''}" onclick="window.navigate('portfolio')">
-        <span class="icon">🖼️</span> Portfolio
-      </div>
       <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.navigate('settings')">
         <span class="icon">👑</span> Admin Center
       </div>` : ''}
+
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border)">
         <div class="nav-item" onclick="window.toggleTheme();window.updateUI()" style="cursor:pointer">
