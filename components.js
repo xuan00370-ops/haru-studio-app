@@ -1773,9 +1773,10 @@ export function renderStaff(state) {
        <h1 class="view-title">👥 Danh sách Liên hệ & CTV</h1>
     </header>
 
-    <div style="display: flex; gap: 0.5rem; margin: 1rem 0 1.5rem">
+    <div style="display: flex; gap: 0.5rem; margin: 1rem 0 1.5rem; flex-wrap: wrap">
        <button class="btn ${staffViewMode === 'all' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="window.state.staffViewMode='all'; window.updateUI && updateUI()">Tất cả (${state.staff.length})</button>
        <button class="btn ${staffViewMode === 'month' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="window.state.staffViewMode='month'; window.updateUI && updateUI()">Tháng ${state.currentMonth} (${filteredStaff.length})</button>
+       <button class="btn btn-primary btn-sm" onclick="window.quickAddCTV()">+ CTV</button>
     </div>
 
     <div class="staff-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem">

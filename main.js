@@ -1849,13 +1849,23 @@ window.addStaff = (data) => {
   if (duplicate) { alert(`Nhân sự "${data.name}" đã tồn tại`); return; }
   state.staff.push({
     name: data.name.trim(),
-    role: data.role || 'Quay phim',
+    role: data.role || 'CTV',
     phone: data.phone || '',
-    bank: data.bank || { no: '', name: '', bank: '' }
+    bank: data.bank || { no: '', name: '', bank: '' },
+    note: data.note || ''
   });
   window.addHistory(`Thêm nhân sự: ${data.name} `);
   saveState();
   updateUI();
+};
+
+window.quickAddCTV = () => {
+  const name = prompt('Tên CTV:')?.trim();
+  if (!name) return;
+  const phone = (prompt('SĐT CTV (có thể để trống):') || '').trim();
+  const role = (prompt('Vai trò (mặc định CTV):', 'CTV') || 'CTV').trim();
+  const note = (prompt('Ghi chú (không bắt buộc):') || '').trim();
+  window.addStaff({ name, phone, role, note, bank: { no: '', name, bank: '' } });
 };
 
 window.removeStaff = (name) => {
