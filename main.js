@@ -3198,6 +3198,17 @@ window._handleImgBBUpload = async (e, portfolioId) => {
 
       const imageUrl = data.data.url;
 
+      // Auto set thumbnail = ảnh đầu tiên nếu thumbnail đang trống
+      const thumbInput = document.getElementById('pf-thumbnail');
+      const thumbPreview = document.getElementById('pf-thumb-preview');
+      if (thumbInput && !thumbInput.value.trim()) {
+        thumbInput.value = imageUrl;
+        if (thumbPreview) {
+          thumbPreview.style.display = 'block';
+          thumbPreview.style.backgroundImage = `url('${imageUrl}')`;
+        }
+      }
+
       const div = document.createElement('div');
       div.className = 'pf-img-item';
       div.style.cssText = `position:relative; padding-bottom:100%; border-radius:8px; overflow:hidden; background:url('${imageUrl}') center/cover; border:1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.1)`;
@@ -3259,19 +3270,22 @@ window._handleThumbnailUpload = async (e) => {
   e.target.value = '';
 };
 
-window._savePortfolio = (id) => {
+window._savePortfolio = async (id) => {
   const jobName = document.getElementById('pf-name').value.trim();
   const category = document.getElementById('pf-category').value;
-  const thumbnail = document.getElementById('pf-thumbnail').value.trim();
-
-  if (!jobName || !thumbnail) {
-    alert("Vui lòng nhập Tên bộ sưu tập và Ảnh bìa!");
-    return;
-  }
+  const rawThumbnail = document.getElementById('pf-thumbnail').value.trim();
 
   // Thu thập danh sách ảnh
   const imageInputs = document.querySelectorAll('.pf-img-url');
   const images = Array.from(imageInputs).map(inp => inp.value).filter(Boolean);
+
+  // Fallback thumbnail: nếu thiếu thì lấy ảnh đầu tiên
+  const thumbnail = rawThumbnail || images[0] || '';
+
+  if (!jobName || !thumbnail) {
+    alert("Vui lòng nhập Tên bộ sưu tập và ít nhất 1 ảnh bìa/ảnh trong bộ sưu tập!");
+    return;
+  }
 
   const pf = {
     id,
@@ -3296,9 +3310,18 @@ window._savePortfolio = (id) => {
     window.addHistory('Tạo Portfolio mới: ' + jobName);
   }
 
+  // Lưu local trước
   saveState();
+
+  // Cố gắng đồng bộ Firebase ngay khi lưu để máy khác thấy liền
+  try {
+    await syncToFirebase(state);
+  } catch (e) {
+    console.warn('Sync Firebase sau khi lưu portfolio thất bại:', e?.message || e);
+  }
+
   updateUI();
-  document.querySelector('.portfolio-modal').remove();
+  document.querySelector('.portfolio-modal')?.remove();
 };
 
 window._deletePortfolio = (id) => {

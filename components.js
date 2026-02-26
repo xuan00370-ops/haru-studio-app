@@ -4707,7 +4707,7 @@ export function renderGalleryClient(galleryId, state) {
                  <div class="washi-tape ${tapeType}"></div>
                  ${extraTape}
                  <div class="scrapbook-img-wrapper">
-                    <img class="scrapbook-img" src="${p.thumbnail || ''}" crossorigin="anonymous">
+                    <img class="scrapbook-img" src="${p.thumbnail || p.images?.[0] || ''}" crossorigin="anonymous">
                  </div>
                  <div class="scrapbook-title">${p.jobName}</div>
                  <div class="scrapbook-meta">
@@ -4791,7 +4791,7 @@ export function renderGalleryClient(galleryId, state) {
          <iframe src="${embedUrl}" style="position: absolute; top:0; left:0; width:100%; height:100%; border:none; opacity: 0.85; pointer-events: auto" allow="autoplay; fullscreen"></iframe>
          <div style="position: absolute; inset:0; background: linear-gradient(to top, #0a0a0a 0%, transparent 40%); pointer-events: none"></div>
       ` : `
-         <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: url('${portfolio.thumbnail}') center/cover no-repeat; opacity: 0.6"></div>
+         <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: url('${portfolio.thumbnail || portfolio.images?.[0] || ''}') center/cover no-repeat; opacity: 0.6"></div>
          <div style="position: absolute; inset:0; background: linear-gradient(to top, #0a0a0a 0%, transparent 60%)"></div>
       `}
       
@@ -4880,7 +4880,7 @@ export function renderGalleryClient(galleryId, state) {
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem">
             ${otherPortfolios.map(p => `
               <a href="?gallery=${p.id}" style="text-decoration:none; display:block; background: #111; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s">
-                 <div style="width:100%; height:160px; background: url('${p.thumbnail || ''}') center/cover no-repeat; background-color: #222"></div>
+                 <div style="width:100%; height:160px; background: url('${p.thumbnail || p.images?.[0] || ''}') center/cover no-repeat; background-color: #222"></div>
                  <div style="padding: 1rem">
                     <div style="font-size: 0.65rem; color: var(--primary); font-weight: 800; text-transform: uppercase">${p.category}</div>
                     <div style="font-size: 0.9rem; font-weight: 800; color: #fff; margin-top: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">${p.jobName}</div>
@@ -4947,7 +4947,7 @@ export function renderPortfolioAdmin(state) {
       <div>
         ${sortedPortfolios.length === 0 ? '<div style="padding: 2rem; text-align: center; color: var(--text-dim)">Chưa có bộ sưu tập nào. Nhấn "+ Tạo mới" để bắt đầu!</div>' : sortedPortfolios.map(p => `
           <div style="display: grid; grid-template-columns: 80px 1.5fr 1fr 1fr 100px; padding: 1rem; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.2s">
-            <div style="width: 60px; height: 60px; border-radius: 8px; background: url('${p.thumbnail || ''}') center/cover; background-color: var(--border)"></div>
+            <div style="width: 60px; height: 60px; border-radius: 8px; background: url('${p.thumbnail || p.images?.[0] || ''}') center/cover; background-color: var(--border)"></div>
             <div>
               <div style="font-weight: 800; color: var(--text-main); font-size: 1rem; margin-bottom: 0.2rem">
                 ${p.jobName} 
