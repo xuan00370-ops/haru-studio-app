@@ -8,7 +8,7 @@ import {
   renderGalleryClient, renderPortfolioAdmin
 } from './components.js';
 
-import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync } from './firebase.js';
+import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState } from './firebase.js';
 
 // ============================================================
 // STATE INITIALIZATION & FIREBASE
@@ -394,25 +394,37 @@ async function bootload() {
         console.log("🔥 Firebase init successful, but no valid fbData.jobs block found. Portfolios not merged.");
       }
 
-      // Lắng nghe tín hiệu Force Sync từ admin
-      watchForceSync(async () => {
-        console.log("🚨 ForceSync received — pulling latest from Firebase...");
-        window.showFloatingSaveStatus('saving');
-        const freshData = await loadFromFirebase();
-        if (freshData && freshData.jobs) {
-          Object.assign(state, {
-            jobs: freshData.jobs || state.jobs,
-            staff: freshData.staff || state.staff,
-            financeMetadata: freshData.financeMetadata || state.financeMetadata,
-            manualTransactions: freshData.manualTransactions || state.manualTransactions,
-            settings: freshData.settings || state.settings,
-            history: freshData.history || state.history,
-            clients: freshData.clients || state.clients,
-            portfolios: freshData.portfolios || state.portfolios
-          });
+      // Lắng nghe real-time toàn bộ thay đổi Firebase data từ các user/thiết bị khác
+
+      watchFullState((freshData) => {
+        if (!freshData || !freshData.jobs) return;
+
+        // Nếu người dùng đang mở một Modal (nhập liệu dở), ta CHỈ cập nhật ngầm data
+        // NHƯNG KHÔNG gọi updateUI() để tránh giật form của họ.
+        const isEditing = state.modal && state.modal.isOpen;
+
+        Object.assign(state, {
+          jobs: freshData.jobs || state.jobs,
+          staff: freshData.staff || state.staff,
+          financeMetadata: freshData.financeMetadata || state.financeMetadata,
+          manualTransactions: freshData.manualTransactions || state.manualTransactions,
+          // Không đè settings chứa firebaseConfig local
+          settings: { ...freshData.settings, firebaseConfig: cfgStr },
+          history: freshData.history || state.history,
+          clients: freshData.clients || state.clients,
+          portfolios: freshData.portfolios || state.portfolios
+        });
+
+        if (!isEditing) {
+          // Chỉ render lại giao diện nếu ko bị vướng edit input
+          updateUI();
+        } else {
+          // Báo cho user biết có bản cập nhật mới vừa chìm xuống background
+          const toastEl = document.getElementById('toast-container');
+          if (!toastEl || !toastEl.innerHTML.includes('Dữ liệu vừa được đồng bộ')) {
+            window.showToast('⬇️ Dữ liệu vừa được đồng bộ ngầm. Sẽ hiển thị khi đóng hộp thoại.', 'var(--primary)');
+          }
         }
-        window.showFloatingSaveStatus('saved');
-        updateUI();
       });
     }
   }
@@ -2956,7 +2968,7 @@ window.importGoLiveData = async () => {
   if (!confirm("BẠN CÓ CHẮC CHẮN MUỐN NẠP DỮ LIỆU GO-LIVE?\n\nHành động này sẽ tải 13 Dự án thật từ Google Sheets.\n\nĐặc biệt: Hệ thống tự động PHỤC HỒI Dữ liệu Tháng 1 và Tháng 2 mặc định của bạn.")) return;
 
   try {
-    const res = await fetch('/new_state.json');
+    const res = await fetch('/new_state.json?t=' + Date.now());
     const data = await res.json();
 
     // KIẾN TRÚC MỚI: Luôn cào Dữ liệu T1, T2 từ file gốc data.js 

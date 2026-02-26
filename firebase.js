@@ -144,3 +144,26 @@ export function watchForceSync(onSignal) {
     return unsubscribe;
 }
 
+/**
+ * Lắng nghe real-time toàn bộ trạng thái hệ thống.
+ * Mọi client gọi hàm này để tự động cập nhật data nếu có thiết bị khác lưu.
+ * @param {Function} onUpdate - callback(stateSnapshot: Object)
+ * @returns {Function} unsubscribe
+ */
+export function watchFullState(onUpdate) {
+    if (!isInitialized || !db) return () => { };
+
+    const stateRef = ref(db, 'haru_state');
+
+    const unsubscribe = onValue(stateRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            onUpdate(data);
+        }
+    }, (err) => {
+        console.warn("watchFullState error:", err);
+    });
+
+    return unsubscribe;
+}
+
