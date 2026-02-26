@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get, onValue, off, update } from "firebase/database";
+import { getDatabase, ref, set, get, onValue, off, update, runTransaction } from "firebase/database";
 
 let db = null;
 let isInitialized = false;
@@ -29,11 +29,10 @@ export function initFirebase(configStr) {
 export async function syncToFirebase(state) {
     if (!isInitialized || !db) return;
     try {
-        // Merge portfolios với remote để tránh mất album khi nhiều thiết bị cùng ghi.
-        let mergedPortfolios = state.portfolios || [];
-        try {
-            const remoteSnap = await get(ref(db, 'haru_state/portfolios'));
-            const remotePortfolios = remoteSnap.exists() && Array.isArray(remoteSnap.val()) ? remoteSnap.val() : [];
+        // 1) Đồng bộ portfolios bằng transaction để tránh race-condition giữa nhiều thiết bị.
+        const localPortfolios = Array.isArray(state.portfolios) ? state.portfolios : [];
+        await runTransaction(ref(db, 'haru_state/portfolios'), (current) => {
+            const remotePortfolios = Array.isArray(current) ? current : [];
             const byId = new Map();
 
             const put = (p) => {
@@ -43,7 +42,6 @@ export async function syncToFirebase(state) {
                 if (!old) {
                     byId.set(id, { ...p, id });
                 } else {
-                    // Ưu tiên bản có thumbnail/images đầy đủ hơn
                     const oldScore = (old.thumbnail ? 1 : 0) + ((old.images || []).length > 0 ? 1 : 0);
                     const newScore = (p.thumbnail ? 1 : 0) + ((p.images || []).length > 0 ? 1 : 0);
                     byId.set(id, newScore >= oldScore ? { ...old, ...p, id } : { ...p, ...old, id });
@@ -51,23 +49,20 @@ export async function syncToFirebase(state) {
             };
 
             remotePortfolios.forEach(put);
-            (state.portfolios || []).forEach(put);
-            mergedPortfolios = Array.from(byId.values());
-        } catch (e) {
-            console.warn('Firebase portfolio merge fallback to local only:', e?.message || e);
-        }
+            localPortfolios.forEach(put);
+            return Array.from(byId.values());
+        });
 
-        const payload = {
+        // 2) Update các phần state khác (KHÔNG ghi đè portfolios nữa).
+        await update(ref(db, 'haru_state'), {
             jobs: state.jobs,
             staff: state.staff,
             financeMetadata: state.financeMetadata,
             manualTransactions: state.manualTransactions || [],
             settings: state.settings || {},
             history: state.history,
-            clients: state.clients || [], // Chuẩn bị cho Phase 3: CRM
-            portfolios: mergedPortfolios
-        };
-        await set(ref(db, 'haru_state'), payload);
+            clients: state.clients || []
+        });
     } catch (err) {
         console.error("Firebase sync error:", err);
     }
