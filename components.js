@@ -377,79 +377,80 @@ export function renderWorkspace(state) {
 }
 
 export function renderDashboard(state, navigate) {
-  const container = document.createElement('div');
-  container.className = 'view-container reveal';
+  try {
+    const container = document.createElement('div');
+    container.className = 'view-container reveal';
 
-  const monthKey = `${state.currentYear}-${state.currentMonth}`;
-  const meta = state.financeMetadata[monthKey] || { ads: 0, office: 0 };
+    const monthKey = `${state.currentYear}-${state.currentMonth}`;
+    const meta = state.financeMetadata[monthKey] || { ads: 0, office: 0 };
 
-  // Get all unique staff names for filter chips
-  const allStaffNames = [...new Set(state.jobs.flatMap(j => j.services.map(s => s.staff)))].sort();
+    // Get all unique staff names for filter chips
+    const allStaffNames = [...new Set(state.jobs.flatMap(j => j.services.map(s => s.staff)))].sort();
 
-  // Apply filters — lọc theo tháng/năm trước, sau đó mới lọc theo các bộ lọc khác
-  // Nếu đang tìm kiếm hoặc lọc QUÁ HẠN thì tìm toàn bộ jobs để không bỏ sót
-  const isMonthSearch = state.searchQuery || state.statusFilter === 'QUÁ HẠN';
-  let monthJobs = state.jobs.filter(j => {
-    if (j.isTrash) return false;
-    if (isMonthSearch) return true; // Tìm kiếm toàn bộ
-    // Lọc theo tháng/năm hiện tại dựa trên field date (yyyy-mm-dd)
-    const d = new Date(j.date);
-    if (Number.isNaN(d.getTime())) return false;
-    return (d.getMonth() + 1) === state.currentMonth && d.getFullYear() === state.currentYear;
-  });
+    // Apply filters — lọc theo tháng/năm trước, sau đó mới lọc theo các bộ lọc khác
+    // Nếu đang tìm kiếm hoặc lọc QUÁ HẠN thì tìm toàn bộ jobs để không bỏ sót
+    const isMonthSearch = state.searchQuery || state.statusFilter === 'QUÁ HẠN';
+    let monthJobs = state.jobs.filter(j => {
+      if (j.isTrash) return false;
+      if (isMonthSearch) return true; // Tìm kiếm toàn bộ
+      // Lọc theo tháng/năm hiện tại dựa trên field date (yyyy-mm-dd)
+      const d = new Date(j.date);
+      if (Number.isNaN(d.getTime())) return false;
+      return (d.getMonth() + 1) === state.currentMonth && d.getFullYear() === state.currentYear;
+    });
 
-  const isOverdueJob = (job) => {
-    if (!job?.date) return false;
-    if ((job.status || '').toLowerCase().includes('hoàn thành')) return false;
-    const eventDate = new Date(job.date);
-    if (Number.isNaN(eventDate.getTime())) return false;
-    const deadline = new Date(eventDate);
-    deadline.setDate(deadline.getDate() + 30);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    deadline.setHours(0, 0, 0, 0);
-    return deadline < today;
-  };
+    const isOverdueJob = (job) => {
+      if (!job?.date) return false;
+      if ((job.status || '').toLowerCase().includes('hoàn thành')) return false;
+      const eventDate = new Date(job.date);
+      if (Number.isNaN(eventDate.getTime())) return false;
+      const deadline = new Date(eventDate);
+      deadline.setDate(deadline.getDate() + 30);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      deadline.setHours(0, 0, 0, 0);
+      return deadline < today;
+    };
 
-  if (state.staffFilter && state.staffFilter !== 'TẤT CẢ') {
-    monthJobs = monthJobs.filter(j => j.services.some(s => s.staff === state.staffFilter));
-  }
-  if (state.statusFilter && state.statusFilter !== 'TẤT CẢ') {
-    if (state.statusFilter === 'QUÁ HẠN') {
-      monthJobs = monthJobs.filter(isOverdueJob);
-    } else {
-      monthJobs = monthJobs.filter(j => j.status === state.statusFilter);
+    if (state.staffFilter && state.staffFilter !== 'TẤT CẢ') {
+      monthJobs = monthJobs.filter(j => j.services.some(s => s.staff === state.staffFilter));
     }
-  }
-  if (state.searchQuery) {
-    const q = state.searchQuery.toLowerCase();
-    monthJobs = monthJobs.filter(j =>
-      j.client.toLowerCase().includes(q) ||
-      j.id.toLowerCase().includes(q) ||
-      (j.venue || '').toLowerCase().includes(q) ||
-      (j.notes || '').toLowerCase().includes(q)
-    );
-  }
+    if (state.statusFilter && state.statusFilter !== 'TẤT CẢ') {
+      if (state.statusFilter === 'QUÁ HẠN') {
+        monthJobs = monthJobs.filter(isOverdueJob);
+      } else {
+        monthJobs = monthJobs.filter(j => j.status === state.statusFilter);
+      }
+    }
+    if (state.searchQuery) {
+      const q = state.searchQuery.toLowerCase();
+      monthJobs = monthJobs.filter(j =>
+        j.client.toLowerCase().includes(q) ||
+        j.id.toLowerCase().includes(q) ||
+        (j.venue || '').toLowerCase().includes(q) ||
+        (j.notes || '').toLowerCase().includes(q)
+      );
+    }
 
-  const revenue = monthJobs.reduce((sum, j) => sum + j.package, 0);
-  const staffCosts = monthJobs.reduce((sum, j) => sum + (j.services || []).filter(isValidServiceRow).reduce((s, ser) => s + (ser.cost || 0), 0), 0);
-  const editCosts = monthJobs.reduce((sum, j) => sum + (j.services || []).filter(isValidServiceRow).reduce((s, ser) => s + (ser.edit || 0), 0), 0);
+    const revenue = monthJobs.reduce((sum, j) => sum + j.package, 0);
+    const staffCosts = monthJobs.reduce((sum, j) => sum + (j.services || []).filter(isValidServiceRow).reduce((s, ser) => s + (ser.cost || 0), 0), 0);
+    const editCosts = monthJobs.reduce((sum, j) => sum + (j.services || []).filter(isValidServiceRow).reduce((s, ser) => s + (ser.edit || 0), 0), 0);
 
-  const totalCost = staffCosts + editCosts + (meta.ads || 0) + (meta.office || 0);
-  const netProfit = revenue - totalCost;
+    const totalCost = staffCosts + editCosts + (meta.ads || 0) + (meta.office || 0);
+    const netProfit = revenue - totalCost;
 
-  // Unique statuses for dropdown + smart status
-  const allStatuses = [...new Set(state.jobs.map(j => j.status))].sort();
-  const overdueCount = state.jobs.filter(j => !j.isTrash).filter(isOverdueJob).length;
+    // Unique statuses for dropdown + smart status
+    const allStatuses = [...new Set(state.jobs.map(j => j.status))].sort();
+    const overdueCount = state.jobs.filter(j => !j.isTrash).filter(isOverdueJob).length;
 
-  // === Year Summary Chart ===
-  const yearMonthStats = Array.from({ length: 12 }, (_, i) => {
-    const m = i + 1;
-    const mJobs = state.jobs.filter(j => !j.isTrash && j.month == m && j.year == state.currentYear);
-    return { month: m, count: mJobs.length, revenue: mJobs.reduce((s, j) => s + (j.package || 0), 0) };
-  });
-  const maxRevenue = Math.max(...yearMonthStats.map(s => s.revenue), 1);
-  const yearChartHtml = `
+    // === Year Summary Chart ===
+    const yearMonthStats = Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      const mJobs = state.jobs.filter(j => !j.isTrash && j.month == m && j.year == state.currentYear);
+      return { month: m, count: mJobs.length, revenue: mJobs.reduce((s, j) => s + (j.package || 0), 0) };
+    });
+    const maxRevenue = Math.max(...yearMonthStats.map(s => s.revenue), 1);
+    const yearChartHtml = `
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.75rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
         <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;color:var(--text-dim)">📊 Doanh thu ${state.currentYear}</span>
@@ -457,20 +458,20 @@ export function renderDashboard(state, navigate) {
       </div>
       <div style="display:flex;align-items:flex-end;gap:3px;height:44px">
         ${yearMonthStats.map(s => {
-    const barH = s.revenue > 0 ? Math.max(4, Math.round((s.revenue / maxRevenue) * 44)) : 4;
-    const isCur = s.month === state.currentMonth;
-    const barColor = isCur ? 'var(--primary)' : s.revenue > 0 ? '#3b82f6' : 'var(--border)';
-    return `<div onclick="window.navigate&&window.navigate('dashboard');window.updateMonth&&window.updateMonth(${s.month},${state.currentYear})" title="T${s.month}: ${s.count} job — ${s.revenue.toLocaleString('vi-VN')}đ"
+      const barH = s.revenue > 0 ? Math.max(4, Math.round((s.revenue / maxRevenue) * 44)) : 4;
+      const isCur = s.month === state.currentMonth;
+      const barColor = isCur ? 'var(--primary)' : s.revenue > 0 ? '#3b82f6' : 'var(--border)';
+      return `<div onclick="window.navigate&&window.navigate('dashboard');window.updateMonth&&window.updateMonth(${s.month},${state.currentYear})" title="T${s.month}: ${s.count} job — ${s.revenue.toLocaleString('vi-VN')}đ"
               style="flex:1;height:${barH}px;background:${barColor};border-radius:3px 3px 0 0;cursor:pointer;opacity:${s.revenue > 0 ? 1 : 0.35};transition:opacity 0.2s;min-width:0"
               onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=${s.revenue > 0 ? 1 : 0.35}"></div>`;
-  }).join('')}
+    }).join('')}
       </div>
       <div style="display:flex;gap:3px;margin-top:3px">
         ${yearMonthStats.map(s => `<div style="flex:1;text-align:center;font-size:0.45rem;color:${s.month === state.currentMonth ? 'var(--primary)' : 'var(--text-dim)'};font-weight:${s.month === state.currentMonth ? '900' : '600'};min-width:0;overflow:hidden">T${s.month}</div>`).join('')}
       </div>
     </div>`;
 
-  container.innerHTML = `
+    container.innerHTML = `
     <header class="section-header">
       <div>
         <h1 class="view-title">Danh sách Dự án</h1>
@@ -504,11 +505,11 @@ export function renderDashboard(state, navigate) {
     ${yearChartHtml}
 
     ${state.staffFilter && state.staffFilter !== 'TẤT CẢ' ? (() => {
-      const sName = state.staffFilter;
-      const totalEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && _staffStr(s.staff).includes(sName)).reduce((s, ser) => s + ser.cost, 0), 0);
-      const paidEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && _staffStr(s.staff).includes(sName) && s.paid).reduce((s, ser) => s + ser.cost, 0), 0);
-      const unpaidEarnings = totalEarnings - paidEarnings;
-      return `
+        const sName = state.staffFilter;
+        const totalEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && _staffStr(s.staff).includes(sName)).reduce((s, ser) => s + ser.cost, 0), 0);
+        const paidEarnings = monthJobs.reduce((sum, j) => sum + j.services.filter(s => s.staff && _staffStr(s.staff).includes(sName) && s.paid).reduce((s, ser) => s + ser.cost, 0), 0);
+        const unpaidEarnings = totalEarnings - paidEarnings;
+        return `
         <div class="staff-quick-view reveal" style="margin-top: 1.5rem; padding: 1.25rem 1.5rem; background: rgba(22,163,74,0.05); border: 1px solid rgba(22,163,74,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.02)">
            <div style="display: flex; align-items: center; gap: 1rem">
               <div style="width: 48px; height: 48px; background: rgba(22,163,74,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--success); font-weight: 800">
@@ -535,7 +536,7 @@ export function renderDashboard(state, navigate) {
            </div>
         </div>
       `;
-    })() : ''}
+      })() : ''}
 
     <div class="monthly-report glass-panel" style="margin-top: 0.5rem; padding: 0.6rem 0.8rem; border: 1px solid var(--border-bright)">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap">
@@ -543,32 +544,32 @@ export function renderDashboard(state, navigate) {
           <div class="stat-card" style="min-width:50px">
             <span class="label" style="font-size: 0.5rem">Tổng Dự án</span>
             <div class="value" style="font-size: 0.9rem; font-weight: 800">${monthJobs.length}${(() => {
-      const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
-      const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
-      const prevJobs = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py);
-      if (!prevJobs.length) return '';
-      const diff = monthJobs.length - prevJobs.length;
-      const pct = prevJobs.length > 0 ? Math.round((diff / prevJobs.length) * 100) : 0;
-      const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
-      const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
-      return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
-    })()}</div>
+        const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
+        const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
+        const prevJobs = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py);
+        if (!prevJobs.length) return '';
+        const diff = monthJobs.length - prevJobs.length;
+        const pct = prevJobs.length > 0 ? Math.round((diff / prevJobs.length) * 100) : 0;
+        const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
+        const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
+      })()}</div>
           </div>
           <div style="width:1px;height:28px;background:var(--border)"></div>
           <div style="display: flex; gap: 0.8rem; flex-wrap: wrap">
             <div style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Doanh thu</span>
               <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency(revenue)}${(() => {
-      const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
-      const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
-      const prevRev = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py).reduce((s, j) => s + (j.package || 0), 0);
-      if (!prevRev) return '';
-      const diff = revenue - prevRev;
-      const pct = Math.round((diff / prevRev) * 100);
-      const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
-      const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
-      return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
-    })()}</div>
+        const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
+        const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
+        const prevRev = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py).reduce((s, j) => s + (j.package || 0), 0);
+        if (!prevRev) return '';
+        const diff = revenue - prevRev;
+        const pct = Math.round((diff / prevRev) * 100);
+        const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
+        const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
+      })()}</div>
             </div>
             <div style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Nhân sự/Edit</span>
@@ -582,19 +583,19 @@ export function renderDashboard(state, navigate) {
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Lợi nhuận ròng</span>
               <div style="font-size: 1rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">
                 ${formatCurrency(netProfit)}${(() => {
-      const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
-      const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
-      const prevJobs2 = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py);
-      const prevRev2 = prevJobs2.reduce((s, j) => s + (j.package || 0), 0);
-      const prevStaff = prevJobs2.reduce((s, j) => s + (j.services || []).filter(isValidServiceRow).reduce((ss, ser) => ss + (ser.cost || 0) + (ser.edit || 0), 0), 0);
-      const prevNet = prevRev2 - prevStaff;
-      if (!prevRev2) return '';
-      const diff = netProfit - prevNet;
-      const pct = prevNet !== 0 ? Math.round((diff / Math.abs(prevNet)) * 100) : 0;
-      const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
-      const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
-      return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
-    })()}
+        const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
+        const pm = prevDate.getMonth() + 1, py = prevDate.getFullYear();
+        const prevJobs2 = state.jobs.filter(j => !j.isTrash && j.month == pm && j.year == py);
+        const prevRev2 = prevJobs2.reduce((s, j) => s + (j.package || 0), 0);
+        const prevStaff = prevJobs2.reduce((s, j) => s + (j.services || []).filter(isValidServiceRow).reduce((ss, ser) => ss + (ser.cost || 0) + (ser.edit || 0), 0), 0);
+        const prevNet = prevRev2 - prevStaff;
+        if (!prevRev2) return '';
+        const diff = netProfit - prevNet;
+        const pct = prevNet !== 0 ? Math.round((diff / Math.abs(prevNet)) * 100) : 0;
+        const c = diff > 0 ? '#16a34a' : diff < 0 ? '#ef4444' : '#6b7280';
+        const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
+      })()}
               </div>
             </div>
           </div>
@@ -621,43 +622,52 @@ export function renderDashboard(state, navigate) {
     </div>
   `;
 
-  return container;
+    return container;
+  } catch (err) {
+    console.error("Lỗi crash bảng điều khiển (renderDashboard):", err);
+    const container = document.createElement('div');
+    container.className = 'view-container reveal';
+    container.innerHTML = `<div style="padding: 2rem; color: var(--danger); text-align: center;"><h1>⚠️ Lỗi Hiển Thị Dashboard</h1><p>Dữ liệu bị lỗi: ${err.message}</p></div>`;
+    return container;
+  }
 }
 
 function renderJobCard(job) {
-  const deadlines = calculateDeadlines(job.date);
-  const statusClass = job.status.toLowerCase().replace(/\s+/g, '-');
+  try {
+    if (!job) throw new Error("Job is undefined");
+    const deadlines = calculateDeadlines(job.date || '');
+    const statusClass = job.status.toLowerCase().replace(/\s+/g, '-');
 
-  const validServices = (job.services || []).filter(isValidServiceRow);
-  const staffCosts = validServices.reduce((sum, s) => sum + (s.cost || 0), 0);
-  const editCosts = validServices.reduce((sum, s) => sum + (s.edit || 0), 0);
-  const profit = job.package - (staffCosts + editCosts);
+    const validServices = (job.services || []).filter(isValidServiceRow);
+    const staffCosts = validServices.reduce((sum, s) => sum + (s.cost || 0), 0);
+    const editCosts = validServices.reduce((sum, s) => sum + (s.edit || 0), 0);
+    const profit = job.package - (staffCosts + editCosts);
 
-  // High-Precision Metrics
-  const photoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
-  const videoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('quay')).length;
+    // High-Precision Metrics
+    const photoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
+    const videoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('quay')).length;
 
-  const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
-  return `
+    const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
+    return `
     <div class="job-card glass-panel" onclick="window.openQuickPreview('${job.id}')" style="${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}">
       <div class="job-card-header" style="margin-bottom: 0.5rem">
         <div style="display: flex; flex-direction: column; gap: 0.1rem">
           <h3 class="job-card-title" style="font-size: 1.08rem; color: var(--text-main)">${job.client}</h3>
           <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap">
             <span style="font-size: 0.85rem; color: var(--text-dim)">${(() => {
-      const days = job.eventDays && job.eventDays.length > 1 ? job.eventDays : null;
-      if (days) {
-        const dates = days.map(d => d.date).filter(Boolean).sort();
-        return dates.length > 1 ? new Date(dates[0]).toLocaleDateString('vi-VN') + ' → ' + new Date(dates[dates.length - 1]).toLocaleDateString('vi-VN') : new Date(job.date).toLocaleDateString('vi-VN');
-      }
-      return new Date(job.date).toLocaleDateString('vi-VN');
-    })()}</span>
+        const days = job.eventDays && job.eventDays.length > 1 ? job.eventDays : null;
+        if (days) {
+          const dates = days.map(d => d.date).filter(Boolean).sort();
+          return dates.length > 1 ? new Date(dates[0]).toLocaleDateString('vi-VN') + ' → ' + new Date(dates[dates.length - 1]).toLocaleDateString('vi-VN') : new Date(job.date).toLocaleDateString('vi-VN');
+        }
+        return new Date(job.date).toLocaleDateString('vi-VN');
+      })()}</span>
             ${job.eventDays && job.eventDays.length > 1 ? `<span class="multi-day-badge">📅 ${job.eventDays.length} ngày</span>` : ''}
             ${job.clientRating ? `<span style="font-size: 0.7rem; letter-spacing: 1px">${'⭐'.repeat(job.clientRating)}${'☆'.repeat(5 - job.clientRating)}</span>` : ''}
             ${(job.clientTags || []).map(t => {
-      const tc = { VIP: '#eab308', ['Khó tính']: '#ef4444', ['Dễ thương']: '#22c55e', ['Quay lại']: '#3b82f6', ['Mới']: '#8b5cf6' };
-      return `<span style="font-size:0.55rem;font-weight:800;padding:0.1rem 0.35rem;border-radius:4px;background:${(tc[t] || '#64748b')}15;color:${tc[t] || '#64748b'};border:1px solid ${(tc[t] || '#64748b')}25">${t}</span>`;
-    }).join('')}
+        const tc = { VIP: '#eab308', ['Khó tính']: '#ef4444', ['Dễ thương']: '#22c55e', ['Quay lại']: '#3b82f6', ['Mới']: '#8b5cf6' };
+        return `<span style="font-size:0.55rem;font-weight:800;padding:0.1rem 0.35rem;border-radius:4px;background:${(tc[t] || '#64748b')}15;color:${tc[t] || '#64748b'};border:1px solid ${(tc[t] || '#64748b')}25">${t}</span>`;
+      }).join('')}
           </div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem">
@@ -686,8 +696,8 @@ function renderJobCard(job) {
 
         <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; background: rgba(255,255,255,0.02); padding: 0.5rem; border-radius: 6px">
            ${(() => {
-      const tl = (job.eventDays && job.eventDays.length > 0) ? job.eventDays[0].timeline : job.timeline;
-      return `<div style="flex: 1">
+        const tl = (job.eventDays && job.eventDays.length > 0) ? job.eventDays[0].timeline : job.timeline;
+        return `<div style="flex: 1">
               <label style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); font-weight:700; display: block">Lễ Ceremony</label>
               <span style="font-size: 0.9rem; font-weight: 800; color: #f97316">${tl?.le || '--:--'}</span>
            </div>
@@ -695,20 +705,20 @@ function renderJobCard(job) {
               <label style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); font-weight:700; display: block">Tiệc Party</label>
               <span style="font-size: 0.9rem; font-weight: 800; color: #f97316">${tl?.tiec || '--:--'}</span>
            </div>`;
-    })()}
+      })()}
         </div>
 
         <div class="job-details-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
           ${(() => {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const jDate = new Date(job.date); jDate.setHours(0, 0, 0, 0);
-      const pDate = new Date(jDate); pDate.setDate(pDate.getDate() + 15);
-      const vDate = new Date(jDate); vDate.setDate(vDate.getDate() + 30);
-      const isPending = job.status !== 'Đã hoàn thành' && job.status !== 'Nhận Feedback';
-      const pWarn = isPending && pDate < today;
-      const vWarn = isPending && vDate < today;
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const jDate = new Date(job.date); jDate.setHours(0, 0, 0, 0);
+        const pDate = new Date(jDate); pDate.setDate(pDate.getDate() + 15);
+        const vDate = new Date(jDate); vDate.setDate(vDate.getDate() + 30);
+        const isPending = job.status !== 'Đã hoàn thành' && job.status !== 'Nhận Feedback';
+        const pWarn = isPending && pDate < today;
+        const vWarn = isPending && vDate < today;
 
-      return `
+        return `
                <div style="background: ${pWarn ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.05)'}; padding: 0.3rem; border-radius: 4px; border: 1px solid ${pWarn ? 'rgba(239,68,68,0.3)' : 'transparent'}">
                  <label style="font-size: 0.72rem; color: ${pWarn ? '#ef4444' : 'var(--text-dim)'}; font-weight: ${pWarn ? '800' : '600'}">${pWarn ? '⚠️ DL Photo' : 'DL Photo'}</label>
                  <span style="font-size: 0.82rem; font-weight: 800; font-family: monospace; display: block; color: ${pWarn ? '#ef4444' : 'inherit'}">${deadlines.photo}</span>
@@ -718,7 +728,7 @@ function renderJobCard(job) {
                  <span style="font-size: 0.82rem; font-weight: 800; font-family: monospace; display: block; color: ${vWarn ? '#ef4444' : 'inherit'}">${deadlines.video}</span>
                </div>
              `;
-    })()}
+      })()}
         </div>
 
         <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-dim)">
@@ -750,39 +760,47 @@ function renderJobCard(job) {
       <div onclick="event.stopPropagation()" style="border-top:1px solid var(--border);padding-top:0.4rem;margin-top:0.3rem">
         <!-- ✅ Checklist progress dots -->
         ${(() => {
-      const cl = job.checklist || {};
-      const items = [
-        { key: 'contractSigned', label: 'HĐ', color: '#2563eb' },
-        { key: 'depositReceived', label: 'Cọc', color: '#16a34a' },
-        { key: 'albumDelivered', label: 'Album', color: '#9333ea' },
-        { key: 'fullyPaid', label: 'Tất toán', color: '#dc2626' },
-      ];
-      const doneCount = items.filter(it => cl[it.key]).length;
-      const dotColor = doneCount === 4 ? '#16a34a' : doneCount > 0 ? '#f59e0b' : 'var(--text-dim)';
-      return `<div style="display:flex;align-items:center;gap:0.35rem;margin-bottom:0.35rem">
+        const cl = job.checklist || {};
+        const items = [
+          { key: 'contractSigned', label: 'HĐ', color: '#2563eb' },
+          { key: 'depositReceived', label: 'Cọc', color: '#16a34a' },
+          { key: 'albumDelivered', label: 'Album', color: '#9333ea' },
+          { key: 'fullyPaid', label: 'Tất toán', color: '#dc2626' },
+        ];
+        const doneCount = items.filter(it => cl[it.key]).length;
+        const dotColor = doneCount === 4 ? '#16a34a' : doneCount > 0 ? '#f59e0b' : 'var(--text-dim)';
+        return `<div style="display:flex;align-items:center;gap:0.35rem;margin-bottom:0.35rem">
           ${items.map(it => {
-        const bg = cl[it.key] ? it.color : 'var(--border)';
-        return `<span title="${it.label}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${bg};flex-shrink:0"></span>`;
-      }).join('')}
+          const bg = cl[it.key] ? it.color : 'var(--border)';
+          return `<span title="${it.label}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${bg};flex-shrink:0"></span>`;
+        }).join('')}
           <span style="font-size:0.58rem;font-weight:800;color:${dotColor};margin-left:2px">${doneCount}/4${doneCount === 4 ? ' ✅' : ''}</span>
         </div>`;
-    })()}
+      })()}
         <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.3rem">
           <span style="font-size:0.65rem;color:var(--text-dim);font-weight:700">Đánh giá:</span>
           ${[1, 2, 3, 4, 5].map(i => `<span onclick="window.updateClientRating('${job.id}',${i})" style="cursor:pointer;font-size:0.85rem;opacity:${(job.clientRating || 0) >= i ? 1 : 0.3}">${(job.clientRating || 0) >= i ? '⭐' : '☆'}</span>`).join('')}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:0.2rem">
           ${['VIP', 'Khó tính', 'Dễ thương', 'Quay lại', 'Mới'].map(t => {
-      const active = (job.clientTags || []).includes(t);
-      const tc = { VIP: '#eab308', 'Khó tính': '#ef4444', 'Dễ thương': '#22c55e', 'Quay lại': '#3b82f6', 'Mới': '#8b5cf6' };
-      return `<span onclick="window.toggleClientTag('${job.id}','${t}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.35rem;border-radius:4px;border:1px solid ${tc[t]}${active ? '' : '30'};background:${tc[t]}${active ? '20' : '05'};color:${tc[t]};opacity:${active ? 1 : 0.5};transition:all 0.2s">${t}</span>`;
-    }).join('')}
+        const active = (job.clientTags || []).includes(t);
+        const tc = { VIP: '#eab308', 'Khó tính': '#ef4444', 'Dễ thương': '#22c55e', 'Quay lại': '#3b82f6', 'Mới': '#8b5cf6' };
+        return `<span onclick="window.toggleClientTag('${job.id}','${t}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.35rem;border-radius:4px;border:1px solid ${tc[t]}${active ? '' : '30'};background:${tc[t]}${active ? '20' : '05'};color:${tc[t]};opacity:${active ? 1 : 0.5};transition:all 0.2s">${t}</span>`;
+      }).join('')}
           <span onclick="window.openChat('${job.id}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.4rem;border-radius:4px;background:var(--primary-glow);color:var(--primary);border:1px solid var(--border-bright);margin-left:auto">💬 ${(job.comments || []).length}</span>
           <span onclick="window.openQR('${job.id}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.4rem;border-radius:4px;background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630">📱 QR</span>
         </div>
       </div>
     </div>
   `;
+  } catch (err) {
+    console.error("Lỗi renderJobCard:", err, job);
+    return `<div class="job-card glass-panel" style="border:1px solid var(--danger); opacity:0.6; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:1rem;">
+      <i class="fas fa-exclamation-triangle" style="color:var(--danger); font-size:1.5rem; margin-bottom:0.5rem"></i>
+      <div style="font-size:0.8rem; font-weight:700">Lỗi Dữ Liệu Job ID: ${job?.id || 'Unknown'}</div>
+      <div style="font-size:0.65rem; color:var(--text-dim)">Vui lòng liên hệ Kỹ thuật viên</div>
+    </div>`;
+  }
 }
 
 export function renderModalOverlay(state, closeModal) {
@@ -3002,15 +3020,21 @@ export function renderKanban(state) {
             <span style="font-size:0.65rem;background:${s.color}20;color:${s.color};padding:0.1rem 0.4rem;border-radius:10px;font-weight:800;margin-left:auto">${displayClips.filter(c => c.editStatus === s.id).length}</span>
           </div>
           <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
-            ${displayClips.filter(c => c.editStatus === s.id).map(c => {
-    const isLocked = window.state?.locks?.[c.jobId];
-    return `
+            ${(() => {
+      let list = displayClips.filter(c => c.editStatus === s.id);
+      if (s.id === 'Hoàn thành' && list.length > 50) {
+        list.sort((a, b) => new Date(b.date) - new Date(a.date));
+        list = list.slice(0, 50);
+      }
+      return list.map(c => {
+        const isLocked = window.state?.locks?.[c.jobId];
+        return `
               <div class="kanban-card ${isLocked ? 'locked-card' : ''}" onclick="${isLocked ? '' : `window.openQuickPreview('${c.jobId}')`}" data-job-id="${c.jobId}" data-sidx="${c.sIdx}"
                 style="${isLocked ? 'opacity:0.6;pointer-events:none;' : ''} background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
-        : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
-          : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
-            : s.color
-      };position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)${c.daysLeft != null && c.daysLeft <= 3 ? ';background:rgba(239,68,68,0.03)' : c.daysLeft != null && c.daysLeft <= 7 ? ';background:rgba(245,158,11,0.03)' : ''}">
+            : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+              : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+                : s.color
+          };position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)${c.daysLeft != null && c.daysLeft <= 3 ? ';background:rgba(239,68,68,0.03)' : c.daysLeft != null && c.daysLeft <= 7 ? ';background:rgba(245,158,11,0.03)' : ''}">
                 ${isLocked ? `<div style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:0.5rem;padding:0.15rem 0.4rem;border-radius:10px;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.2)">🔒 ${window.state.locks[c.jobId]}</div>` : ''}
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
                   <span style="font-size:0.75rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${c.client}">${c.client}</span>
@@ -3019,16 +3043,17 @@ export function renderKanban(state) {
                 <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.service}">🎥 ${c.service} <strong style="color:var(--text-main)">(x${c.qty})</strong></div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                   <span style="font-size:0.55rem;font-weight:700;color:${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
-        : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
-          : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
-            : 'var(--text-dim)'
-      }">⏰ ${c.deadlineStr || '—'}${c.daysLeft != null && c.daysLeft <= 3 && c.daysLeft > 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 7 && c.daysLeft > 3 ? ` <span style="background:#f59e0b20;color:#f59e0b;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">QH</span>` : ''
-      }</span>
+            : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+              : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+                : 'var(--text-dim)'
+          }">⏰ ${c.deadlineStr || '—'}${c.daysLeft != null && c.daysLeft <= 3 && c.daysLeft > 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 7 && c.daysLeft > 3 ? ` <span style="background:#f59e0b20;color:#f59e0b;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">QH</span>` : ''
+          }</span>
                   <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${c.editor || 'Chưa gán'}">✏️ ${c.editor || 'Trống'}</span>
                 </div>
               </div>
             `;
-  }).join('')}
+      }).join('')
+    })()}
           </div>
         </div>
       `).join('')}
@@ -4402,7 +4427,7 @@ export function renderEditPhoto(state) {
   container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline ' + EDIT_DAYS + ' ngày</p></div></header>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">' + total + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">' + done + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">' + (total - done) + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">' + overdue + '</div></div></div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem"><div style="display:flex;gap:0.3rem;flex-wrap:wrap"><button onclick="window.setEditPhotoFilter(\'TẤT CẢ\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">Tất cả</button>' + allEditors.map(n => '<button onclick="window.setEditPhotoFilter(\'' + n + '\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (editFilter === n ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">' + n + '</button>').join('') + '</div><div style="display:flex;gap:0.3rem"><button onclick="window.setEditPhotoStatusFilter(\'ALL\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'ALL' ? 'background:#3b82f6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📸 Tất cả (' + total + ')</button><button onclick="window.setEditPhotoStatusFilter(\'PENDING\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'PENDING' ? 'background:#f97316;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">⚠️ Chưa xong (' + (total - done) + ')</button><button onclick="window.setEditPhotoStatusFilter(\'PENDING_DEMO\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'PENDING_DEMO' ? 'background:#8b5cf6;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">🚀 Chưa gửi Demo (' + photoTasks.filter(t => t.editStatus === 'Chưa bắt đầu' || t.editStatus === 'Đang chỉnh sửa').length + ')</button><button onclick="window.setEditPhotoStatusFilter(\'DONE\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (statusFilter === 'DONE' ? 'background:#22c55e;color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">✅ Xong (' + done + ')</button></div><div style="display:flex;gap:0.3rem"><button onclick="window.toggleEditPhotoView(\'kanban\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📋 Kanban</button><button onclick="window.toggleEditPhotoView(\'list\')" style="font-size:0.72rem;padding:0.2rem 0.55rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;' + (!isKanban ? 'background:var(--primary);color:#fff;border:none' : 'background:#fff;color:var(--text-dim);border:1px solid var(--border)') + '">📝 List</button></div></div>'
-    + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat(' + kanbanCols.length + ',1fr);gap:0.6rem;overflow-x:auto">' + kanbanCols.map(col => { const colTasks = filtered.filter(t => t.editStatus === col.key); return '<div class="ep-col" data-status="' + col.key + '" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid ' + col.color + '"><div style="font-size:0.72rem;font-weight:800;color:' + col.color + ';margin-bottom:0.4rem;text-align:center">' + col.label + ' (' + colTasks.length + ')</div><div class="ep-col-cards" data-status="' + col.key + '">' + colTasks.map(renderCard).join('') + '</div></div>'; }).join('') + '</div>'
+    + (isKanban ? '<div id="ep-kanban" style="display:grid;grid-template-columns:repeat(' + kanbanCols.length + ',1fr);gap:0.6rem;overflow-x:auto">' + kanbanCols.map(col => { const totalLen = filtered.filter(t => t.editStatus === col.key).length; let colTasks = filtered.filter(t => t.editStatus === col.key); if (col.key === 'Hoàn thành' && colTasks.length > 50) { colTasks.sort((a, b) => new Date(b.jobDate) - new Date(a.jobDate)); colTasks = colTasks.slice(0, 50); } return '<div class="ep-col" data-status="' + col.key + '" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;min-height:200px;border-top:3px solid ' + col.color + '"><div style="font-size:0.72rem;font-weight:800;color:' + col.color + ';margin-bottom:0.4rem;text-align:center">' + col.label + ' (' + totalLen + ')</div><div class="ep-col-cards" data-status="' + col.key + '">' + colTasks.map(renderCard).join('') + '</div></div>'; }).join('') + '</div>'
       : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">' + filtered.map(t => '<div class="glass-panel" style="padding:0.7rem;border-left:3px solid ' + t.sc + '"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem"><span style="font-size:0.88rem;font-weight:800;color:var(--text-main)">' + t.client + ' <span style="font-size:0.65rem;color:var(--text-dim)">#' + t.jobNo + '</span></span><span style="font-size:0.6rem;font-weight:800;color:' + t.sc + ';background:' + t.sc + '12;padding:0.1rem 0.3rem;border-radius:4px">' + t.stage + '</span></div><div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.25rem">📸 ' + t.service + ' (x' + t.qty + ') · ' + (t.editStaff || t.staff || '—') + '</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:0.68rem;font-weight:700;color:' + t.sc + '">⏰ ' + t.deadlineStr + '</div><select onchange="window.updateEditStatus(\'' + t.jobId + '\',\'' + t.serviceIdx + '\',this.value)" style="font-size:0.65rem;padding:0.15rem 0.3rem;border-radius:6px;border:1px solid var(--border);font-family:inherit;background:var(--bg-card)">' + ['Chưa bắt đầu', 'Đang chỉnh sửa', 'Demo', 'Chỉnh sửa lại', 'Hoàn thành'].map(s => '<option value="' + s + '" ' + (t.editStatus === s ? 'selected' : '') + '>' + s + '</option>').join('') + '</select></div></div>').join('') + '</div>');
 
   // SortableJS is initialized in main.js updateUI() after DOM attach

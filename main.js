@@ -382,8 +382,33 @@ async function bootload() {
       console.log("🔥 PRE-MERGE LOCAL DATA:", state.portfolios);
       if (fbData && (fbData.jobs || fbData.staff || fbData.portfolios)) {
         hasFirebaseData = true;
+
+        let jobsToUse = fbData.jobs || state.jobs;
+        try {
+          const baselineRaw = localStorage.getItem('haru_baseline');
+          if (localData && localData.jobs && baselineRaw) {
+            const baseline = JSON.parse(baselineRaw);
+            if (baseline && baseline.jobs) {
+              const localStr = JSON.stringify(localData.jobs);
+              const baseStr = JSON.stringify(baseline.jobs);
+              const fbStr = JSON.stringify(fbData.jobs || []);
+
+              const localChanges = localStr !== baseStr;
+              const remoteChanges = fbStr !== baseStr && fbStr !== localStr;
+
+              if (localChanges && remoteChanges) {
+                setTimeout(() => alert("⚠️ CẢNH BÁO XUNG ĐỘT DỮ LIỆU:\\Máy bạn có thay đổi ngoại tuyến, nhưng dữ liệu trên máy chủ cũng vừa bị thay đổi bởi người khác.\\\\Để tránh ghi đè làm mất dữ liệu của đồng nghiệp, hệ thống đã TẢI DỮ LIỆU TỪ MÁY CHỦ. Các thay đổi bạn vừa thực hiện lúc nãy có thể không được giữ lại. Xin vui lòng kiểm tra!"), 2000);
+              } else if (localChanges && !remoteChanges) {
+                jobsToUse = localData.jobs;
+                console.log("♻️ Phát hiện thay đổi ngoại tuyến chưa được đồng bộ lền mây. Giữ lại bản Local, chuẩn bị Sync...");
+                setTimeout(() => { if (window.syncToFirebase) window.syncToFirebase(state); }, 3000);
+              }
+            }
+          }
+        } catch (e) { console.warn("Conflict Resolution Error:", e); }
+
         Object.assign(state, {
-          jobs: fbData.jobs || state.jobs,
+          jobs: jobsToUse,
           staff: fbData.staff || state.staff,
           financeMetadata: fbData.financeMetadata || state.financeMetadata,
           manualTransactions: fbData.manualTransactions || state.manualTransactions,
@@ -565,7 +590,43 @@ async function bootload() {
       }
     } catch (e) { console.warn('Auto-sync Sheet error:', e.message); }
   }
+
+  // 4. Auto-backup check (mỗi 7 ngày) dành cho Admin
+  if (state.currentUser?.role === 'admin') {
+    const lastBackup = state.settings.lastAutoBackup || 0;
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    if (Date.now() - lastBackup > sevenDays && state.jobs.length > 0) {
+      setTimeout(() => {
+        if (confirm("⏳ Đã hơn 7 ngày hệ thống chưa được sao lưu.\nĐể phòng hờ rủi ro, hệ thống sẽ tải về tệp Backup (.json) ngay bây giờ nhé?")) {
+          if (window.exportJSON) window.exportJSON();
+          else if (window.exportBackup) window.exportBackup();
+          state.settings.lastAutoBackup = Date.now();
+          saveState();
+        }
+      }, 4000);
+    }
+
+    // Anomaly Detection Auto-Scan
+    setTimeout(() => {
+      const issues = window.runHealthCheck(true);
+      if (issues && issues.length > 0) {
+        if (!state.settings.lastHealCheckNotified || (Date.now() - state.settings.lastHealCheckNotified > 24 * 60 * 60 * 1000)) {
+          window.addHistory('🤖 [CẢNH BÁO HỆ THỐNG] Phát hiện ' + issues.length + ' nhóm mục dữ liệu bất thường.', 'Vui lòng vào màn hình Cài Đặt (Trung Tâm Quản Trị) > Health Check để quét chi tiết.');
+          state.settings.lastHealCheckNotified = Date.now();
+          saveState();
+        }
+      }
+    }, 5000);
+  }
 }
+
+// Network event recovery
+window.addEventListener('online', () => {
+  console.log("🌐 Mạng đã kết nối lại. Bắt đầu đẩy dữ liệu offline lên mây...");
+  if (window.syncToFirebase && window.state && window.state.jobs.length > 0) {
+    window.syncToFirebase(window.state);
+  }
+});
 
 // Bắt đầu boot
 bootload();
@@ -1212,12 +1273,23 @@ window.addJob = (jobData) => {
 window.updateJob = (jobId, updatedData, skipUpdateUI = false) => {
   const index = state.jobs.findIndex(j => j.id === jobId);
   if (index !== -1) {
+    const oldJob = state.jobs[index];
+    const changes = {};
+    for (let key in updatedData) {
+      if (JSON.stringify(oldJob[key]) !== JSON.stringify(updatedData[key])) {
+        changes[key] = updatedData[key];
+      }
+    }
+
     const currentUser = window.state?.currentUser?.displayName || window.state?.currentUser?.username || 'Unknown';
     updatedData.lastModifiedBy = currentUser;
     updatedData.lastModifiedTime = new Date().toISOString();
 
     state.jobs[index] = { ...state.jobs[index], ...updatedData };
-    window.addHistory(`Cập nhật dự án: ${state.jobs[index].client} `);
+
+    const detailsStr = Object.keys(changes).length > 0 ? JSON.stringify(changes) : null;
+    window.addHistory(`Cập nhật dự án: ${state.jobs[index].client}`, detailsStr);
+
     saveState();
     if (!skipUpdateUI) {
       updateUI();
@@ -1230,18 +1302,21 @@ window.saveJobDetail = (jobId, closeModalAfter = true) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
 
+  const getStr = (id, fb) => { const el = document.getElementById(id); return el != null ? el.value : fb; };
+  const getNum = (id, fb) => { const el = document.getElementById(id); return el != null ? (el.value === '' ? 0 : parseInt(el.value) || 0) : fb; };
+
   // Đọc fields từ DOM
-  const client = document.getElementById('edit-job-client')?.value || job.client;
-  const status = document.getElementById('edit-job-status')?.value || job.status;
-  const date = document.getElementById('edit-job-date')?.value || job.date;
-  const eventType = document.getElementById('edit-job-type')?.value || job.eventType;
-  const phone = document.getElementById('edit-job-phone')?.value || job.phone;
-  const packageVal = parseInt(document.getElementById('edit-job-package')?.value) || job.package;
-  const depositVal = parseInt(document.getElementById('edit-job-deposit')?.value) || job.deposit || 0;
-  const notes = document.getElementById('edit-job-notes')?.value || job.notes;
-  const linkCustomer = document.getElementById('edit-job-link-customer')?.value || job.linkCustomer;
-  const linkNAS = document.getElementById('edit-job-link-nas')?.value || job.linkNAS;
-  const linkDrive = document.getElementById('edit-job-link-drive')?.value || job.linkDrive;
+  const client = getStr('edit-job-client', job.client);
+  const status = getStr('edit-job-status', job.status);
+  const date = getStr('edit-job-date', job.date);
+  const eventType = getStr('edit-job-type', job.eventType);
+  const phone = getStr('edit-job-phone', job.phone);
+  const packageVal = getNum('edit-job-package', job.package);
+  const depositVal = getNum('edit-job-deposit', job.deposit || 0);
+  const notes = getStr('edit-job-notes', job.notes);
+  const linkCustomer = getStr('edit-job-link-customer', job.linkCustomer);
+  const linkNAS = getStr('edit-job-link-nas', job.linkNAS);
+  const linkDrive = getStr('edit-job-link-drive', job.linkDrive);
 
   // ── Đọc eventDays từ multi-day tabs ──
   const modal = document.querySelector('.modal-container');
@@ -2216,25 +2291,36 @@ console.log = (...args) => { window._debugLogs.push({ level: 'log', msg: args.ma
 console.warn = (...args) => { window._debugLogs.push({ level: 'warn', msg: args.map(String).join(' '), time: new Date().toLocaleTimeString() }); if (window._debugLogs.length > 100) window._debugLogs.shift(); _origConsoleWarn(...args); };
 console.error = (...args) => { window._debugLogs.push({ level: 'error', msg: args.map(String).join(' '), time: new Date().toLocaleTimeString() }); if (window._debugLogs.length > 100) window._debugLogs.shift(); _origConsoleError(...args); };
 
-window.runHealthCheck = () => {
+window.runHealthCheck = (silent = false) => {
   const issues = [];
   const jobs = state.jobs.filter(j => !j.isTrash);
   // Check deliverables
-  const noDeliverables = jobs.filter(j => !j.deliverables || j.deliverables.length === 0);
-  if (noDeliverables.length) issues.push({ type: '⚠️', msg: `${noDeliverables.length} job thiếu thành phẩm đầu ra`, items: noDeliverables.map(j => j.client) });
+  const noDeliverables = jobs.filter(j => (!j.deliverables || j.deliverables.length === 0) && j.status !== 'HỦY');
+  if (noDeliverables.length) issues.push({ type: '⚠️', msg: `${noDeliverables.length} job thiếu lộ trình/thành phẩm`, items: noDeliverables.map(j => j.client) });
   // Check staff empty
-  const noStaff = jobs.filter(j => !j.services || j.services.length === 0);
-  if (noStaff.length) issues.push({ type: '👤', msg: `${noStaff.length} job chưa có nhân sự`, items: noStaff.map(j => j.client) });
+  const noStaff = jobs.filter(j => (!j.services || j.services.length === 0) && j.status !== 'HỦY');
+  if (noStaff.length) issues.push({ type: '👤', msg: `${noStaff.length} job chưa gán nhân sự chụp/quay`, items: noStaff.map(j => j.client) });
   // Check missing date
   const noDate = jobs.filter(j => !j.date || isNaN(new Date(j.date).getTime()));
-  if (noDate.length) issues.push({ type: '📅', msg: `${noDate.length} job thiếu ngày`, items: noDate.map(j => j.client || j.id) });
-  // Check old service roles
-  const oldRoles = ['Quay phim', 'Chụp ảnh', 'Cinema', 'Trợ lý'];
-  const badRoles = jobs.filter(j => (j.services || []).some(s => oldRoles.includes(s.service)));
-  if (badRoles.length) issues.push({ type: '🔄', msg: `${badRoles.length} job có vai trò cũ (Quay phim/Chụp ảnh)`, items: badRoles.map(j => j.client) });
-  // Check no package
-  const noPackage = jobs.filter(j => !j.package || j.package === 0);
-  if (noPackage.length) issues.push({ type: '💰', msg: `${noPackage.length} job chưa có giá gói`, items: noPackage.map(j => j.client) });
+  if (noDate.length) issues.push({ type: '📅', msg: `${noDate.length} job sai định dạng ngày`, items: noDate.map(j => j.client || j.id) });
+  // Check empty job number
+  const noJobNo = jobs.filter(j => !j.jobNo && j.status !== 'HỦY');
+  if (noJobNo.length) issues.push({ type: '🏷️', msg: `${noJobNo.length} job thiếu mã Hợp đồng (Job No)`, items: noJobNo.map(j => j.client) });
+  // Check duplicate jobNo
+  const jobNos = {};
+  const duplicates = [];
+  jobs.forEach(j => {
+    if (j.jobNo && j.status !== 'HỦY') {
+      if (jobNos[j.jobNo]) duplicates.push(j.jobNo);
+      else jobNos[j.jobNo] = true;
+    }
+  });
+  if (duplicates.length) {
+    const dupJobs = jobs.filter(j => duplicates.includes(j.jobNo));
+    issues.push({ type: '🚨', msg: `${duplicates.length} mã Hợp đồng bị trùng lặp`, items: dupJobs.map(j => `${j.jobNo} (${j.client})`) });
+  }
+
+  if (silent) return issues;
 
   // Render
   const el = document.getElementById('debug-health-result');

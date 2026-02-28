@@ -61,6 +61,9 @@ export function updateBaselineState(state) {
         history: state.history ? JSON.parse(JSON.stringify(state.history)) : [],
         clients: state.clients ? JSON.parse(JSON.stringify(state.clients)) : []
     };
+    try {
+        localStorage.setItem('haru_baseline', JSON.stringify(_lastSyncedState));
+    } catch (e) { console.warn('Cannot save baseline to localStorage', e); }
 }
 
 
