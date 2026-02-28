@@ -2296,10 +2296,40 @@ window.saveFirebaseConfig = () => {
 
     state.settings.firebaseConfig = configStr;
     state.settings.enableFirebaseSync = true;
+
+    // MỚI THÊM: Khởi tạo Firebase ngay để saveState có thể sync luôn
+    const ok = initFirebase(configStr);
+    if (!ok) {
+      alert('Lỗi: Không thể kết nối Firebase với Config này.');
+      return;
+    }
+
     saveState();
     alert('Đã lưu cấu hình Đám Mây! Vui lòng tải lại trang (F5) để kết nối Database.');
   } catch (err) {
     alert('Lỗi: Cấu hình JSON không hợp lệ. Vui lòng kiểm tra lại!');
+  }
+};
+
+window.forceSyncAllDataToCloud = async () => {
+  if (!state.settings.enableFirebaseSync || !state.settings.firebaseConfig) {
+    alert('Vui lòng Cài đặt và Lưu Cấu hình Firebase trước.');
+    return;
+  }
+  const ok = initFirebase(state.settings.firebaseConfig);
+  if (!ok) {
+    alert('Lỗi kết nối Firebase');
+    return;
+  }
+  window.showFloatingSaveStatus('saving');
+  try {
+    await syncToFirebase(state);
+    window.showFloatingSaveStatus('saved');
+    alert('✅ Đã đẩy toàn bộ dữ liệu từ máy tính này lên Cloud thành công!');
+  } catch (err) {
+    console.error(err);
+    window.showFloatingSaveStatus('error');
+    alert('❌ Có lỗi xảy ra khi đẩy dữ liệu: ' + err.message);
   }
 };
 

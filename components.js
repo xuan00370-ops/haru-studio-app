@@ -104,9 +104,7 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'analytics' ? 'active' : ''}" onclick="window.navigate('analytics')">
         <span class="icon">&#128202;</span> Analytics
       </div>
-      <div class="nav-item ${activePage === 'watermark' ? 'active' : ''}" onclick="window.navigate('watermark')">
-        <span class="icon">&#127916;</span> Watermark
-      </div>
+
 
       <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Hệ thống</div>
       <div class="nav-item ${activePage === 'sync' ? 'active' : ''}" onclick="window.navigate('sync')">
@@ -2722,6 +2720,12 @@ export function renderSettings(state) {
              <button class="btn btn-secondary btn-sm" onclick="window.navigate('trash')" style="margin-top: auto; padding: 0.4rem; font-weight: 700; color: var(--danger)">Mở Thùng Rác</button>
           </div>
        </div>
+
+       <div style="margin-top: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: rgba(0,0,0,0.02)">
+          <h4 style="color:var(--text-main); margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 800">🔄 Đẩy dữ liệu lên Cloud</h4>
+          <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.8rem">Dùng tính năng này khi bạn thiết lập app lần đầu để lấy bộ dữ liệu từ ổ cứng máy tính này đẩy trọn bộ lên hệ thống Cloud hiện tại.</p>
+          <button class="btn btn-primary btn-sm" style="background:#f59e0b; font-weight: 800" onclick="window.forceSyncAllDataToCloud()">⬆️ Đẩy Toàn bộ Dữ liệu máy này lên Cloud</button>
+       </div>
     </div>
 
     <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">
@@ -2742,13 +2746,17 @@ export function renderSettings(state) {
        <button class="btn btn-primary btn-sm" onclick="window.saveCategories()">💾 Lưu Danh mục</button>
     </div>
 
-    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">
+     <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem">
        <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.5rem; color: #10b981"><i class="fas fa-cloud" style="margin-right: 0.5rem"></i>Cấu hình Đám Mây (Firebase)</h3>
        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem">Dán đoạn mã JSON Firebase Config để kết nối App với Realtime Database. <a href="#" style="color: var(--accent-blue)">Xem hướng dẫn</a></p>
        <textarea id="setting-firebase-config" class="form-control" placeholder='{\n  "apiKey": "...",\n  "authDomain": "...",\n  "databaseURL": "...",\n  "projectId": "...",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}' style="width: 100%; height: 120px; font-family: monospace; font-size: 0.8rem; padding: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px">${state.settings.firebaseConfig || ''}</textarea>
        <button class="btn btn-primary btn-sm" style="margin-top: 1rem" onclick="window.saveFirebaseConfig()">💾 Lưu Config & Nối mạng</button>
-       <button class="btn btn-secondary btn-sm" style="margin-top: 0.6rem" onclick="window.migrateLocalPortfolioToFirebase()">🚀 Migrate Local Portfolio → Firebase</button>
-       <button class="btn btn-secondary btn-sm" style="margin-top: 0.6rem" onclick="window.reconcilePortfolioNow()">🧩 Reconcile Portfolio 2 chiều</button>
+
+       <div style="margin-top: 1.5rem; border-top: 1px dashed var(--border); padding-top: 1rem">
+         <span style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 0.5rem; font-weight: 700">Công cụ đồng bộ bổ sung:</span>
+         <button class="btn btn-secondary btn-sm" style="margin-bottom: 0.5rem; padding: 0.4rem 0.8rem" onclick="window.migrateLocalPortfolioToFirebase()">🚀 Migrate Local Portfolio → Firebase</button>
+         <button class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem" onclick="window.reconcilePortfolioNow()">🧩 Reconcile Portfolio 2 chiều</button>
+       </div>
     </div>
 
     <div class="glass-panel" style="padding: 1.5rem">
