@@ -2458,7 +2458,10 @@ export function renderEditVideo(state) {
         <div class="ev-col" data-status="${ks.key}" style="background:var(--bg-deep);border:1px solid var(--border);border-radius:10px;padding:0.5rem;border-top:3px solid ${ks.color}">
           <div style="font-size:0.72rem;font-weight:800;color:${ks.color};margin-bottom:0.4rem;text-align:center">${ks.label} (${colTasks.length})</div>
           <div class="ev-col-cards" data-status="${ks.key}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
-            ${colTasks.map(t => `<div class="ev-card" onclick="window.openQuickPreview('${t.jobId}')" data-jobid="${t.jobId}" data-sidx="${t.serviceIdx}" style="background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-main)'};border:1px solid ${t.stageColor}30;border-radius:6px;padding:0.4rem 0.5rem;border-left:3px solid ${t.stageColor};cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+            ${colTasks.map(t => {
+      const isLocked = window.state?.locks?.[t.jobId];
+      return `<div class="ev-card ${isLocked ? 'locked-card' : ''}" onclick="${isLocked ? '' : `window.openQuickPreview('${t.jobId}')`}" data-jobid="${t.jobId}" data-sidx="${t.serviceIdx}" style="${isLocked ? 'opacity:0.6;pointer-events:none;' : ''} background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-main)'};border:1px solid ${t.stageColor}30;border-radius:6px;padding:0.4rem 0.5rem;border-left:3px solid ${t.stageColor};cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,0.03);position:relative;">
+              ${isLocked ? `<div style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:0.5rem;padding:0.15rem 0.4rem;border-radius:10px;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.2)">🔒 ${window.state.locks[t.jobId]}</div>` : ''}
               <div style="font-size:0.75rem;font-weight:800;color:var(--text-main);margin-bottom:0.15rem;display:flex;justify-content:space-between;align-items:center">
                 <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${t.client}">${t.client}</span>
                 ${t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite;font-size:0.65rem">🚨</span>' : ''}
@@ -2468,7 +2471,8 @@ export function renderEditVideo(state) {
                 <span style="font-size:0.55rem;font-weight:700;color:${t.editStatus === 'Hoàn thành' ? '#22c55e' : t.daysLeft > 0 ? 'var(--text-dim)' : '#ef4444'}">⏰ ${t.deadlineStr}</span>
                 <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${t.editStaff || 'Chưa gán'}">✏️ ${t.editStaff || 'Trống'}</span>
               </div>
-            </div>`).join('')}
+            </div>`;
+    }).join('')}
           </div>
         </div>`;
   }).join('')}
@@ -2990,13 +2994,16 @@ export function renderKanban(state) {
             <span style="font-size:0.65rem;background:${s.color}20;color:${s.color};padding:0.1rem 0.4rem;border-radius:10px;font-weight:800;margin-left:auto">${displayClips.filter(c => c.editStatus === s.id).length}</span>
           </div>
           <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
-            ${displayClips.filter(c => c.editStatus === s.id).map(c => `
-              <div class="kanban-card" onclick="window.openQuickPreview('${c.jobId}')" data-job-id="${c.jobId}" data-sidx="${c.sIdx}"
-                style="background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
-      : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
-        : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
-          : s.color
-    };position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)${c.daysLeft != null && c.daysLeft <= 3 ? ';background:rgba(239,68,68,0.03)' : c.daysLeft != null && c.daysLeft <= 7 ? ';background:rgba(245,158,11,0.03)' : ''}">
+            ${displayClips.filter(c => c.editStatus === s.id).map(c => {
+    const isLocked = window.state?.locks?.[c.jobId];
+    return `
+              <div class="kanban-card ${isLocked ? 'locked-card' : ''}" onclick="${isLocked ? '' : `window.openQuickPreview('${c.jobId}')`}" data-job-id="${c.jobId}" data-sidx="${c.sIdx}"
+                style="${isLocked ? 'opacity:0.6;pointer-events:none;' : ''} background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
+        : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+          : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+            : s.color
+      };position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)${c.daysLeft != null && c.daysLeft <= 3 ? ';background:rgba(239,68,68,0.03)' : c.daysLeft != null && c.daysLeft <= 7 ? ';background:rgba(245,158,11,0.03)' : ''}">
+                ${isLocked ? `<div style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:0.5rem;padding:0.15rem 0.4rem;border-radius:10px;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.2)">🔒 ${window.state.locks[c.jobId]}</div>` : ''}
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
                   <span style="font-size:0.75rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${c.client}">${c.client}</span>
                   <button onclick="event.stopPropagation();if(confirm('Xoá clip này?'))window.deleteVideoClip&&window.deleteVideoClip('${c.jobId}','${c.sIdx}')" style="background:none;border:none;cursor:pointer;font-size:0.65rem;color:#ef4444;padding:0.1rem 0.2rem;border-radius:4px;opacity:0.5" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">🗑️</button>
@@ -3004,15 +3011,16 @@ export function renderKanban(state) {
                 <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.service}">🎥 ${c.service} <strong style="color:var(--text-main)">(x${c.qty})</strong></div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                   <span style="font-size:0.55rem;font-weight:700;color:${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
-      : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
-        : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
-          : 'var(--text-dim)'
-    }">⏰ ${c.deadlineStr || '—'}${c.daysLeft != null && c.daysLeft <= 3 && c.daysLeft > 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 7 && c.daysLeft > 3 ? ` <span style="background:#f59e0b20;color:#f59e0b;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">QH</span>` : ''
-    }</span>
+        : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+          : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+            : 'var(--text-dim)'
+      }">⏰ ${c.deadlineStr || '—'}${c.daysLeft != null && c.daysLeft <= 3 && c.daysLeft > 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 7 && c.daysLeft > 3 ? ` <span style="background:#f59e0b20;color:#f59e0b;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">QH</span>` : ''
+      }</span>
                   <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${c.editor || 'Chưa gán'}">✏️ ${c.editor || 'Trống'}</span>
                 </div>
               </div>
-            `).join('')}
+            `;
+  }).join('')}
           </div>
         </div>
       `).join('')}
@@ -3028,6 +3036,7 @@ export function renderKanban(state) {
         animation: 150,
         ghostClass: 'kanban-ghost',
         dragClass: 'kanban-drag',
+        filter: '.locked-card', preventOnFilter: true,
         onEnd: (evt) => {
           const card = evt.item;
           const newStatus = evt.to.dataset.status;
@@ -4365,8 +4374,11 @@ export function renderEditPhoto(state) {
     { key: 'Hoàn thành', label: '✅ Hoàn thành', color: '#22c55e' }
   ];
 
-  const renderCard = (t) => `
-    <div class="ep-card" onclick="window.openQuickPreview('${t.jobId}')" data-jobid="${t.jobId}" data-svcname="${t.serviceIdx}" style="background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-main)'};border:1px solid ${t.sc}30;border-radius:6px;padding:0.4rem 0.5rem;margin-bottom:0.4rem;border-left:3px solid ${t.sc};cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+  const renderCard = (t) => {
+    const isLocked = window.state?.locks?.[t.jobId];
+    return `
+    <div class="ep-card ${isLocked ? 'locked-card' : ''}" onclick="${isLocked ? '' : `window.openQuickPreview('${t.jobId}')`}" data-jobid="${t.jobId}" data-svcname="${t.serviceIdx}" style="${isLocked ? 'opacity:0.6;pointer-events:none;' : ''} background:${t.editStatus !== 'Hoàn thành' && t.stage === 'QUÁ HẠN' ? '#fef2f2' : t.editStatus !== 'Hoàn thành' && t.stage === 'GẤP' ? '#fff7ed' : 'var(--bg-main)'};border:1px solid ${t.sc}30;border-radius:6px;padding:0.4rem 0.5rem;margin-bottom:0.4rem;border-left:3px solid ${t.sc};cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,0.03);position:relative;">
+      ${isLocked ? `<div style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:0.5rem;padding:0.15rem 0.4rem;border-radius:10px;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.2)">🔒 ${window.state.locks[t.jobId]}</div>` : ''}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
         <span style="font-size:0.75rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${t.client}">${t.client}</span>
         ${t.editStatus !== 'Hoàn thành' && t.daysLeft <= 0 ? '<span title="Quá hạn" style="animation:pulse 2s infinite;font-size:0.65rem">🚨</span>' : ''}
@@ -4377,6 +4389,7 @@ export function renderEditPhoto(state) {
         <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${t.editStaff || 'Chưa gán'}">✏️ ${t.editStaff || 'Trống'}</span>
       </div>
     </div>`;
+  };
 
   container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline ' + EDIT_DAYS + ' ngày</p></div></header>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">' + total + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">' + done + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">' + (total - done) + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">' + overdue + '</div></div></div>'

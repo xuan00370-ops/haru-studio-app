@@ -2750,6 +2750,7 @@ function updateUI() {
         if (list._sortableInstance) list._sortableInstance.destroy();
         list._sortableInstance = new Sortable(list, {
           group: 'kanban', animation: 150, ghostClass: 'kanban-ghost',
+          filter: '.locked-card', preventOnFilter: true,
           onEnd: (evt) => {
             const card = evt.item;
             const newStatus = evt.to.dataset.status;
@@ -2765,6 +2766,7 @@ function updateUI() {
         if (col._sortableInstance) col._sortableInstance.destroy();
         col._sortableInstance = new Sortable(col, {
           group: 'editVideoKanban', animation: 200, ghostClass: 'sortable-ghost',
+          filter: '.locked-card', preventOnFilter: true,
           onEnd: (evt) => {
             const card = evt.item;
             const newStatus = evt.to.dataset.status;
@@ -2783,6 +2785,7 @@ function updateUI() {
         if (col._sortableInstance) col._sortableInstance.destroy();
         col._sortableInstance = new Sortable(col, {
           group: 'editPhoto', animation: 200, ghostClass: 'sortable-ghost',
+          filter: '.locked-card', preventOnFilter: true,
           onEnd: (evt) => {
             const card = evt.item;
             const newStatus = evt.to.closest('.ep-col').dataset.status;
@@ -2800,6 +2803,7 @@ function updateUI() {
         if (list._sortableInstance) list._sortableInstance.destroy();
         list._sortableInstance = new Sortable(list, {
           group: 'editor-kanban', animation: 150, ghostClass: 'kanban-ghost', dragClass: 'kanban-drag',
+          filter: '.locked-card', preventOnFilter: true,
           onEnd: (evt) => {
             const card = evt.item;
             const newStatus = evt.to.dataset.status;
