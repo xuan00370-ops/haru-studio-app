@@ -8,7 +8,7 @@ import {
   renderGalleryClient, renderPortfolioAdmin
 } from './components.js';
 
-import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence } from './firebase.js';
+import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence, updateBaselineState } from './firebase.js';
 
 // ============================================================
 // STATE INITIALIZATION & FIREBASE
@@ -392,6 +392,7 @@ async function bootload() {
           clients: fbData.clients || state.clients,
           portfolios: fbData.portfolios || state.portfolios
         });
+        updateBaselineState(state);
         console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase! Portfolios:", state.portfolios);
       } else {
         console.log("🔥 Firebase init successful, but no fbData found.");
@@ -439,6 +440,9 @@ async function bootload() {
           clients: freshData.clients || state.clients,
           portfolios: freshData.portfolios || state.portfolios
         });
+
+        // Cập nhật lại baseline cục bộ để không bắn ngược lại những data mà máy khác vừa gửi sang
+        updateBaselineState(state);
 
         if (!isEditing) {
           // Chỉ render lại giao diện nếu ko bị vướng edit input

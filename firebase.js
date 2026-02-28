@@ -23,9 +23,51 @@ export function initFirebase(configStr) {
     }
 }
 
+// ────────────────────────────────────────────────────────────
+// DIFF-BASED SYNCHRONIZATION HELPERS
+// ────────────────────────────────────────────────────────────
+let _lastSyncedState = {};
+
+/**
+ * Deep equality check cho object. Giúp phát hiện thay đổi thật sự.
+ */
+function deepEqual(obj1, obj2) {
+    if (obj1 === obj2) return true;
+    if (obj1 == null || typeof obj1 !== 'object' || obj2 == null || typeof obj2 !== 'object') return false;
+
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+
+    if (keys1.length !== keys2.length) return false;
+
+    for (let key of keys1) {
+        if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false;
+    }
+    return true;
+}
+
+/**
+ * Cập nhật baseline (bản gốc) sau khi tải từ Firebase hoặc sau khi sync thành công.
+ * Quan trọng: Clone dữ liệu để tránh tham chiếu bộ nhớ.
+ */
+export function updateBaselineState(state) {
+    if (!state) return;
+    _lastSyncedState = {
+        jobs: state.jobs ? JSON.parse(JSON.stringify(state.jobs)) : [],
+        staff: state.staff ? JSON.parse(JSON.stringify(state.staff)) : [],
+        financeMetadata: state.financeMetadata ? JSON.parse(JSON.stringify(state.financeMetadata)) : {},
+        manualTransactions: state.manualTransactions ? JSON.parse(JSON.stringify(state.manualTransactions)) : [],
+        settings: state.settings ? JSON.parse(JSON.stringify(state.settings)) : {},
+        history: state.history ? JSON.parse(JSON.stringify(state.history)) : [],
+        clients: state.clients ? JSON.parse(JSON.stringify(state.clients)) : []
+    };
+}
+
+
 /**
  * Ghi state lên Firebase bằng Cập nhật từng phần (Granular Updates - update)
- * Giúp tránh ghi đè dữ liệu khi 2 máy cùng lưu tại 1 thời điểm.
+ * Sử dụng thuật toán Diff-Based Sync: CHỈ gửi những records thực sự bị thay đổi,
+ * nhằm bảo toàn những thay đổi do máy khác gửi lên cùng lúc.
  */
 export async function syncToFirebase(state) {
     if (!isInitialized || !db) return;
@@ -54,41 +96,79 @@ export async function syncToFirebase(state) {
             return Array.from(byId.values());
         });
 
-        // 2) Update các phần state khác bằng Granular Updates
+        // 2) Update các phần state khác bằng Diff-Based Granular Updates
         const updates = {};
+        let hasChanges = false;
 
-        // Chuyển đổi array thành object để update từng id riêng rẽ cho Jobs
+        // Compare JOBS
         if (Array.isArray(state.jobs)) {
+            const baselineJobs = _lastSyncedState.jobs || [];
+            const baselineJobMap = new Map(baselineJobs.map(j => [j.id, j]));
+
             state.jobs.forEach(job => {
                 if (job && job.id) {
-                    updates[`haru_state/jobs/${job.id}`] = job;
+                    const baselineJob = baselineJobMap.get(job.id);
+                    if (!baselineJob || !deepEqual(baselineJob, job)) {
+                        updates[`haru_state/jobs/${job.id}`] = job;
+                        hasChanges = true;
+                    }
                 }
             });
         }
 
-        // Tương tự cho Staff
+        // Compare STAFF
         if (Array.isArray(state.staff)) {
+            const baselineStaff = _lastSyncedState.staff || [];
+            const baselineStaffMap = new Map(baselineStaff.map(s => [s.id || s.name, s]));
+
             state.staff.forEach(s => {
-                if (s && s.id) {
-                    updates[`haru_state/staff/${s.id}`] = s;
-                } else if (s && s.name) {
-                    updates[`haru_state/staff/${s.name}`] = s;
+                const key = s && (s.id || s.name);
+                if (key) {
+                    const baselineS = baselineStaffMap.get(key);
+                    if (!baselineS || !deepEqual(baselineS, s)) {
+                        updates[`haru_state/staff/${key}`] = s;
+                        hasChanges = true;
+                    }
                 }
             });
         }
 
-        // Cập nhật các node khác
-        if (state.financeMetadata) updates['haru_state/financeMetadata'] = state.financeMetadata;
-        if (state.manualTransactions) updates['haru_state/manualTransactions'] = state.manualTransactions;
-        if (state.settings) updates['haru_state/settings'] = state.settings;
-        if (state.history) updates['haru_state/history'] = state.history;
-        if (state.clients) updates['haru_state/clients'] = state.clients;
+        // Compare OTHER TOP-LEVEL NODES
+        if (!deepEqual(_lastSyncedState.financeMetadata, state.financeMetadata)) {
+            updates['haru_state/financeMetadata'] = state.financeMetadata || {};
+            hasChanges = true;
+        }
+        if (!deepEqual(_lastSyncedState.manualTransactions, state.manualTransactions)) {
+            updates['haru_state/manualTransactions'] = state.manualTransactions || [];
+            hasChanges = true;
+        }
+        if (!deepEqual(_lastSyncedState.settings, state.settings)) {
+            updates['haru_state/settings'] = state.settings || {};
+            hasChanges = true;
+        }
+        if (!deepEqual(_lastSyncedState.clients, state.clients)) {
+            updates['haru_state/clients'] = state.clients || [];
+            hasChanges = true;
+        }
 
-        // Cập nhật timestamp lần sync cuối
-        updates['haru_state/lastUpdated'] = Date.now();
+        // History is tricky, we can just push it if length changed, or just overwrite it
+        if (!deepEqual(_lastSyncedState.history, state.history)) {
+            updates['haru_state/history'] = state.history || [];
+            hasChanges = true;
+        }
 
-        await update(ref(db), updates);
-        console.log("🔥 Firebase Granular Update Xong!");
+        if (hasChanges) {
+            // Cập nhật timestamp lần sync cuối
+            updates['haru_state/lastUpdated'] = Date.now();
+            await update(ref(db), updates);
+            console.log("🔥 Firebase Diff-Based Update Xong! Bắn payload size:", Object.keys(updates).length, "nodes");
+
+            // Tự cập nhật baseline cục bộ để lần sau không gửi lại những phần vừa gửi
+            updateBaselineState(state);
+        } else {
+            // Không log để tránh spam (khi load ban đầu state cũng tự saveState)
+            // console.log("🔥 Không có dữ liệu mới để đồng bộ, bỏ qua việc ghi lên Firebase.");
+        }
     } catch (err) {
         console.error("Firebase sync error:", err);
     }
