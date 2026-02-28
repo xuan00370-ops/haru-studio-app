@@ -360,32 +360,12 @@ async function bootload() {
     }
   }
 
-  // Fallback an toàn MẠNH (BLOCKING): nếu dữ liệu rỗng HOÀN TOÀN,
-  // khôi phục từ new_state.json ngay từ đầu (TRƯỚC KHI BẬT FIREBASE)
-  // để tránh Firebase watch listener đè thành mảng rỗng do race condition.
-  if (!Array.isArray(state.jobs) || state.jobs.length === 0) {
-    try {
-      console.log('🔄 Auto-fetching initial state from new_state.json (Strict Before Firebase)...');
-      const res = await fetch('/new_state.json?t=' + Date.now());
-      if (res.ok) {
-        const liveData = await res.json();
-        state.jobs = liveData.jobs || [];
-        if (liveData.staff && liveData.staff.length > 0) state.staff = liveData.staff;
-        console.log('✅ Auto-loaded', state.jobs.length, 'jobs from new_state.json successfully.');
-      } else {
-        throw new Error("HTTP Fetch failed");
-      }
-    } catch (err) {
-      console.warn('⚠️ Auto-fetch new_state.json failed, falling back to static mockData', err);
-      state.jobs = [...mockData.jobs];
-      if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
-    }
-  }
-
   const isHubMode = urlParams.get('hub') === 'haru' || Boolean(urlParams.get('gallery'));
   // Hub/gallery mode ALWAYS needs Firebase, regardless of enableFirebaseSync setting
   const shouldUseFirebase = Boolean(effectiveFirebaseConfig) &&
     (state.settings.enableFirebaseSync === true || !!envFirebaseConfig || !!publicWindowCfg || isHubMode);
+
+  let hasFirebaseData = false;
 
   if (shouldUseFirebase) {
     // Gán config chuẩn hóa vào state để các hàm khác dùng được
@@ -400,7 +380,8 @@ async function bootload() {
       const fbData = await loadFromFirebase();
       console.log("🔥 PRE-MERGE FIREBASE DATA:", fbData?.portfolios);
       console.log("🔥 PRE-MERGE LOCAL DATA:", state.portfolios);
-      if (fbData) {
+      if (fbData && (fbData.jobs || fbData.staff || fbData.portfolios)) {
+        hasFirebaseData = true;
         Object.assign(state, {
           jobs: fbData.jobs || state.jobs,
           staff: fbData.staff || state.staff,
@@ -414,6 +395,28 @@ async function bootload() {
         console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase! Portfolios:", state.portfolios);
       } else {
         console.log("🔥 Firebase init successful, but no fbData found.");
+      }
+
+      // Fallback an toàn MẠNH (BLOCKING): nếu dữ liệu rỗng HOÀN TOÀN,
+      // khôi phục từ new_state.json. Đã chuyển XUỐNG DƯỚI Firebase
+      // để ưu tiên lấy từ Firebase trước trên thiết bị mới!
+      if (!hasFirebaseData && (!Array.isArray(state.jobs) || state.jobs.length === 0)) {
+        try {
+          console.log('🔄 Auto-fetching initial state from new_state.json (Fallback)...');
+          const res = await fetch('/new_state.json?t=' + Date.now());
+          if (res.ok) {
+            const liveData = await res.json();
+            state.jobs = liveData.jobs || [];
+            if (liveData.staff && liveData.staff.length > 0) state.staff = liveData.staff;
+            console.log('✅ Auto-loaded', state.jobs.length, 'jobs from new_state.json successfully.');
+          } else {
+            throw new Error("HTTP Fetch failed");
+          }
+        } catch (err) {
+          console.warn('⚠️ Auto-fetch new_state.json failed, falling back to static mockData', err);
+          state.jobs = [...mockData.jobs];
+          if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
+        }
       }
 
       // Lắng nghe real-time toàn bộ thay đổi Firebase data từ các user/thiết bị khác
