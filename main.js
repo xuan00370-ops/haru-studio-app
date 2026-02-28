@@ -882,9 +882,22 @@ window.migrateLocalToFirebase = async () => {
 
 
 window.openModal = (type, data = null) => {
-  // --- PESSIMISTIC LOCKING: Lock Job when editing ---
-  if (type === 'job_detail' && data && window.lockJob) {
-    window.lockJob(data.id || data, state.currentUser?.username || 'Unknown');
+  // --- PESSIMISTIC LOCKING: Check if locked by someone else before opening ---
+  if (type === 'job_detail' && data) {
+    const jobId = data.id || data;
+    const currentLocker = window.state?.locks?.[jobId];
+    const me = state.currentUser?.username || 'Unknown';
+    if (currentLocker && currentLocker !== me) {
+      if (window.showToast) {
+        window.showToast(`🔒 Không thể chỉnh sửa! Job đang được khóa bởi ${currentLocker}`, 'var(--danger)');
+      }
+      return;
+    }
+
+    // Nếu chưa ai khóa (hoặc chính mình đang khóa), thì khóa lại và cho mở
+    if (window.lockJob) {
+      window.lockJob(jobId, me);
+    }
   }
 
   state.modal.isOpen = true;
