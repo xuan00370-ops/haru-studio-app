@@ -8,7 +8,7 @@ import {
   renderGalleryClient, renderPortfolioAdmin
 } from './components.js';
 
-import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState } from './firebase.js';
+import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence } from './firebase.js';
 
 // ============================================================
 // STATE INITIALIZATION & FIREBASE
@@ -875,6 +875,11 @@ window.migrateLocalToFirebase = async () => {
 
 
 window.openModal = (type, data = null) => {
+  // --- PESSIMISTIC LOCKING: Lock Job when editing ---
+  if (type === 'job_detail' && data && window.lockJob) {
+    window.lockJob(data.id || data, state.currentUser?.username || 'Unknown');
+  }
+
   state.modal.isOpen = true;
   state.modal.type = type;
   state.modal.data = data;
@@ -888,6 +893,12 @@ window.closeModal = () => {
     window._quickPreviewCloseFn();
     return;
   }
+
+  // --- PESSIMISTIC LOCKING: Unlock Job when closing ---
+  if (state.modal.type === 'job_detail' && state.modal.data && window.unlockJob) {
+    window.unlockJob(state.modal.data.id || state.modal.data);
+  }
+
   state.modal.isOpen = false;
   state.modal.type = null;
   state.modal.data = null;
@@ -1181,6 +1192,10 @@ window.addJob = (jobData) => {
 window.updateJob = (jobId, updatedData, skipUpdateUI = false) => {
   const index = state.jobs.findIndex(j => j.id === jobId);
   if (index !== -1) {
+    const currentUser = window.state?.currentUser?.displayName || window.state?.currentUser?.username || 'Unknown';
+    updatedData.lastModifiedBy = currentUser;
+    updatedData.lastModifiedTime = new Date().toISOString();
+
     state.jobs[index] = { ...state.jobs[index], ...updatedData };
     window.addHistory(`Cập nhật dự án: ${state.jobs[index].client} `);
     saveState();
@@ -2487,6 +2502,11 @@ window.logout = () => {
 // ============================================================
 window.state = state;
 window.saveState = saveState;
+window.lockJob = lockJob;
+window.unlockJob = unlockJob;
+window.watchLocks = watchLocks;
+window.trackUserPresence = trackUserPresence;
+window.watchPresence = watchPresence;
 
 // ============================================================
 // RENDER LOOP

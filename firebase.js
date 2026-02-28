@@ -24,7 +24,8 @@ export function initFirebase(configStr) {
 }
 
 /**
- * Ghi toàn bộ state lên Firebase
+ * Ghi state lên Firebase bằng Cập nhật từng phần (Granular Updates - update)
+ * Giúp tránh ghi đè dữ liệu khi 2 máy cùng lưu tại 1 thời điểm.
  */
 export async function syncToFirebase(state) {
     if (!isInitialized || !db) return;
@@ -53,16 +54,41 @@ export async function syncToFirebase(state) {
             return Array.from(byId.values());
         });
 
-        // 2) Update các phần state khác (KHÔNG ghi đè portfolios nữa).
-        await update(ref(db, 'haru_state'), {
-            jobs: state.jobs,
-            staff: state.staff,
-            financeMetadata: state.financeMetadata,
-            manualTransactions: state.manualTransactions || [],
-            settings: state.settings || {},
-            history: state.history,
-            clients: state.clients || []
-        });
+        // 2) Update các phần state khác bằng Granular Updates
+        const updates = {};
+
+        // Chuyển đổi array thành object để update từng id riêng rẽ cho Jobs
+        if (Array.isArray(state.jobs)) {
+            state.jobs.forEach(job => {
+                if (job && job.id) {
+                    updates[`haru_state/jobs/${job.id}`] = job;
+                }
+            });
+        }
+
+        // Tương tự cho Staff
+        if (Array.isArray(state.staff)) {
+            state.staff.forEach(s => {
+                if (s && s.id) {
+                    updates[`haru_state/staff/${s.id}`] = s;
+                } else if (s && s.name) {
+                    updates[`haru_state/staff/${s.name}`] = s;
+                }
+            });
+        }
+
+        // Cập nhật các node khác
+        if (state.financeMetadata) updates['haru_state/financeMetadata'] = state.financeMetadata;
+        if (state.manualTransactions) updates['haru_state/manualTransactions'] = state.manualTransactions;
+        if (state.settings) updates['haru_state/settings'] = state.settings;
+        if (state.history) updates['haru_state/history'] = state.history;
+        if (state.clients) updates['haru_state/clients'] = state.clients;
+
+        // Cập nhật timestamp lần sync cuối
+        updates['haru_state/lastUpdated'] = Date.now();
+
+        await update(ref(db), updates);
+        console.log("🔥 Firebase Granular Update Xong!");
     } catch (err) {
         console.error("Firebase sync error:", err);
     }
@@ -76,13 +102,91 @@ export async function loadFromFirebase() {
     try {
         const snapshot = await get(ref(db, 'haru_state'));
         if (snapshot.exists()) {
-            return snapshot.val();
+            const data = snapshot.val();
+            // Khôi phục Object về Array cho jobs và staff do lúc sync ta parse thành Object
+            if (data.jobs && typeof data.jobs === 'object' && !Array.isArray(data.jobs)) {
+                data.jobs = Object.values(data.jobs);
+            }
+            if (data.staff && typeof data.staff === 'object' && !Array.isArray(data.staff)) {
+                data.staff = Object.values(data.staff);
+            }
+            return data;
         }
     } catch (err) {
         console.error("Firebase load error:", err);
     }
     return null;
 }
+
+/**
+ * Khóa Job (Pessimistic Locking) báo hiệu user đang chỉnh sửa
+ */
+export async function lockJob(jobId, username) {
+    if (!isInitialized || !db) return;
+    try {
+        await set(ref(db, `haru_state/locks/${jobId}`), username);
+    } catch (err) {
+        console.warn("Lock job error:", err);
+    }
+}
+
+/**
+ * Mở khóa Job
+ */
+export async function unlockJob(jobId) {
+    if (!isInitialized || !db) return;
+    try {
+        await set(ref(db, `haru_state/locks/${jobId}`), null);
+    } catch (err) {
+        console.warn("Unlock job error:", err);
+    }
+}
+
+/**
+ * Lắng nghe khóa
+ */
+export function watchLocks(onUpdate) {
+    if (!isInitialized || !db) return () => { };
+    const refLocks = ref(db, 'haru_state/locks');
+    return onValue(refLocks, (snapshot) => {
+        onUpdate(snapshot.val() || {});
+    });
+}
+
+/**
+ * Trình theo dõi hiện diện (Presence System)
+ */
+export function trackUserPresence(username) {
+    if (!isInitialized || !db || !username) return;
+
+    // Yêu cầu import thêm onDisconnect từ firebase/database
+    import('firebase/database').then(({ onDisconnect }) => {
+        const myConnectionsRef = ref(db, `haru_state/presence/${username}`);
+        const connectedRef = ref(db, '.info/connected');
+
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                // Đã kết nối
+                const con = onDisconnect(myConnectionsRef);
+                con.remove().then(() => {
+                    set(myConnectionsRef, {
+                        online: true,
+                        last_active: Date.now()
+                    });
+                });
+            }
+        });
+    }).catch(err => console.warn("Lỗi tải onDisconnect:", err));
+}
+
+export function watchPresence(onUpdate) {
+    if (!isInitialized || !db) return () => { };
+    const presenceRef = ref(db, 'haru_state/presence');
+    return onValue(presenceRef, (snapshot) => {
+        onUpdate(snapshot.val() || {});
+    });
+}
+
 
 /**
  * Lắng nghe real-time thay đổi portfolios từ Firebase.
@@ -181,6 +285,13 @@ export function watchFullState(onUpdate) {
     const unsubscribe = onValue(stateRef, (snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
+            // Khôi phục Object về Array cho jobs và staff do lúc sync ta parse thành Object
+            if (data.jobs && typeof data.jobs === 'object' && !Array.isArray(data.jobs)) {
+                data.jobs = Object.values(data.jobs);
+            }
+            if (data.staff && typeof data.staff === 'object' && !Array.isArray(data.staff)) {
+                data.staff = Object.values(data.staff);
+            }
             onUpdate(data);
         }
     }, (err) => {

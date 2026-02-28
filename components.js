@@ -127,6 +127,16 @@ export function renderSidebar(activePage, navigate) {
 
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border)">
+        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); margin: 0 0 0.5rem 0.75rem; text-transform: uppercase;">🟢 Đang Online</div>
+        <div style="display: flex; flex-direction: column; gap: 0.2rem; margin: 0 0.75rem 1rem 0.75rem">
+          ${(window.state?.presence && Object.entries(window.state.presence).filter(([k, v]) => v.online).length > 0) ? Object.entries(window.state.presence).filter(([k, v]) => v.online).map(([user, data]) => `
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 600; color: var(--text-main)">
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a"></div>
+              <span>${user}</span>
+            </div>
+          `).join('') : '<div style="font-size: 0.7rem; color: var(--text-dim); font-style: italic">Chỉ mình bạn</div>'}
+        </div>
+
         <div class="nav-item" onclick="window.toggleTheme();window.updateUI()" style="cursor:pointer">
           <span class="icon">${document.documentElement.getAttribute('data-theme') === 'dark' ? '&#9728;&#65039;' : '&#127769;'}</span> ${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}
         </div>
@@ -654,6 +664,7 @@ function renderJobCard(job) {
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem">
            <div style="display: flex; gap: 0.3rem">
+              ${(window.state && window.state.locks && window.state.locks[job.id]) ? `<span class="badge" title="Đang được sửa bởi ${window.state.locks[job.id]}" style="background: rgba(245,158,11,0.1); color: #f59e0b; font-size: 0.55rem">🔒 ${window.state.locks[job.id]}</span>` : ''}
               ${!job.visibility ? '<span class="badge" style="background: rgba(239,68,68,0.1); color: #ef4444; font-size: 0.55rem">Ẩn</span>' : ''}
               <div class="job-id-badge" style="font-size: 0.55rem">#${job.jobNo || 0}</div>
            </div>
@@ -1369,6 +1380,11 @@ function renderJobDetailModal(state) {
               <i class="fas fa-trash"></i> Xóa dự án
             </button>
           </div>
+          
+          ${job.lastModifiedBy ? `
+          <div style="font-size: 0.65rem; color: var(--text-dim); text-align: center; margin-top: 0.5rem">
+            <i>Cập nhật lần cuối: ${job.lastModifiedBy} (${new Date(job.lastModifiedTime).toLocaleString('vi-VN')})</i>
+          </div>` : ''}
 
 
           <!-- Chat / Comments -->
@@ -1401,15 +1417,8 @@ function renderJobDetailModal(state) {
     </div>
   `;
 
-  // Auto-save event delegation for all inputs in the modal
-  container.addEventListener('change', function (ev) {
-    if (ev.target.matches('input, select, textarea')) {
-      clearTimeout(window._autoSaveTimer);
-      window._autoSaveTimer = setTimeout(() => {
-        window.saveJobDetail(job.id, false);
-      }, 700);
-    }
-  });
+  // Auto-save disabled to prevent DOM race condition crashes during typing
+  // container.addEventListener('change', ...
 
   return container;
 }
