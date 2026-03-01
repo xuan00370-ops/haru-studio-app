@@ -180,7 +180,6 @@ export function renderBottomNav(activePage, navigate) {
   if (window.state?.staffViewMode !== 'staff') {
     items.push({ id: 'finance', icon: '📒', label: 'Tiền' });
     items.push({ id: 'leads', icon: '🎯', label: 'Sale' });
-    items.push({ id: 'jobs', icon: '📁', label: 'Lưu trữ' });
     items.push({ id: 'gear', icon: '📷', label: 'Thiết bị' });
   }
 
@@ -193,10 +192,6 @@ export function renderBottomNav(activePage, navigate) {
     <div class="bottom-nav-item" onclick="window.toggleTheme();window.updateUI()" style="color:var(--text-main)">
       <span class="icon" style="font-size:1.1rem">${document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</span>
       <span>${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}</span>
-    </div>
-    <div class="bottom-nav-item" onclick="window.logout()" style="color:#ef4444">
-      <span class="icon">🚪</span>
-      <span>Thoát</span>
     </div>
   `;
 
@@ -662,8 +657,20 @@ function renderJobCard(job) {
 
     const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
     return `
-    <div class="job-card glass-panel" onclick="window.openQuickPreview('${job.id}')" style="${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}">
-      <div class="job-card-header" style="margin-bottom: 0.5rem">
+    <div class="job-card glass-panel swipe-container" data-job-id="${job.id}" style="padding: 0; overflow: hidden; position: relative; ${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}" oncontextmenu="return false;">
+      
+      <!-- Lớp nền nút bấm khi trượt thẻ (Swipe Actions) -->
+      <div class="swipe-action left-action" style="position: absolute; left: 0; top: 0; bottom: 0; width: 100px; background: #ef4444; color: white; display: flex; align-items: center; justify-content: flex-start; padding-left: 1.5rem; font-size: 1.5rem; border-radius: 12px 0 0 12px; z-index: 1;">
+        <i class="fas fa-trash-alt"></i>
+      </div>
+      <div class="swipe-action right-action" style="position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: #0088cc; color: white; display: flex; align-items: center; justify-content: flex-end; padding-right: 1.5rem; font-size: 1.5rem; border-radius: 0 12px 12px 0; z-index: 1;">
+        <i class="fas fa-comment-dots"></i>
+      </div>
+
+      <!-- Nội dung chính của thẻ (Lớp trên cùng) -->
+      <div class="swipe-content" onclick="window.openQuickPreview('${job.id}')" style="position: relative; z-index: 2; background: var(--bg-card); padding: 1.25rem; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; border-radius: inherit;">
+        
+        <div class="job-card-header" style="margin-bottom: 0.5rem">
         <div style="display: flex; flex-direction: column; gap: 0.1rem">
           <h3 class="job-card-title" style="font-size: 1.08rem; color: var(--text-main)">${job.client}</h3>
           <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap">
@@ -846,6 +853,47 @@ export function renderModalOverlay(state, closeModal) {
   }
 
   overlay.appendChild(container);
+
+  // Phase 5: Swipe-to-close cho Bottom Sheet trên Mobile
+  let startY = null;
+  let currentY = null;
+
+  container.addEventListener('touchstart', (e) => {
+    // Chỉ kích hoạt thao tác kéo khi bắt đầu chạm ở khu vực nửa trên modal (header) 
+    // hoặc khi scrollTop của container đang ở tận cùng trên cùng.
+    const isAtTop = container.scrollTop <= 5;
+    const isHeaderOrEmptySpace = e.target.closest('.modal-header') || container === e.target;
+
+    if (window.innerWidth <= 768 && (isAtTop || isHeaderOrEmptySpace)) {
+      startY = e.touches[0].clientY;
+      container.style.transition = 'none'; // Tắt transition để kéo mượt theo ngón tay
+    } else {
+      startY = null;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchmove', (e) => {
+    if (startY === null) return;
+    currentY = e.touches[0].clientY;
+    const diff = currentY - startY;
+    if (diff > 0) { // Đi xuống
+      container.style.transform = `translateY(${diff}px)`;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchend', () => {
+    if (startY === null || currentY === null) return;
+    const diff = currentY - startY;
+    container.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+    if (diff > 120) { // Vuốt quá 120px thì đóng modal
+      closeModal();
+    } else { // Vuốt nhẹ thì nảy về vị trí cũ
+      container.style.transform = '';
+    }
+    startY = null;
+    currentY = null;
+  });
+
   return overlay;
 }
 

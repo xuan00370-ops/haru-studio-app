@@ -231,6 +231,122 @@ window.checkDeadlines = () => {
 setInterval(() => { if (state.currentUser) window.checkDeadlines(); }, 30 * 60 * 1000);
 
 // ============================================================
+// PHASE 5: SWIPE TO ACTION GESTURES
+// ============================================================
+window.initSwipeActions = () => {
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let isDragging = false;
+  let activeSwipeElement = null;
+  let activeContainer = null;
+  let isScrolling = false; // Phân biệt vuốt ngang và cuộn dọc
+
+  document.addEventListener('touchstart', (e) => {
+    // Chỉ kích hoạt trên điện thoại
+    if (window.innerWidth > 900) return;
+
+    const container = e.target.closest('.swipe-container');
+    if (!container) return;
+
+    activeContainer = container;
+    activeSwipeElement = container.querySelector('.swipe-content');
+    if (!activeSwipeElement) return;
+
+    // Reset các thẻ khác đang mở
+    document.querySelectorAll('.swipe-content').forEach(el => {
+      if (el !== activeSwipeElement) {
+        el.style.transform = 'translateX(0)';
+      }
+    });
+
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    isScrolling = false;
+    activeSwipeElement.style.transition = 'none'; // Tắt transition để kéo mượt
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging || !activeSwipeElement) return;
+
+    const currentY = e.touches[0].clientY;
+    currentX = e.touches[0].clientX;
+    const diffX = currentX - startX;
+    const diffY = currentY - startY;
+
+    // Nếu vuốt dọc nhiều hơn vuốt ngang => Người dùng đang scroll, bỏ drag ngang
+    if (Math.abs(diffY) > Math.abs(diffX) && !isScrolling) {
+      isDragging = false;
+      return;
+    }
+
+    if (Math.abs(diffX) > 10) {
+      isScrolling = true; // Khóa cuộn dọc lại
+    }
+
+    if (isScrolling) {
+      // Giới hạn kéo tối đa 90px
+      let moveX = diffX;
+      if (moveX > 90) moveX = 90 + (moveX - 90) * 0.2; // Bounce effect
+      if (moveX < -90) moveX = -90 + (moveX + 90) * 0.2;
+
+      activeSwipeElement.style.transform = `translateX(${moveX}px)`;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!isDragging || !activeSwipeElement) {
+      isDragging = false;
+      activeSwipeElement = null;
+      activeContainer = null;
+      return;
+    }
+
+    isDragging = false;
+    activeSwipeElement.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+
+    const diffX = currentX - startX;
+    const jobId = activeContainer.getAttribute('data-job-id');
+
+    if (diffX > 75) {
+      // Vuốt phải (Hiện Thùng rác đỏ) -> Bật tính năng Xóa
+      activeSwipeElement.style.transform = 'translateX(100px)';
+      setTimeout(() => {
+        if (confirm('Bạn có chắc chắn muốn XÓA Job này?')) {
+          if (window.deleteJob) window.deleteJob(jobId);
+        } else {
+          activeSwipeElement.style.transform = 'translateX(0)';
+        }
+      }, 300);
+    } else if (diffX < -75) {
+      // Vuốt trái (Hiện Nút xanh) -> Gọi điện hoặc nhắn tin
+      activeSwipeElement.style.transform = 'translateX(-100px)';
+      const job = window.state?.jobs?.find(j => j.id === jobId);
+      setTimeout(() => {
+        if (job && job.phone) {
+          window.location.href = `tel:${job.phone.replace(/[^0-9+]/g, '')}`;
+        } else {
+          alert('Khách hàng này chưa có số điện thoại!');
+        }
+        activeSwipeElement.style.transform = 'translateX(0)';
+      }, 300);
+    } else {
+      // Vuốt chưa đủ lực -> Bật lại vị trí cũ
+      activeSwipeElement.style.transform = 'translateX(0)';
+    }
+
+    activeSwipeElement = null;
+    activeContainer = null;
+  });
+};
+
+// Gọi init 1 lần khi load app
+setTimeout(() => {
+  if (window.initSwipeActions) window.initSwipeActions();
+}, 1000);
+
+// ============================================================
 // QR PREVIEW
 // ============================================================
 window.openQR = (jobId) => {
@@ -2952,13 +3068,146 @@ function updateUI() {
 
   app.appendChild(contentArea);
 
-  // Phase 4: Mobile Floating Action Button (FAB)
+  // Phase 5: Speed Dial Floating Action Button (FAB) + Menu Tròn
   if (isMobile && state.activePage !== 'settings' && state.activePage !== 'portfolio' && state.currentUser?.role !== 'editor') {
-    const fab = document.createElement('button');
-    fab.className = 'mobile-fab';
-    fab.innerHTML = '<span class="icon" style="font-size:1.8rem">&#10133;</span>';
-    fab.onclick = () => window.openModal();
-    app.appendChild(fab);
+    const fabContainer = document.createElement('div');
+    fabContainer.className = 'fab-container';
+
+    // Nút chính
+    const fabMain = document.createElement('button');
+    fabMain.className = 'fab-main';
+    fabMain.innerHTML = '<i class="fas fa-plus"></i>';
+
+    // Menu con
+    const fabMenu = document.createElement('div');
+    fabMenu.className = 'fab-menu';
+    fabMenu.innerHTML = `
+      <div class="fab-item" onclick="window.promptAddLead && window.promptAddLead()">
+        <span class="fab-label">Tạo Khách hàng (Lead)</span>
+        <button class="fab-btn"><i class="fas fa-user-plus"></i></button>
+      </div>
+      <div class="fab-item" onclick="window.openModal()">
+        <span class="fab-label">Tạo Hợp đồng (Job)</span>
+        <button class="fab-btn"><i class="fas fa-file-signature"></i></button>
+      </div>
+    `;
+
+    fabMain.onclick = () => {
+      fabMain.classList.toggle('active');
+      fabMenu.classList.toggle('active');
+    };
+
+    fabContainer.appendChild(fabMenu);
+    fabContainer.appendChild(fabMain);
+    app.appendChild(fabContainer);
+  }
+
+  // Phase 5: Auto-Hide Sticky Header + PULL TO REFRESH Logic
+  if (isMobile) {
+    const viewHeader = contentArea.querySelector('.view-header');
+
+    // --- Auto Hide Header ---
+    if (viewHeader) {
+      viewHeader.classList.add('sticky-header-mobile');
+      let lastScrollY = 0;
+      contentArea.addEventListener('scroll', () => {
+        const currentScrollY = contentArea.scrollTop;
+        if (currentScrollY > lastScrollY && currentScrollY > 80) {
+          viewHeader.classList.add('sticky-header-hidden');
+        } else {
+          viewHeader.classList.remove('sticky-header-hidden');
+        }
+        lastScrollY = currentScrollY;
+      }, { passive: true });
+    }
+
+    // --- Pull to Refresh ---
+    let startY = 0;
+    let currentY = 0;
+    let isPulling = false;
+    let pullIndicator = null;
+
+    contentArea.addEventListener('touchstart', (e) => {
+      if (contentArea.scrollTop <= 5) {
+        startY = e.touches[0].clientY;
+        isPulling = true;
+      }
+    }, { passive: true });
+
+    contentArea.addEventListener('touchmove', (e) => {
+      if (!isPulling) return;
+      currentY = e.touches[0].clientY;
+      const diffY = currentY - startY;
+
+      if (diffY > 10 && contentArea.scrollTop <= 0) {
+        // Init indicator nếu chưa có
+        if (!pullIndicator) {
+          pullIndicator = document.createElement('div');
+          pullIndicator.innerHTML = '<i class="fas fa-sync-alt" style="color:var(--primary); font-size:1.5rem"></i>';
+          pullIndicator.style.cssText = 'position:absolute; top:-50px; left:50%; transform:translateX(-50%); z-index:99; display:flex; align-items:center; justify-content:center; width:40px; height:40px; background:var(--bg-card); border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.1); transition: top 0.1s linear';
+          contentArea.style.position = 'relative'; // Ensure absolute positioning works
+          contentArea.appendChild(pullIndicator);
+        }
+
+        // Cản lực kéo lại (friction)
+        const moveY = Math.min(diffY * 0.4, 80);
+        pullIndicator.style.top = `${moveY - 40}px`;
+
+        if (moveY >= 60) {
+          pullIndicator.querySelector('i').style.transform = `rotate(${diffY}deg)`;
+        }
+      }
+    }, { passive: false });
+
+    contentArea.addEventListener('touchend', () => {
+      if (!isPulling || !pullIndicator) {
+        isPulling = false;
+        return;
+      }
+
+      const diffY = currentY - startY;
+      isPulling = false;
+
+      if (diffY > 150) { // Kéo đủ sâu mới trigger
+        pullIndicator.style.transition = 'top 0.3s ease';
+        pullIndicator.style.top = '10px';
+        pullIndicator.querySelector('i').classList.add('fa-spin');
+
+        // Thực thi Reload
+        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(50);
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } else {
+        // Hủy bỏ
+        pullIndicator.style.transition = 'top 0.3s ease';
+        pullIndicator.style.top = '-50px';
+        setTimeout(() => {
+          if (pullIndicator) pullIndicator.remove();
+          pullIndicator = null;
+        }, 300);
+      }
+    });
+  }
+
+  // Phase 5: Auto Numpad & iOS Zoom Fix
+  if (isMobile) {
+    // 1. Tự động gọi Numpad (bàn phím số to) cho mọi ô nhập số
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      if (!input.hasAttribute('inputmode')) {
+        input.setAttribute('inputmode', 'numeric');
+        input.setAttribute('pattern', '[0-9]*');
+      }
+    });
+
+    // 2. Chống iOS Safari tự động Zoom khi chạm vào ô input có chữ quá nhỏ (<16px)
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+      const style = window.getComputedStyle(el);
+      const size = parseFloat(style.fontSize);
+      if (size && size < 16) {
+        el.style.fontSize = '16px';
+      }
+    });
   }
 
   // Helper to visually update kanban column counts instantly
