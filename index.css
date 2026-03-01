@@ -876,7 +876,7 @@ button {
   gap: 0.35rem;
   align-items: center;
   padding: 0.3rem;
-  background: rgba(0,0,0,0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 12px;
   overflow-x: auto;
   margin-bottom: 0.75rem;
@@ -897,7 +897,7 @@ button {
 }
 
 .day-tab-btn:hover {
-  background: rgba(22,163,74,0.06);
+  background: rgba(22, 163, 74, 0.06);
   color: var(--text-main);
 }
 
@@ -905,18 +905,18 @@ button {
   background: #fff;
   color: var(--primary);
   border-color: var(--primary-light);
-  box-shadow: 0 2px 8px rgba(22,163,74,0.10);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.10);
 }
 
 .day-tab-btn.add-day-btn {
   color: var(--primary);
   border: 1.5px dashed var(--primary-light);
-  background: rgba(22,163,74,0.04);
+  background: rgba(22, 163, 74, 0.04);
   font-size: 0.72rem;
 }
 
 .day-tab-btn.add-day-btn:hover {
-  background: rgba(22,163,74,0.12);
+  background: rgba(22, 163, 74, 0.12);
 }
 
 .day-tab-content {
@@ -929,13 +929,20 @@ button {
 }
 
 @keyframes fadeTab {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .day-form-panel {
-  background: rgba(22,163,74,0.03);
-  border: 1.5px solid rgba(22,163,74,0.10);
+  background: rgba(22, 163, 74, 0.03);
+  border: 1.5px solid rgba(22, 163, 74, 0.10);
   border-radius: 14px;
   padding: 1.25rem;
   display: flex;
@@ -961,9 +968,9 @@ button {
 }
 
 .day-form-panel .remove-day-btn {
-  background: rgba(239,68,68,0.08);
+  background: rgba(239, 68, 68, 0.08);
   color: #ef4444;
-  border: 1px solid rgba(239,68,68,0.20);
+  border: 1px solid rgba(239, 68, 68, 0.20);
   border-radius: 7px;
   padding: 0.25rem 0.6rem;
   font-size: 0.7rem;
@@ -974,7 +981,7 @@ button {
 }
 
 .day-form-panel .remove-day-btn:hover {
-  background: rgba(239,68,68,0.18);
+  background: rgba(239, 68, 68, 0.18);
 }
 
 .multi-day-badge {
@@ -985,9 +992,9 @@ button {
   font-weight: 800;
   padding: 0.12rem 0.4rem;
   border-radius: 5px;
-  background: rgba(249,115,22,0.10);
+  background: rgba(249, 115, 22, 0.10);
   color: #f97316;
-  border: 1px solid rgba(249,115,22,0.20);
+  border: 1px solid rgba(249, 115, 22, 0.20);
 }
 
 @media (max-width: 900px) {
@@ -995,10 +1002,12 @@ button {
     gap: 0.25rem;
     padding: 0.25rem;
   }
+
   .day-tab-btn {
     padding: 0.35rem 0.7rem;
     font-size: 0.72rem;
   }
+
   .day-form-panel {
     padding: 0.75rem;
   }
@@ -1251,6 +1260,30 @@ tr.paid-row {
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
   }
 
+  /* NÚT THÊM NỔI (FAB) */
+  .mobile-fab {
+    position: fixed;
+    bottom: calc(85px + env(safe-area-inset-bottom, 12px));
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+    border: none;
+    z-index: 9998;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .mobile-fab:active {
+    transform: scale(0.85);
+  }
+
   .bottom-nav-item {
     display: flex;
     flex-direction: column;
@@ -1347,6 +1380,48 @@ tr.paid-row {
     padding-right: 0.5rem;
   }
 
+  /* --- PHASE 4: BOTTOM SHEET CHUẨN TIKTOK CHO MODAL --- */
+  .modal-overlay {
+    align-items: flex-end !important;
+    /* Đẩy modal xuống sát đáy */
+    padding: 0 !important;
+  }
+
+  .modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    /* Trừ một chút lề trên để thấy màn đen */
+    border-radius: 20px 20px 0 0 !important;
+    /* Bo tròn góc trên, viền dưới vuông */
+    transform: translateY(100%);
+    /* Trạng thái ẩn: Thụt dưới đáy */
+    margin: 0 !important;
+    border: none !important;
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+  }
+
+  /* Slide Up animation Override */
+  .modal-overlay.active .modal-container {
+    transform: translateY(0) !important;
+  }
+
+  /* Thêm vạch ngang "chỉ báo kéo" trên đỉnh modal giống iOS */
+  .modal-header::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 5px;
+    background: var(--border-bright);
+    border-radius: 10px;
+    margin: 0 auto 0.5rem auto;
+  }
+
+  .modal-header {
+    padding-top: 1rem !important;
+    /* Cân đối chiều cao do thêm vạch ngang kéo */
+  }
+
   /* Bảng Nhân Sự / Dịch vụ / Finance bên trong Modal */
   .data-table {
     display: block;
@@ -1410,6 +1485,40 @@ tr.paid-row {
 
   .view-container {
     padding: 0.2rem;
+  }
+
+  /* --- PHASE 4: STICKY HEADERS CHO KANBAN --- */
+  .kanban-column,
+  .ep-col,
+  .ev-col {
+    /* Mở rộng padding để sticky không đè */
+    padding-top: 0 !important;
+  }
+
+  .kanban-column>div:first-child,
+  .ep-col>div:first-child,
+  .ev-col>div:first-child {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding-top: 0.5rem;
+    background: inherit;
+    /* Kế thừa màu nền của cột để che thẻ trượt lên */
+  }
+
+  /* --- PHASE 4: THẺ JOB MINI (MICRO CARDS) --- */
+  .ep-kanban-card>div:nth-child(4),
+  .ep-kanban-card>div:nth-child(5),
+  .ep-kanban-card>div:nth-child(6) {
+    display: none !important;
+    /* Ẩn bớt thanh tiến trình, ghi chú, deadline phụ */
+  }
+
+  .kanban-card,
+  .ep-card,
+  .ep-kanban-card {
+    padding: 0.4rem !important;
+    /* Bóp nhỏ đệm */
   }
 
   /* Aggressive mobile adjustments */
@@ -1723,20 +1832,23 @@ tr.paid-row {
 
 /* ============ MOBILE RESPONSIVE FIXES (MODAL) ============ */
 @media (max-width: 768px) {
+
   /* Fix cut-off grid rows on mobile for Modal (Nhân sự & Thành phẩm) */
-  .day-service-row, .deliverable-row {
+  .day-service-row,
+  .deliverable-row {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 0.5rem !important;
   }
-  
-  .day-service-row > .svc-role-input,
-  .day-service-row > div:nth-child(2) {
+
+  .day-service-row>.svc-role-input,
+  .day-service-row>div:nth-child(2) {
     flex: 1 1 calc(50% - 1.5rem) !important;
     min-width: 100px !important;
   }
-  
-  .day-service-row > button.btn.block, .deliverable-row > button.btn.block {
+
+  .day-service-row>button.btn.block,
+  .deliverable-row>button.btn.block {
     flex: 0 0 32px !important;
     min-width: 32px !important;
     width: 32px !important;
@@ -1745,18 +1857,18 @@ tr.paid-row {
     justify-content: center !important;
   }
 
-  .day-service-row > div:nth-child(3),
-  .day-service-row > div:nth-child(4) {
+  .day-service-row>div:nth-child(3),
+  .day-service-row>div:nth-child(4) {
     flex: 1 1 calc(50% - 0.5rem) !important;
     min-width: 120px !important;
   }
-  
-  .deliverable-row > .del-name-input {
+
+  .deliverable-row>.del-name-input {
     flex: 1 1 100% !important;
   }
-  
-  .deliverable-row > .del-type-input,
-  .deliverable-row > .del-qty-input {
+
+  .deliverable-row>.del-type-input,
+  .deliverable-row>.del-qty-input {
     flex: 1 1 calc(50% - 1.5rem) !important;
     min-width: 80px !important;
   }

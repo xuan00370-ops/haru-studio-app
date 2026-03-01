@@ -64,6 +64,10 @@ export function renderSidebar(activePage, navigate) {
         <span><span class="icon">🚀</span> Không gian làm việc</span>
       </div>
       ` : ''}
+      <div class="nav-item ${activePage === 'leads' ? 'active' : ''}" onclick="window.navigate('leads')" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); margin-bottom: 0.75rem; font-weight: 800;">
+        <span class="icon">🎯</span> CRM Phễu Khách
+        <span style="font-size:0.6rem;background:rgba(239,68,68,0.15);color:#ef4444;padding:0.15rem 0.4rem;border-radius:6px;font-weight:900;margin-left:auto">SALE</span>
+      </div>
       <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.navigate('dashboard')">
         <span class="icon">&#128202;</span> Dự án
       </div>
@@ -99,6 +103,9 @@ export function renderSidebar(activePage, navigate) {
       </div>
       <div class="nav-item ${activePage === 'staff' ? 'active' : ''}" onclick="window.navigate('staff')">
         <span class="icon">&#127917;</span> Nhân sự
+      </div>
+      <div class="nav-item ${activePage === 'gear' ? 'active' : ''}" onclick="window.navigate('gear')">
+        <span class="icon">📷</span> Kho thiết bị
       </div>
 
       <div class="nav-item ${activePage === 'analytics' ? 'active' : ''}" onclick="window.navigate('analytics')">
@@ -172,7 +179,9 @@ export function renderBottomNav(activePage, navigate) {
   ];
   if (window.state?.staffViewMode !== 'staff') {
     items.push({ id: 'finance', icon: '📒', label: 'Tiền' });
+    items.push({ id: 'leads', icon: '🎯', label: 'Sale' });
     items.push({ id: 'jobs', icon: '📁', label: 'Lưu trữ' });
+    items.push({ id: 'gear', icon: '📷', label: 'Thiết bị' });
   }
 
   nav.innerHTML = items.map(item => `
@@ -181,6 +190,10 @@ export function renderBottomNav(activePage, navigate) {
       <span>${item.label}</span>
     </div>
   `).join('') + `
+    <div class="bottom-nav-item" onclick="window.toggleTheme();window.updateUI()" style="color:var(--text-main)">
+      <span class="icon" style="font-size:1.1rem">${document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</span>
+      <span>${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}</span>
+    </div>
     <div class="bottom-nav-item" onclick="window.logout()" style="color:#ef4444">
       <span class="icon">🚪</span>
       <span>Thoát</span>
@@ -690,7 +703,9 @@ function renderJobCard(job) {
            </div>
            <div style="text-align: right">
               <span style="font-size: 0.82rem; color: var(--text-dim); display: block">chụp ${photoCount} · quay ${videoCount}</span>
-              <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-dim)">${job.phone || ''}</span>
+              <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-dim); margin-top: 0.2rem">
+                ${job.phone ? `<a href="tel:${job.phone.replace(/[^0-9+]/g, '')}" style="color:inherit;text-decoration:none"><span style="color:var(--primary)">📞</span> ${job.phone}</a> <a href="https://zalo.me/${job.phone.replace(/[^0-9]/g, '')}" target="_blank" style="background:#0068ff;color:#fff;padding:0.1rem 0.3rem;border-radius:4px;font-size:0.65rem;text-decoration:none;margin-left:0.3rem">Zalo</a>` : ''}
+              </div>
            </div>
         </div>
 
@@ -868,7 +883,7 @@ function renderQuickPreviewModal(state, closeModal) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
           <div><label style="font-size:0.65rem;color:var(--text-dim)">Ngày lễ</label><div style="font-size:0.85rem;font-weight:700">${new Date(job.date).toLocaleDateString('vi-VN')}</div></div>
           <div><label style="font-size:0.65rem;color:var(--text-dim)">Loại sự kiện</label><div style="font-size:0.85rem;font-weight:700;color:var(--accent)">${job.eventType || 'Wedding'}</div></div>
-          <div style="grid-column:1/3"><label style="font-size:0.65rem;color:var(--text-dim)">Liên hệ</label><div style="font-size:0.85rem;font-weight:700">${job.phone || '—'}</div></div>
+          <div style="grid-column:1/3"><label style="font-size:0.65rem;color:var(--text-dim)">Liên hệ</label><div style="font-size:0.85rem;font-weight:700">${job.phone ? `<a href="tel:${job.phone.replace(/[^0-9+]/g, '')}" style="color:inherit;text-decoration:none">📞 ${job.phone}</a> <a href="https://zalo.me/${job.phone.replace(/[^0-9]/g, '')}" target="_blank" style="background:#0068ff;color:#fff;padding:0.1rem 0.4rem;border-radius:4px;font-size:0.65rem;text-decoration:none;margin-left:0.4rem">Zalo</a>` : '—'}</div></div>
         </div>
       </div>
       <div>
@@ -1062,12 +1077,12 @@ function renderJobDetailModal(state) {
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.875rem; background: rgba(22,163,74,0.04); padding: 1rem; border-radius: 10px; border: 1px solid var(--border)">
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Giá trị gói (VNĐ)</label>
-              <input type="number" id="edit-job-package" class="form-control" value="${job.package}"
+              <input type="number" inputmode="numeric" pattern="[0-9]*" id="edit-job-package" class="form-control" value="${job.package}"
                 style="font-size: 1rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border-bright); color: var(--text-main); font-weight: 800">
             </div>
             <div>
               <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 0.3rem">Cọc đã nhận</label>
-              <input type="number" id="edit-job-deposit" class="form-control" value="${job.deposit || 0}"
+              <input type="number" inputmode="numeric" pattern="[0-9]*" id="edit-job-deposit" class="form-control" value="${job.deposit || 0}"
                 style="font-size: 1rem; padding: 0.55rem 0.75rem; background: #fff; border: 1.5px solid var(--border); color: var(--success); font-weight: 700">
             </div>
             <div>
@@ -1581,11 +1596,11 @@ function renderAddJobModal(state) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem">
           <div class="form-group">
             <label>Giá trị gói (VNĐ)</label>
-            <input type="number" class="form-control" name="package" required>
+            <input type="number" inputmode="numeric" pattern="[0-9]*" class="form-control" name="package" required>
           </div>
           <div class="form-group">
             <label>Cọc 20% (VNĐ)</label>
-            <input type="number" class="form-control" name="deposit">
+            <input type="number" inputmode="numeric" pattern="[0-9]*" class="form-control" name="deposit">
           </div>
         </div>
 
@@ -1779,76 +1794,6 @@ export function renderJobs(state) {
   return container;
 }
 
-export function renderStaff(state) {
-  const container = document.createElement('div');
-  container.className = 'view-container reveal';
-
-  // Monthly filter logic
-  const staffViewMode = state.staffViewMode || 'all';
-  const filteredStaff = staffViewMode === 'all' ? state.staff : state.staff.filter(m => {
-    return state.jobs.some(j => {
-      if (j.isTrash) return false;
-      const d = new Date(j.date);
-      return (d.getMonth() + 1) === state.currentMonth && d.getFullYear() === state.currentYear && j.services.some(s => _staffStr(s.staff).includes(m.name));
-    });
-  });
-
-  container.innerHTML = `
-    <header class="section-header">
-       <h1 class="view-title">👥 Danh sách Liên hệ & CTV</h1>
-    </header>
-
-    <div style="display: flex; gap: 0.5rem; margin: 1rem 0 1.5rem; flex-wrap: wrap">
-       <button class="btn ${staffViewMode === 'all' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="window.state.staffViewMode='all'; window.updateUI && updateUI()">Tất cả (${state.staff.length})</button>
-       <button class="btn ${staffViewMode === 'month' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="window.state.staffViewMode='month'; window.updateUI && updateUI()">Tháng ${state.currentMonth} (${filteredStaff.length})</button>
-       <button class="btn btn-primary btn-sm" onclick="window.quickAddCTV()">+ CTV</button>
-    </div>
-
-    <div class="staff-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem">
-      ${filteredStaff.map(member => {
-    const memberJobs = state.jobs.filter(j => !j.isTrash && j.services.some(s => _staffStr(s.staff).includes(member.name)));
-    const totalEarnings = memberJobs.reduce((sum, j) => sum + j.services.filter(s => _staffStr(s.staff).includes(member.name)).reduce((ss, s) => ss + (s.cost || 0), 0), 0);
-    const paidEarnings = memberJobs.reduce((sum, j) => sum + j.services.filter(s => _staffStr(s.staff).includes(member.name) && s.paid).reduce((ss, s) => ss + (s.cost || 0), 0), 0);
-    const unpaidEarnings = totalEarnings - paidEarnings;
-    const escapedName = member.name.replace(/'/g, "\\'");
-    return `
-          <div class="staff-card glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem" id="staff-card-${escapedName}">
-            <div style="display: flex; align-items: center; gap: 1rem">
-               <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #22c55e, #14b8a6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; color: #fff; box-shadow: 0 4px 12px rgba(34,197,94,0.2)">${member.name[0]}</div>
-               <div style="flex: 1">
-                  <h3 style="font-size: 1.05rem; font-weight: 700; margin: 0">${member.name}</h3>
-                  <div style="display: flex; gap: 0.5rem; margin-top: 0.3rem; align-items: center">
-                     <span class="badge" style="font-size: 0.65rem; background: rgba(34,197,94,0.12); color: #16a34a">${member.role}</span>
-                     ${member.phone ? `<span style="font-size: 0.75rem; color: var(--text-dim)">${member.phone}</span>` : ''}
-                  </div>
-               </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; background: rgba(34,197,94,0.06); padding: 0.75rem; border-radius: 10px">
-               <div><label style="font-size: 0.82rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700">Tổng thu</label><div class="payment-metric" style="font-size: 0.9rem; font-weight: 800">${formatCurrency(totalEarnings)}</div></div>
-               <div><label style="font-size: 0.82rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700">Đã trả</label><div class="payment-metric" style="font-size: 0.9rem; font-weight: 800; color: var(--success)">${formatCurrency(paidEarnings)}</div></div>
-               <div><label style="font-size: 0.82rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700">Còn nợ</label><div class="payment-metric" style="font-size: 0.9rem; font-weight: 800; color: var(--danger)">${formatCurrency(unpaidEarnings)}</div></div>
-            </div>
-            <div style="padding: 0.75rem; background: rgba(255,255,255,0.5); border: 1px solid var(--border); border-radius: 10px">
-               <div style="color: var(--text-dim); margin-bottom: 0.3rem; font-size: 0.65rem; text-transform: uppercase; font-weight: 700">Tài khoản ngân hàng</div>
-               <div style="font-weight: 700; font-size: 0.85rem">${member.bank?.no || 'Chưa cập nhật'}</div>
-               <div style="font-size: 0.75rem; color: var(--text-dim)">${member.bank?.name || ''} ${member.bank?.bank ? '- ' + member.bank.bank : ''}</div>
-            </div>
-            <div><div style="color: var(--text-dim); margin-bottom: 0.5rem; font-size: 0.65rem; text-transform: uppercase; font-weight: 800">Job gần đây</div>
-               <div style="display: flex; flex-direction: column; gap: 0.4rem">
-                  ${(memberJobs.length > 0 ? memberJobs.slice(0, 3).map(j => `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.4rem 0.5rem; background: rgba(34,197,94,0.04); border-radius: 6px"><span>${j.client}</span><span style="font-weight: 700; color: var(--success)">+${formatCurrency(j.services.find(s => _staffStr(s.staff).includes(member.name))?.cost)}</span></div>`).join('') : '<div style="font-size: 0.8rem; color: var(--text-dim); text-align: center">Chưa có</div>')}
-               </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: auto">
-               <a href="https://zalo.me/${member.phone}" target="_blank" class="btn btn-secondary btn-sm" style="flex: 1; font-size: 0.75rem; background: #0088cc; color: #fff; border: none; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.3rem"><i class="fab fa-whatsapp"></i> Zalo</a>
-               <a href="tel:${member.phone}" class="btn btn-secondary btn-sm" style="flex: 1; font-size: 0.75rem; background: var(--success); color: #fff; border: none; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.3rem"><i class="fas fa-phone"></i> Gọi</a>
-            </div>
-          </div>`;
-  }).join('')}
-    </div>
-  `;
-  return container;
-}
 
 export function renderFinance(state) {
   const container = document.createElement('div');
@@ -2777,6 +2722,58 @@ export function renderSettings(state) {
        </div>
     </div>
 
+    <!-- SMART AUTOMATION INTEGRATIONS PANEL -->
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border-left: 4px solid #f43f5e">
+       <h3 style="font-size: 1rem; font-weight: 900; margin-bottom: 1rem; color: #f43f5e"><i class="fas fa-robot" style="margin-right: 0.5rem"></i>Cấu hình Smart Automation</h3>
+       <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem">Tích hợp Trí tuệ 3B: Tự động Báo lịch (Zalo), Tự động Báo bùng (Telegram), Tự động Bóc Folder (Drive).</p>
+       
+       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem">
+          <!-- Zalo ZNS -->
+          <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border); padding: 1.25rem; border-radius: 12px">
+             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem">
+                <div style="font-weight: 900; color: #0068ff"><i class="fas fa-comment-sms"></i> Zalo ZNS API</div>
+                <label class="switch" style="position:relative;display:inline-block;width:34px;height:20px">
+                  <input type="checkbox" id="setting-zalo-enable" ${state.settings.zaloEnable ? 'checked' : ''} style="opacity:0;width:0;height:0">
+                  <span class="slider round" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:34px"></span>
+                </label>
+             </div>
+             <p style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.8rem; line-height: 1.4">Tự động bắn ZNS nhắc lịch cô dâu / chú rể trước sự kiện 1 ngày.</p>
+             <input type="text" id="setting-zalo-token" class="form-control" placeholder="Nhập Zalo OA Access Token..." value="${state.settings.zaloToken || ''}" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; background: #fff; border: 1px solid var(--border); margin-bottom: 0.5rem">
+             <input type="text" id="setting-zalo-template" class="form-control" placeholder="Template ID (Ví dụ: 297123)" value="${state.settings.zaloTemplateId || ''}" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; background: #fff; border: 1px solid var(--border)">
+          </div>
+
+          <!-- Telegram Bot -->
+          <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border); padding: 1.25rem; border-radius: 12px">
+             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem">
+                <div style="font-weight: 900; color: #0ea5e9"><i class="fab fa-telegram-plane"></i> Telegram Notifier</div>
+                <label class="switch" style="position:relative;display:inline-block;width:34px;height:20px">
+                  <input type="checkbox" id="setting-tele-enable" ${state.settings.teleEnable ? 'checked' : ''} style="opacity:0;width:0;height:0">
+                  <span class="slider round" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:34px"></span>
+                </label>
+             </div>
+             <p style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.8rem; line-height: 1.4">Ping thông báo Job mới / Lịch Gấp thẳng vào Group Chat của Studio.</p>
+             <input type="password" id="setting-tele-bot" class="form-control" placeholder="Bot Token (Ví dụ: 1234:AA-xyz...)" value="${state.settings.teleBotToken || ''}" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; background: #fff; border: 1px solid var(--border); margin-bottom: 0.5rem">
+             <input type="text" id="setting-tele-chatid" class="form-control" placeholder="Group Chat ID (Ví dụ: -100987654...)" value="${state.settings.teleChatId || ''}" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; background: #fff; border: 1px solid var(--border)">
+          </div>
+
+          <!-- Google Drive API -->
+          <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border); padding: 1.25rem; border-radius: 12px">
+             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem">
+                <div style="font-weight: 900; color: #16a34a"><i class="fab fa-google-drive"></i> Drive Auto-Folder</div>
+                <label class="switch" style="position:relative;display:inline-block;width:34px;height:20px">
+                  <input type="checkbox" id="setting-drive-enable" ${state.settings.driveEnable ? 'checked' : ''} style="opacity:0;width:0;height:0">
+                  <span class="slider round" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:34px"></span>
+                </label>
+             </div>
+             <p style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.8rem; line-height: 1.4">Tự động gọi API tạo Folder <code>[MãHD_TênKH]</code> trống khi ấn "Tạo Job" thành công.</p>
+             <input type="text" id="setting-drive-parent" class="form-control" placeholder="Parent Folder ID (Mã thư mục cha)" value="${state.settings.driveParentId || ''}" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; background: #fff; border: 1px solid var(--border); margin-bottom: 0.5rem">
+             <input type="password" id="setting-drive-client" class="form-control" placeholder="Service Account JSON/Client Secret" value="${state.settings.driveClientSecret || ''}" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; background: #fff; border: 1px solid var(--border)">
+          </div>
+       </div>
+
+       <button class="btn btn-primary" style="margin-top: 1.5rem; width: 100%; text-align: center; justify-content: center; background: #f43f5e; border-color: #e11d48; font-weight: 900" onclick="window.saveSmartIntegrations()">🚀 BẬT KÍCH HOẠT AUTOMATION</button>
+    </div>
+
     <div class="glass-panel" style="padding: 1.5rem">
        <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--accent-orange)"><i class="fas fa-database" style="margin-right: 0.5rem"></i>Sao lưu & Khôi phục</h3>
        <div style="display: flex; gap: 1rem">
@@ -3304,6 +3301,155 @@ export function renderHistory(state) {
 
 // saveJobDetail & saveMonthlyMeta — đã chuyển về main.js để tránh trùng lặp
 
+export function renderStaff(state) {
+  const container = document.createElement('div');
+  container.className = 'view-container reveal';
+
+  // Lấy danh sách nv
+  const staffList = [...state.staff].sort((a, b) => a.name.localeCompare(b.name));
+
+  // TÍNH TOÁN LƯƠNG/HOA HỒNG TỰ ĐỘNG THEO THÁNG HIỆN TẠI
+  const currentMonthJobs = state.jobs.filter(j => {
+    if (j.isTrash) return false;
+    const d = new Date(j.date);
+    if (Number.isNaN(d.getTime())) return false;
+    return (d.getMonth() + 1) === state.currentMonth && d.getFullYear() === state.currentYear;
+  });
+
+  const payrollData = {};
+  staffList.forEach(s => {
+    payrollData[s.name] = {
+      shootMoney: 0, shootPaid: 0, shootOwed: 0, shootJobs: 0,
+      editMoney: 0, editPaid: 0, editOwed: 0, editClips: 0
+    };
+  });
+
+  currentMonthJobs.forEach(job => {
+    // 1. Tiền đi quay/chụp
+    (job.services || []).forEach(svc => {
+      if (svc.staff && payrollData[svc.staff]) {
+        payrollData[svc.staff].shootJobs++;
+        const cost = Number(svc.cost) || 0;
+        payrollData[svc.staff].shootMoney += cost;
+        if (svc.paid) {
+          payrollData[svc.staff].shootPaid += cost;
+        } else {
+          payrollData[svc.staff].shootOwed += cost;
+        }
+      }
+    });
+
+    // 2. Tiền Hậu Kỳ (Chấm công dựa trên thẻ Edit Video đã chuyển sang trạng thái "Hoàn thành")
+    (job.services || []).forEach((svc, sIdx) => {
+      if (svc.editStaff && payrollData[svc.editStaff] && svc.editStatus === 'Hoàn thành') {
+        payrollData[svc.editStaff].editClips++;
+        const editCost = Number(svc.edit) || 0;
+        payrollData[svc.editStaff].editMoney += editCost;
+        if (svc.editPaid) {
+          payrollData[svc.editStaff].editPaid += editCost;
+        } else {
+          payrollData[svc.editStaff].editOwed += editCost;
+        }
+      }
+    });
+
+    // Support backward compatible deliverables format for editing if any
+    (job.deliverables || []).forEach(del => {
+      if (del.editor && payrollData[del.editor] && del.editStatus === 'Hoàn thành') {
+        if (!del._isCountedObj) { // Prevent double count if we somehow migrated it
+          payrollData[del.editor].editClips++;
+        }
+      }
+    });
+  });
+
+  container.innerHTML = `
+    <header class="section-header">
+      <div>
+        <h1 class="view-title">Quản Lý Nhân Sự & Bảng Lương</h1>
+        <p style="color: var(--text-dim); font-size: 0.9rem;">Danh sách nhân sự & Hệ thống tự động tính lương tháng ${state.currentMonth}/${state.currentYear}</p>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="window.promptAddStaff()">
+          <i class="fas fa-plus"></i> Thêm Nhân Sự
+        </button>
+      </div>
+    </header>
+
+    <!-- PAYROLL AUTOMATION TABLE -->
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; margin-bottom:2rem; overflow:hidden">
+      <div style="padding:1rem 1.25rem; background:rgba(22,163,74,0.05); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
+        <div style="font-weight:900; color:var(--text-main); font-size:1.1rem">💰 Bảng Kê Lương Tháng ${state.currentMonth}/${state.currentYear}</div>
+        <div style="font-size:0.8rem; color:var(--success); font-weight:800; background:rgba(22,163,74,0.1); padding:0.25rem 0.6rem; border-radius:6px">Tự Động Tính</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; min-width:800px; text-align:left; font-size:0.85rem">
+          <thead>
+            <tr style="background:var(--bg-body); color:var(--text-dim); font-size:0.75rem; text-transform:uppercase;">
+              <th style="padding:0.75rem 1rem; font-weight:800; border-bottom:1px solid var(--border)">Nhân Sự</th>
+              <th style="padding:0.75rem 1rem; font-weight:800; border-bottom:1px solid var(--border)">Vai Trò</th>
+              <th style="padding:0.75rem 1rem; font-weight:800; border-bottom:1px solid var(--border); text-align:right">Shoots tham gia</th>
+              <th style="padding:0.75rem 1rem; font-weight:800; border-bottom:1px solid var(--border); text-align:right">Hoa hồng Biên/Dựng</th>
+              <th style="padding:0.75rem 1rem; font-weight:800; border-bottom:1px solid var(--border); text-align:right">Tổng Thu Nhập</th>
+              <th style="padding:0.75rem 1rem; font-weight:800; border-bottom:1px solid var(--border); text-align:right; color:var(--success)">Đã Thanh Toán</th>
+              <th style="padding:0.75rem 1rem; font-weight:800; border-bottom:1px solid var(--border); text-align:right; color:var(--danger)">CÒN NỢ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${staffList.map(s => {
+    const pay = payrollData[s.name];
+    const totalMoney = pay.shootMoney + pay.editMoney;
+    const totalPaid = pay.shootPaid + pay.editPaid;
+    const totalOwed = pay.shootOwed + pay.editOwed;
+
+    if (totalMoney === 0 && pay.editClips === 0 && pay.shootJobs === 0) return ''; // Hide staff with no activity this month
+
+    return `
+              <tr style="border-bottom:1px solid var(--border-bright); transition:0.2s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+                <td style="padding:0.75rem 1rem; font-weight:800; color:var(--text-main)">${s.name}</td>
+                <td style="padding:0.75rem 1rem; color:var(--text-dim)">${s.role || 'Staff'}</td>
+                <td style="padding:0.75rem 1rem; text-align:right; font-weight:600">
+                  ${pay.shootJobs} jobs<br>
+                  <span style="font-size:0.7rem; color:var(--text-dim)">${formatCurrency(pay.shootMoney)}</span>
+                </td>
+                <td style="padding:0.75rem 1rem; text-align:right; font-weight:600">
+                  ${pay.editClips} clips<br>
+                  <span style="font-size:0.7rem; color:var(--text-dim)">${formatCurrency(pay.editMoney)}</span>
+                </td>
+                <td style="padding:0.75rem 1rem; text-align:right; font-weight:800; color:var(--primary)">${formatCurrency(totalMoney)}</td>
+                <td style="padding:0.75rem 1rem; text-align:right; font-weight:800; color:var(--success)">${formatCurrency(totalPaid)}</td>
+                <td style="padding:0.75rem 1rem; text-align:right; font-weight:900; color:var(--danger)">${formatCurrency(totalOwed)}</td>
+              </tr>
+              `;
+  }).join('') || '<tr><td colspan="7" style="padding:1.5rem; text-align:center; color:var(--text-dim)">Chưa có dữ liệu lương tháng này, cần phát sinh thêm Job đi chụp hoặc Clip hoàn thành.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:1rem; color:var(--text-main)">Danh Bạ Nhân Sự</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem">
+      ${staffList.map(s => `
+        <div class="glass-panel" style="padding: 1.25rem">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem">
+            <h3 style="font-size: 1.1rem; color: var(--text-main)">${s.name}</h3>
+            <span style="font-size: 0.75rem; color: var(--text-dim); background: var(--bg-hover); padding: 0.1rem 0.4rem; border-radius: 4px">${s.role}</span>
+          </div>
+          <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.75rem">
+            <i class="fas fa-phone"></i> ${s.phone || 'Chưa có SĐT'}
+          </div>
+          <div style="display: flex; gap: 0.4rem">
+             <button class="btn btn-secondary btn-sm" style="flex: 1" onclick="window.promptEditStaff('${s.name}')">Sửa</button>
+             <button class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: rgba(239,68,68,0.2)" onclick="window.deleteStaff('${s.name}')">Xóa</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  return container;
+}
+
+
 export function renderNAS(state) {
   const container = document.createElement('div');
   container.className = 'view-container reveal';
@@ -3725,18 +3871,19 @@ export function renderLoginScreen() {
             onblur="this.style.borderColor='rgba(20,83,45,0.15)'; this.style.boxShadow='none'">
         </div>
         <div style="text-align: left">
-          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #3d6b40; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem">Mật khẩu</label>
+          <label style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #3d6b40; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem">Mật khẩu / Mã PIN</label>
           <div style="position: relative">
-            <input type="password" id="login-password" placeholder="••••••" required autocomplete="current-password"
+            <input type="password" inputmode="numeric" pattern="[0-9]*" id="login-password" placeholder="••••" required autocomplete="current-password"
               value="${savedPass}"
               style="width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem; border: 1.5px solid rgba(20,83,45,0.15); border-radius: 12px;
-                font-size: 1rem; font-family: inherit; background: #fff; color: #0f1f0f; outline: none;
+                font-size: 1.25rem; letter-spacing: 4px; font-weight: 800; font-family: inherit; background: #fff; color: #0f1f0f; outline: none; text-align: center;
                 transition: border-color 0.2s; box-sizing: border-box"
               onfocus="this.style.borderColor='#22c55e'; this.style.boxShadow='0 0 0 3px rgba(34,197,94,0.12)'"
               onblur="this.style.borderColor='rgba(20,83,45,0.15)'; this.style.boxShadow='none'">
             <button type="button" id="toggle-pw-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
               background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #6b8f6e; padding: 0.2rem" title="Hiện/ẩn mật khẩu">👁</button>
           </div>
+          <div style="text-align:center; font-size:0.7rem; color:#6b8f6e; margin-top:0.4rem; font-weight:600">Nhập 4 số PIN để vào ngay</div>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.2rem">
           <input type="checkbox" id="login-remember" ${savedRemember ? 'checked' : ''}
@@ -5029,6 +5176,258 @@ export function renderPortfolioAdmin(state) {
       </div>
     </div>
   `;
+
+  return container;
+}
+
+
+// ==========================================
+// PHASE 4: GEAR INVENTORY (Kho Thiết Bị)
+// ==========================================
+
+export function renderGearList(state) {
+  const container = document.createElement('div');
+  container.className = 'content-section';
+
+  const gears = state.gears || [];
+  const activeBookings = (state.gearBookings || []).filter(b => b.status === 'out');
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem">
+      <div>
+        <h2 style="font-size:2rem; font-weight:900; color:var(--text-main); margin:0; letter-spacing:-0.5px">KHO THIẾT BỊ <span style="font-size:1.4rem">📷</span></h2>
+        <p style="color:var(--text-dim); margin-top:0.3rem; font-size:0.95rem">Quản lý và theo dõi máy ảnh, lens, thiết bị bay.</p>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="window.promptAddGear()" style="padding:0.6rem 1rem">
+          <i class="fas fa-plus"></i> Thêm Thiết Bị Mới
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.5rem; justify-content: start">
+      <div class="stat-card">
+        <div class="stat-value">${gears.length}</div>
+        <div class="stat-label">Tổng thiết bị</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${gears.filter(g => g.type === 'Camera').length}</div>
+        <div class="stat-label">Máy ảnh</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${gears.filter(g => g.type === 'Lens').length}</div>
+        <div class="stat-label">Ống kính</div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid #f59e0b">
+        <div class="stat-value" style="color:#f59e0b">${activeBookings.length}</div>
+        <div class="stat-label">Đang xuất kho</div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" style="margin-bottom:1rem">
+      <div class="filter-group">
+        <button class="filter-btn active" onclick="window.filterGear(this, 'ALL')">TẤT CẢ</button>
+        <button class="filter-btn" onclick="window.filterGear(this, 'Camera')">Máy Ảnh</button>
+        <button class="filter-btn" onclick="window.filterGear(this, 'Lens')">Ống Kính</button>
+        <button class="filter-btn" onclick="window.filterGear(this, 'Flycam')">Flycam</button>
+      </div>
+    </div>
+
+    <div class="gear-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.2rem; align-items:start" id="gear-grid-container">
+      ${gears.length === 0 ? '<div style="grid-column:1/-1; text-align:center; padding:3rem; background:rgba(0,0,0,0.02); border-radius:12px; border:2px dashed var(--border)">Chưa có thiết bị nào. Vui lòng thêm.</div>' : ''}
+      ${gears.map(g => {
+    // Find if this gear is currently booked out
+    const currentBooking = activeBookings.find(b => b.gearId === g.id);
+    const statusStr = currentBooking ? 'ĐANG SỬ DỤNG' : g.status;
+    let badgeColor = '#16a34a'; // Sẵn sàng
+    if (statusStr === 'ĐANG SỬ DỤNG') badgeColor = '#f59e0b';
+    if (statusStr === 'Đang bảo trì') badgeColor = '#ef4444';
+
+    let typeIcon = '📷';
+    if (g.type === 'Lens') typeIcon = '🔭';
+    if (g.type === 'Flycam') typeIcon = '🚁';
+    if (g.type === 'Gimbal') typeIcon = '🦾';
+    if (g.type === 'Flash') typeIcon = '⚡';
+
+    return `
+          <div class="glass-panel gear-item-card" data-type="${g.type}" style="border: 1px solid var(--border); padding: 1.25rem; position:relative; overflow:hidden; border-top: 4px solid ${badgeColor}; transition: 0.2s">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem">
+              <div>
+                <div style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px">${typeIcon} ${g.type}</div>
+                <div style="font-size:1.15rem; font-weight:800; color:var(--text-main); margin-top:0.15rem">${g.name}</div>
+              </div>
+              <button class="hide-on-mobile" onclick="window.promptEditGear('${g.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-dim); transition:0.2s; font-size:1rem" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem; padding-bottom:0.75rem; border-bottom:1px solid rgba(0,0,0,0.06); margin-bottom:0.75rem">
+              <div style="display:flex; justify-content:space-between">
+                <span style="color:var(--text-dim)">Serial:</span>
+                <span style="font-weight:700; color:var(--text-main)">${g.serial || 'N/A'}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between">
+                <span style="color:var(--text-dim)">Trạng thái:</span>
+                <span style="font-weight:800; color:${badgeColor}">${statusStr}</span>
+              </div>
+              ${g.notes ? `<div style="font-size:0.75rem; color:#ef4444; font-style:italic">Ghi chú: ${g.notes}</div>` : ''}
+            </div>
+
+            ${currentBooking ? `
+              <div style="background:#fef3c7; border:1px solid #f59e0b40; border-radius:8px; padding:0.75rem; font-size:0.8rem">
+                <div style="font-weight:800; color:#b45309; margin-bottom:0.25rem">ĐANG ĐƯỢC XUẤT KHO</div>
+                <div style="color:#92400e; font-weight:600">Nhân sự: ${currentBooking.staff}</div>
+                <div style="color:#92400e; margin-top:0.2rem">Job ID: #${currentBooking.jobId}</div>
+                <button onclick="window.returnGear('${g.id}')" class="btn" style="width:100%; margin-top:0.6rem; background:#f59e0b; color:#fff; border:none; font-size:0.8rem; padding:0.4rem">Hoàn Trả (Check-in)</button>
+              </div>
+            ` : `
+              <div style="display:flex; gap:0.5rem">
+                <button onclick="window.promptCheckoutGear('${g.id}')" class="btn btn-secondary" style="flex:1; font-size:0.8rem; padding:0.5rem; border-color:var(--primary); color:var(--primary); font-weight:800" ${statusStr === 'Đang bảo trì' ? 'disabled style="opacity:0.5"' : ''}>
+                  <i class="fas fa-sign-out-alt"></i> Xuất Kho (Book)
+                </button>
+              </div>
+            `}
+          </div>
+        `;
+  }).join('')}
+    </div>
+  `;
+
+  return container;
+}
+
+
+// ==========================================
+// PHASE 4: CRM LEADS KANBAN
+// ==========================================
+
+export function renderLeadsKanban(state) {
+  const container = document.createElement('div');
+  container.className = 'content-section';
+  // Use kanban layout styling
+  container.style.padding = '0';
+  container.style.height = '100%';
+  container.style.overflow = 'hidden';
+
+  const leads = state.leads || [];
+  const columns = [
+    { id: 'Mới Hỏi', name: '👋 Mới Hỏi', color: '#3b82f6' },
+    { id: 'Đang Tư Vấn', name: '💬 Đang Tư Vấn', color: '#f59e0b' },
+    { id: 'Hẹn Thử Váy', name: '👗 Hẹn Thử Váy', color: '#8b5cf6' },
+    { id: 'Đã Chốt', name: '✅ Đã Chốt', color: '#10b981' },
+    { id: 'Hủy', name: '❌ Hủy', color: '#ef4444' }
+  ];
+
+  container.innerHTML = `
+    <div style="padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; background:#fff; border-bottom:1px solid var(--border)">
+      <div>
+        <h2 style="font-size:1.6rem; font-weight:900; color:var(--text-main); margin:0;">CRM Phễu Khách Hàng 🎯</h2>
+        <div style="font-size:0.85rem; color:var(--text-dim); margin-top:0.2rem">Theo dõi và chăm sóc khách hàng từ lúc nhắn tin đến khi chốt hợp đồng.</div>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="window.promptAddLead()" style="padding:0.6rem 1rem">
+          <i class="fas fa-plus"></i> Khách Mới
+        </button>
+      </div>
+    </div>
+    
+    <div class="kanban-board" style="height: calc(100vh - 150px); padding: 1rem 1.5rem; overflow-x: auto; background: var(--bg-body)">
+      ${columns.map(col => {
+    const colLeads = leads.filter(l => l.status === col.id).sort((a, b) => new Date(b.updated) - new Date(a.updated));
+
+    return `
+          <div class="kanban-column" style="background:#fff; border:1px solid rgba(0,0,0,0.05); box-shadow:0 4px 12px rgba(0,0,0,0.03)">
+            <div class="kanban-header" style="position:sticky; top:0; z-index:10; background:#fff; border-bottom:2px solid ${col.color}40; padding:1rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem">
+                <span style="font-weight:900; color:var(--text-main); font-size:1rem">${col.name}</span>
+                <div class="kanban-badge" style="background:${col.color}15; color:${col.color}; font-weight:800; font-size:0.8rem; padding:0.2rem 0.6rem; border-radius:12px">${colLeads.length}</div>
+              </div>
+            </div>
+            
+            <div class="kanban-list leads-list" data-status="${col.id}" style="padding:0.75rem; min-height:100px; display:flex; flex-direction:column; gap:0.75rem">
+              ${colLeads.map(lead => `
+                <div class="kanban-card glass-panel" data-id="${lead.id}" style="border:1px solid var(--border); padding:0; cursor:grab; border-left:4px solid ${col.color}; overflow:hidden; position:relative">
+                  
+                  <!-- Mobile Swipe Actions -->
+                  <div class="swipe-actions">
+                    <button class="swipe-btn" style="background:#ef4444" onclick="window.moveLeadStatus('${lead.id}', -1)">⏪ Lùi</button>
+                    <button class="swipe-btn" style="background:#16a34a" onclick="window.moveLeadStatus('${lead.id}', 1)">Tiến ⏩</button>
+                  </div>
+
+                  <div class="swipe-content" style="background:#fff; padding:1rem; position:relative; z-index:2">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.4rem">
+                      <div style="font-weight:800; font-size:0.95rem; color:var(--text-main)"><i class="fas fa-user-circle" style="color:var(--text-dim); margin-right:4px"></i>${lead.clientName}</div>
+                      <div style="font-size:0.65rem; font-weight:800; color:#6366f1; background:#6366f115; padding:0.15rem 0.4rem; border-radius:4px">${lead.source || 'Khác'}</div>
+                    </div>
+                    
+                    <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:0.6rem; display:flex; align-items:center; gap:0.3rem" onclick="window.location.href='tel:${lead.phone}'">
+                      <span>📞 ${lead.phone || 'N/A'}</span>
+                    </div>
+
+                    ${lead.notes ? `
+                      <div style="font-size:0.8rem; color:var(--text-dim); background:rgba(0,0,0,0.03); padding:0.45rem 0.6rem; border-radius:6px; margin-bottom:0.6rem; line-height:1.4">
+                        ${lead.notes}
+                      </div>
+                    ` : ''}
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; padding-top:0.6rem; border-top:1px dashed var(--border)">
+                      <div style="font-size:0.7rem; color:var(--text-dim); font-weight:600">
+                        ⏱️ ${new Date(lead.updated || lead.date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                      </div>
+
+                      <div style="display:flex; gap:0.4rem">
+                        <button class="hide-on-mobile" onclick="window.promptEditLead('${lead.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-dim); transition:0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'" title="Sửa thông tin">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        ${col.id === 'Đã Chốt' ? `
+                          <button onclick="window.convertLeadToJob('${lead.id}')" style="background:none; border:none; cursor:pointer; color:#10b981; transition:0.2s; font-weight:800; font-size:0.85rem" title="Tạo dự án mới">
+                            <i class="fas fa-arrow-right"></i> Add Job
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+  }).join('')}
+    </div>
+  `;
+
+  // Attach Swipe Events for mobile
+  setTimeout(() => {
+    const cards = container.querySelectorAll('.kanban-card');
+    cards.forEach(card => {
+      const content = card.querySelector('.swipe-content');
+      let startX = 0;
+      let currentX = 0;
+
+      content.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+      }, { passive: true });
+
+      content.addEventListener('touchmove', e => {
+        currentX = e.touches[0].clientX - startX;
+        if (Math.abs(currentX) > 20) {
+          content.style.transform = `translateX(${currentX}px)`;
+        }
+      }, { passive: true });
+
+      content.addEventListener('touchend', () => {
+        if (currentX > 80) { // Swipe Right -> Next Phase
+          window.moveLeadStatus(card.dataset.id, 1);
+        } else if (currentX < -80) { // Swipe Left -> Prev Phase
+          window.moveLeadStatus(card.dataset.id, -1);
+        }
+        content.style.transform = 'translateX(0)';
+        currentX = 0;
+      });
+    });
+  }, 100);
 
   return container;
 }

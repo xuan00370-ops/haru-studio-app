@@ -4,8 +4,7 @@ import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory,
-  renderLoginScreen, renderEditorPortal, renderAnalytics, renderKanban, renderWatermark, renderStaffPortal, renderEditPhoto,
-  renderGalleryClient, renderPortfolioAdmin
+  renderLoginScreen, renderEditorPortal, renderPortfolioAdmin, renderKanban, renderAnalytics, renderGearList, renderLeadsKanban
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence, updateBaselineState } from './firebase.js';
@@ -38,6 +37,9 @@ export const state = {
   lastSyncResult: null,
   jobs: [...mockData.jobs],
   staff: [...mockData.staff],
+  gears: [...(mockData.gears || [])],
+  gearBookings: [...(mockData.gearBookings || [])],
+  leads: [...(mockData.leads || [])],
   financeMetadata: { ...mockData.financeMetadata },
   manualTransactions: [],
   settings: {
@@ -442,6 +444,9 @@ async function bootload() {
           console.warn('⚠️ Auto-fetch new_state.json failed, falling back to static mockData', err);
           state.jobs = [...mockData.jobs];
           if (!Array.isArray(state.staff) || state.staff.length === 0) state.staff = [...mockData.staff];
+          if (!Array.isArray(state.gears) || state.gears.length === 0) state.gears = [...(mockData.gears || [])];
+          if (!Array.isArray(state.gearBookings) || state.gearBookings.length === 0) state.gearBookings = [...(mockData.gearBookings || [])];
+          if (!Array.isArray(state.leads) || state.leads.length === 0) state.leads = [...(mockData.leads || [])];
         }
       }
 
@@ -1268,6 +1273,45 @@ window.addJob = (jobData) => {
   window.addHistory(`Thêm dự án mới: ${jobData.client} (${jobData.id})`);
   saveState();
   updateUI();
+
+  // 🚀 AUTOMATION: Bắn thông báo qua Telegram khi có Job Mới
+  if (state.settings.teleEnable && state.settings.teleBotToken && state.settings.teleChatId) {
+    const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+    const textMsg = `🚨 <b>CÓ JOB MỚI CHỐT</b> 🚨%0A%0A👤 <b>Khách hàng:</b> ${jobData.client}%0A📅 <b>Ngày sự kiện:</b> ${new Date(jobData.date).toLocaleDateString('vi-VN')}%0A📸 <b>Loại dịch vụ:</b> ${jobData.eventType || 'Chưa rõ'}%0A💰 <b>Giá trị HĐ:</b> ${formatter.format(jobData.package || 0)}%0A💸 <b>Đã cọc:</b> ${formatter.format(jobData.deposit || 0)}%0A%0ATeam chuẩn bị chiến thảo nào! 🔥`;
+
+    fetch(`https://api.telegram.org/bot${state.settings.teleBotToken}/sendMessage?chat_id=${state.settings.teleChatId}&parse_mode=HTML&text=${textMsg}`)
+      .then(r => r.json())
+      .then(res => {
+        if (!res.ok) console.error('Lỗi gửi Telegram:', res);
+        else console.log('Đã gửi thông báo Telegram thành công.');
+      }).catch(err => console.error('Lỗi mạng Telegram:', err));
+  }
+
+  // 🚀 AUTOMATION: Tự động bóc Google Drive Folder
+  if (state.settings.driveEnable && state.settings.driveClientSecret && state.settings.driveParentId) {
+    // Giả lập Serverless Function gọi Google Drive API (vì CORS và Security không nên gọi direct từ client JS nếu ko dùng Oauth popup) 
+    // Trong thực tế, bạn sẽ post dât lên 1 endpoint Google App Script hoặc Cloud Function.
+    // Dưới đây là cấu trúc Webhook chuẩn gọi đến Google App Script (GAS).
+    const driveWebhookUrl = state.settings.driveClientSecret; // Ở đây giả định ClientSecret dùng chứa URL Webhook GAS cho bảo mật
+    if (driveWebhookUrl.startsWith('https://script.google.com')) {
+      const folderName = `${jobData.id}_${jobData.client}_${new Date(jobData.date).toLocaleDateString('vi-VN').replace(/\//g, '-')}`;
+      fetch(driveWebhookUrl, {
+        method: 'POST',
+        mode: 'no-cors', // Khắc phục cors khi gọi script
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'createFolder',
+          folderName: folderName,
+          parentFolderId: state.settings.driveParentId,
+          jobId: jobData.id
+        })
+      }).then(() => {
+        console.log(`Đã gửi lệnh tạo folder Drive: ${folderName}`);
+        // Ghi chú: Vì App Script trả về no-cors nên không lấy URL trực tiếp được ngay, 
+        // Flow chuẩn là GAS sẽ gọi lại Firebase Realtime Node để update URL sau khi tạo xong. Hoặc lưu dạng quy ước tên.
+      }).catch(err => console.error('Lỗi gọi Drive API:', err));
+    }
+  }
 };
 
 window.updateJob = (jobId, updatedData, skipUpdateUI = false) => {
@@ -1291,6 +1335,40 @@ window.updateJob = (jobId, updatedData, skipUpdateUI = false) => {
     window.addHistory(`Cập nhật dự án: ${state.jobs[index].client}`, detailsStr);
 
     saveState();
+
+    // 🚀 AUTOMATION: Zalo ZNS API Bắn cảnh báo Lịch thay đổi / Bắn Nhắc lịch ngày mai
+    if (state.settings.zaloEnable && state.settings.zaloToken && state.settings.zaloTemplateId) {
+      // Chỉ trigger nếu có sự thay đổi về Ngày hoặc Venue (hoặc được gọi trigger tay)
+      if (changes.date || changes.venue) {
+        const zaloPhone = state.jobs[index].phone ? state.jobs[index].phone.replace(/^0/, '84') : null;
+        if (zaloPhone) {
+          const bodyPayload = {
+            phone: zaloPhone,
+            template_id: state.settings.zaloTemplateId,
+            template_data: {
+              "customer_name": state.jobs[index].client,
+              "event_date": new Date(state.jobs[index].date).toLocaleDateString('vi-VN'),
+              "event_venue": state.jobs[index].venue || 'Studio',
+            }
+          };
+
+          fetch('https://business.openapi.zalo.me/message/template', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'access_token': state.settings.zaloToken
+            },
+            body: JSON.stringify(bodyPayload)
+          })
+            .then(r => r.json())
+            .then(res => {
+              if (res.error) console.error('Lỗi bắn ZNS Zalo:', res);
+              else console.log(`Đã gửi ZNS nhắc lịch tới: ${zaloPhone}`);
+            }).catch(err => console.error('Zalo API Error:', err));
+        }
+      }
+    }
+
     if (!skipUpdateUI) {
       updateUI();
     }
@@ -2391,6 +2469,7 @@ window.saveFirebaseConfig = () => {
 
   if (!configStr) {
     state.settings.firebaseConfig = '';
+    state.settings.enableFirebaseSync = false;
     saveState();
     alert('Đã xóa cấu hình Firebase. Ứng dụng về chế độ Offline.');
     return;
@@ -2415,6 +2494,27 @@ window.saveFirebaseConfig = () => {
   } catch (err) {
     alert('Lỗi: Cấu hình JSON không hợp lệ. Vui lòng kiểm tra lại!');
   }
+};
+
+window.saveSmartIntegrations = () => {
+  // Zalo ZNS
+  state.settings.zaloEnable = document.getElementById('setting-zalo-enable').checked;
+  state.settings.zaloToken = document.getElementById('setting-zalo-token').value.trim();
+  state.settings.zaloTemplateId = document.getElementById('setting-zalo-template').value.trim();
+
+  // Telegram 
+  state.settings.teleEnable = document.getElementById('setting-tele-enable').checked;
+  state.settings.teleBotToken = document.getElementById('setting-tele-bot').value.trim();
+  state.settings.teleChatId = document.getElementById('setting-tele-chatid').value.trim();
+
+  // Google Drive
+  state.settings.driveEnable = document.getElementById('setting-drive-enable').checked;
+  state.settings.driveParentId = document.getElementById('setting-drive-parent').value.trim();
+  state.settings.driveClientSecret = document.getElementById('setting-drive-client').value.trim();
+
+  saveState();
+  alert('✅ Đã lưu cấu hình Hệ Sinh Thái Tự Động (Smart Integrations)');
+  updateUI();
 };
 
 window.forceSyncAllDataToCloud = async () => {
@@ -2845,10 +2945,21 @@ function updateUI() {
     case 'kanban': contentArea.appendChild(renderKanban(state)); break;
     case 'analytics': contentArea.appendChild(renderAnalytics(state)); break;
     case 'history': contentArea.appendChild(renderHistory(state)); break;
+    case 'gear': contentArea.appendChild(renderGearList(state)); break;
+    case 'leads': contentArea.appendChild(renderLeadsKanban(state)); break;
     default: contentArea.appendChild(renderDashboard(periodState, window.navigate));
   }
 
   app.appendChild(contentArea);
+
+  // Phase 4: Mobile Floating Action Button (FAB)
+  if (isMobile && state.activePage !== 'settings' && state.activePage !== 'portfolio' && state.currentUser?.role !== 'editor') {
+    const fab = document.createElement('button');
+    fab.className = 'mobile-fab';
+    fab.innerHTML = '<span class="icon" style="font-size:1.8rem">&#10133;</span>';
+    fab.onclick = () => window.openModal();
+    app.appendChild(fab);
+  }
 
   // Helper to visually update kanban column counts instantly
   const updateKanbanCounts = (fromCol, toCol) => {
@@ -2953,6 +3064,25 @@ function updateUI() {
           }
         });
       });
+      // Leads kanban
+      document.querySelectorAll('.leads-list').forEach(list => {
+        if (list._sortableInstance) list._sortableInstance.destroy();
+        list._sortableInstance = new Sortable(list, {
+          group: 'leads-kanban', animation: 150, ghostClass: 'kanban-ghost',
+          onEnd: (evt) => {
+            const card = evt.item;
+            const newStatus = evt.to.dataset.status;
+            const leadId = card.dataset.id;
+            const lead = state.leads.find(l => l.id === leadId);
+            if (lead && lead.status !== newStatus) {
+              lead.status = newStatus;
+              lead.updated = new Date().toISOString();
+              saveState();
+              updateUI();
+            }
+          }
+        });
+      });
     }, 100);
   });
 
@@ -3022,105 +3152,129 @@ window.exportInvoiceToPDF = (jobId) => {
 
   const servicesList = (job.services || []).map(s => `<li>${s.service}</li>`).join('');
 
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Hóa Đơn - ${job.client}</title>
-        <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.5; padding: 2rem; max-width: 800px; margin: 0 auto; }
-          .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #16a34a; padding-bottom: 1rem; margin-bottom: 2rem; }
-          .brand h1 { margin: 0; color: #16a34a; font-size: 2.5rem; letter-spacing: -1px; }
-          .brand p { margin: 0; color: #666; font-size: 0.9rem; }
-          .invoice-meta { text-align: right; }
-          .invoice-meta div { margin-bottom: 0.3rem; }
-          .bill-to h3 { margin: 0 0 0.5rem 0; color: #16a34a; font-size: 1.1rem; text-transform: uppercase; }
-          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-          th { background: #16a34a; color: white; padding: 0.75rem; text-align: left; font-weight: 600; }
-          td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
-          .text-right { text-align: right; }
-          .summary { border-top: 2px solid #e2e8f0; padding-top: 1rem; width: 60%; float: right; }
-          .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 1.1rem; }
-          .summary-row.total { font-size: 1.3rem; font-weight: bold; color: #16a34a; margin-top: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.5rem; }
-          .summary-row.rem { font-size: 1.3rem; font-weight: bold; color: #ea580c; }
-          .footer { margin-top: 4rem; text-align: center; color: #666; font-size: 0.85rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; clear: both; }
-          @media print { body { padding: 0; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="brand">
-            <h1>HARU STUDIO</h1>
-            <p>Dịch vụ Quay/Chụp Sự kiện & Ngày Cưới</p>
-          </div>
-          <div class="invoice-meta">
-            <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 0.5rem">HÓA ĐƠN DỊCH VỤ</div>
-            <div><strong>Mã Hóa Đơn:</strong> #${job.jobNo || job.id.split('-')[1] || '0000'}</div>
-            <div><strong>Ngày lập:</strong> ${new Date().toLocaleDateString('vi-VN')}</div>
-          </div>
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <style>
+      .pdf-wrapper { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.5; padding: 2rem; max-width: 800px; margin: 0 auto; background: #fff; }
+      .pdf-wrapper .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #16a34a; padding-bottom: 1rem; margin-bottom: 2rem; }
+      .pdf-wrapper .brand h1 { margin: 0; color: #16a34a; font-size: 2.5rem; letter-spacing: -1px; }
+      .pdf-wrapper .brand p { margin: 0; color: #666; font-size: 0.9rem; }
+      .pdf-wrapper .invoice-meta { text-align: right; }
+      .pdf-wrapper .invoice-meta div { margin-bottom: 0.3rem; }
+      .pdf-wrapper .bill-to h3 { margin: 0 0 0.5rem 0; color: #16a34a; font-size: 1.1rem; text-transform: uppercase; }
+      .pdf-wrapper .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+      .pdf-wrapper table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+      .pdf-wrapper th { background: #16a34a; color: white; padding: 0.75rem; text-align: left; font-weight: 600; }
+      .pdf-wrapper td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+      .pdf-wrapper .text-right { text-align: right; }
+      .pdf-wrapper .summary { border-top: 2px solid #e2e8f0; padding-top: 1rem; width: 60%; float: right; }
+      .pdf-wrapper .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 1.1rem; }
+      .pdf-wrapper .summary-row.total { font-size: 1.3rem; font-weight: bold; color: #16a34a; margin-top: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.5rem; }
+      .pdf-wrapper .summary-row.rem { font-size: 1.3rem; font-weight: bold; color: #ea580c; }
+      .pdf-wrapper .footer { margin-top: 4rem; text-align: center; color: #666; font-size: 0.85rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; clear: both; }
+    </style>
+    <div class="pdf-wrapper">
+      <div class="header">
+        <div class="brand">
+          <h1>HARU STUDIO</h1>
+          <p>Dịch vụ Quay/Chụp Sự kiện & Ngày Cưới</p>
         </div>
-
-        <div class="info-grid">
-          <div>
-            <h3>Khách Hàng</h3>
-            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.2rem">${job.client}</div>
-            <div><strong>SĐT:</strong> ${job.phone || 'Chưa cung cấp'}</div>
-          </div>
-          <div>
-            <h3>Thông Tin Sự Kiện</h3>
-            <div><strong>Ngày tổ chức:</strong> ${new Date(job.date).toLocaleDateString('vi-VN')}</div>
-            <div><strong>Loại hình:</strong> ${job.eventType || 'Wedding'}</div>
-            <div><strong>Địa điểm:</strong> ${job.venue || 'Chưa cập nhật'}</div>
-          </div>
+        <div class="invoice-meta">
+          <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 0.5rem">HÓA ĐƠN DỊCH VỤ</div>
+          <div><strong>Mã Hóa Đơn:</strong> #${job.jobNo || job.id.split('-')[1] || '0000'}</div>
+          <div><strong>Ngày lập:</strong> ${new Date().toLocaleDateString('vi-VN')}</div>
         </div>
+      </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Chi Tiết Dịch Vụ</th>
-              <th class="text-right">Phí Dịch Vụ</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div style="font-weight: bold; margin-bottom: 0.5rem">Gói Quay/Chụp Tổng Hợp</div>
-                <ul style="margin: 0; padding-left: 1.2rem; color: #555">
-                  ${servicesList}
-                </ul>
-              </td>
-              <td class="text-right" style="vertical-align: top; font-weight: bold">Trọn gói</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="summary">
-          <div class="summary-row">
-            <span>Tổng Giá Trị Gói:</span>
-            <span>${f(total)}</span>
-          </div>
-          <div class="summary-row">
-            <span>Đã Đặt Cọc:</span>
-            <span>${f(deposit)}</span>
-          </div>
-          <div class="summary-row rem">
-            <span>Còn Lại Cần Thanh Toán:</span>
-            <span>${f(remaining)}</span>
-          </div>
+      <div class="info-grid">
+        <div>
+          <h3>Khách Hàng</h3>
+          <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.2rem">${job.client}</div>
+          <div><strong>SĐT:</strong> ${job.phone || 'Chưa cung cấp'}</div>
         </div>
-
-        <div class="footer">
-          <p>Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của Haru Studio!</p>
-          <p>Mọi thắc mắc vui lòng liên hệ hotline hoặc inbox trực tiếp qua Fanpage.</p>
+        <div>
+          <h3>Thông Tin Sự Kiện</h3>
+          <div><strong>Ngày tổ chức:</strong> ${new Date(job.date).toLocaleDateString('vi-VN')}</div>
+          <div><strong>Loại hình:</strong> ${job.eventType || 'Wedding'}</div>
+          <div><strong>Địa điểm:</strong> ${job.venue || 'Chưa cập nhật'}</div>
         </div>
-        <script>
-          setTimeout(() => { window.print(); window.close(); }, 500);
-        </script>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Chi Tiết Dịch Vụ</th>
+            <th class="text-right">Phí Dịch Vụ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div style="font-weight: bold; margin-bottom: 0.5rem">Gói Quay/Chụp Tổng Hợp</div>
+              <ul style="margin: 0; padding-left: 1.2rem; color: #555">
+                ${servicesList}
+              </ul>
+            </td>
+            <td class="text-right" style="vertical-align: top; font-weight: bold">Trọn gói</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="summary">
+        <div class="summary-row">
+          <span>Tổng Giá Trị Gói:</span>
+          <span>${f(total)}</span>
+        </div>
+        <div class="summary-row">
+          <span>Đã Đặt Cọc:</span>
+          <span>${f(deposit)}</span>
+        </div>
+        <div class="summary-row rem">
+          <span>Còn Lại Cần Thanh Toán:</span>
+          <span>${f(remaining)}</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của Haru Studio!</p>
+        <p>Mọi thắc mắc vui lòng liên hệ hotline hoặc inbox trực tiếp qua Fanpage.</p>
+      </div>
+    </div>
+  `;
+
+  if (typeof html2pdf === 'undefined') {
+    alert("Thư viện xuất PDF đang được tải, vui lòng thử lại sau vài giây.");
+    return;
+  }
+
+  const btn = document.activeElement;
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn && btn.tagName === 'BUTTON') {
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xuất...';
+    btn.disabled = true;
+  }
+
+  const opt = {
+    margin: 10,
+    filename: `HoaDon_${job.client.replace(/[^a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF]/g, '_')}_${job.jobNo || job.id.split('-')[1]}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(container).save().then(() => {
+    if (btn && btn.tagName === 'BUTTON') {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  }).catch(err => {
+    console.error("Lỗi xuất PDF:", err);
+    alert("Có lỗi xảy ra khi xuất PDF. Vui lòng thử lại.");
+    if (btn && btn.tagName === 'BUTTON') {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  });
 };
 window._promptEditLink = (type, title) => {
   const inputId = `edit-job-link-${type}`;
@@ -3552,6 +3706,73 @@ window._savePortfolio = async (id) => {
   document.querySelector('.portfolio-modal')?.remove();
 };
 
+// ============================================================
+// PHASE 4: KANBAN SWIPE ACTIONS FOR MOBILE
+// ============================================================
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swipeEl = null;
+
+document.addEventListener('touchstart', (e) => {
+  const card = e.target.closest('.kanban-card, .ep-kanban-card, .ep-col-cards > div');
+  if (!card) return;
+  swipeStartX = e.changedTouches[0].screenX;
+  swipeStartY = e.changedTouches[0].screenY;
+  swipeEl = card;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (!swipeEl || window.innerWidth > 900) return; // Chỉ active trên mobile
+  const swipeEndX = e.changedTouches[0].screenX;
+  const swipeEndY = e.changedTouches[0].screenY;
+  const diffX = swipeEndX - swipeStartX;
+  const diffY = Math.abs(swipeEndY - swipeStartY);
+
+  // Vuốt ngang và thẻ không bị khóa
+  if (Math.abs(diffX) > 70 && diffY < 50 && !swipeEl.classList.contains('locked-card')) {
+    const col = swipeEl.closest('[data-status]');
+    if (col) {
+      const currentStatus = col.getAttribute('data-status');
+      const board = col.parentElement;
+      const allCols = Array.from(board.children).filter(c => c.hasAttribute('data-status'));
+      const statuses = allCols.map(c => c.getAttribute('data-status'));
+      const currentIndex = statuses.indexOf(currentStatus);
+
+      let nextStatus = null;
+      if (diffX < 0 && currentIndex < statuses.length - 1) {
+        // Vuốt trái (kéo ngón tay sang trái) -> Sang STATUS TIẾP THEO
+        nextStatus = statuses[currentIndex + 1];
+      } else if (diffX > 0 && currentIndex > 0) {
+        // Vuốt phải (kéo ngón tay sang phải) -> Về STATUS TRƯỚC ĐÓ
+        nextStatus = statuses[currentIndex - 1];
+      }
+
+      if (nextStatus) {
+        const jobId = swipeEl.dataset.jobid || swipeEl.dataset.jobId;
+        const isEditPhoto = !!swipeEl.closest('#ep-kanban');
+        const isEditVideo = !!swipeEl.closest('.ev-col-cards');
+        const isEditor = !!swipeEl.closest('.ep-kanban-list');
+
+        // Match SortableJS endpoints
+        if (isEditPhoto && window.updateEditStatus) {
+          window.updateEditStatus(jobId, swipeEl.dataset.svcname, nextStatus);
+        } else if (isEditVideo && window.updateVideoEditStatus) {
+          const job = state.jobs.find(j => j.id === jobId);
+          if (job && job.services[swipeEl.dataset.sidx]) {
+            window.updateVideoEditStatus(jobId, job.services[swipeEl.dataset.sidx].service, nextStatus);
+          }
+        } else if (isEditor && window.updateVideoEditStatus) {
+          window.updateVideoEditStatus(jobId, swipeEl.dataset.sidx || swipeEl.dataset.svc, nextStatus);
+        } else if (window.updateVideoEditStatus) {
+          // Main Kanban Board fallback
+          window.updateVideoEditStatus(jobId, swipeEl.dataset.sidx || swipeEl.dataset.svc, nextStatus);
+        }
+      }
+    }
+  }
+  swipeEl = null;
+});
+
 window._deletePortfolio = (id) => {
   const pf = (state.portfolios || []).find(x => x.id === id);
   if (!pf) return;
@@ -3650,6 +3871,118 @@ window._lightboxNav = (dir) => {
   }
 };
 
+// ==========================================
+// PHASE 4: GEAR CONTROLLERS
+// ==========================================
+
+window.filterGear = (btnEl, type) => {
+  document.querySelectorAll('.filter-group .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  const cards = document.querySelectorAll('.gear-item-card');
+  cards.forEach(c => {
+    if (type === 'ALL' || c.getAttribute('data-type') === type) {
+      c.style.display = 'block';
+    } else {
+      c.style.display = 'none';
+    }
+  });
+};
+
+window.promptAddGear = () => {
+  const name = prompt("Tên thiết bị (VD: Sony A7M4):");
+  if (!name) return;
+  const typeOptions = "1: Camera\n2: Lens\n3: Flycam\n4: Gimbal\n5: Flash\n6: Khác";
+  const typeRes = prompt("Chọn loại thiết bị (nhập số):\n" + typeOptions);
+  let type = 'Khác';
+  if (typeRes === '1') type = 'Camera';
+  if (typeRes === '2') type = 'Lens';
+  if (typeRes === '3') type = 'Flycam';
+  if (typeRes === '4') type = 'Gimbal';
+  if (typeRes === '5') type = 'Flash';
+
+  const serial = prompt("Số Serial (Không bắt buộc):") || '';
+  const notes = prompt("Ghi chú / Tình trạng (Không bắt buộc):") || '';
+
+  const newGear = {
+    id: 'g_' + Date.now(),
+    name, type, serial, notes, status: 'Sẵn sàng'
+  };
+  state.gears = state.gears || [];
+  state.gears.push(newGear);
+  saveState();
+  updateUI();
+};
+
+window.promptEditGear = (gearId) => {
+  const g = state.gears.find(x => x.id === gearId);
+  if (!g) return;
+
+  const action = prompt("Tùy chọn cho " + g.name + ":\n1: Đổi trạng thái (Bảo trì/Sẵn sàng)\n2: Sửa thông tin\n3: Xóa thiết bị");
+  if (action === '1') {
+    const isReady = g.status === 'Sẵn sàng';
+    if (confirm(`Chuyển trạng thái thành: ${isReady ? 'Đang bảo trì' : 'Sẵn sàng'}?`)) {
+      g.status = isReady ? 'Đang bảo trì' : 'Sẵn sàng';
+      saveState();
+      updateUI();
+    }
+  } else if (action === '2') {
+    const newName = prompt("Sửa tên:", g.name);
+    if (newName) g.name = newName;
+    const newSerial = prompt("Sửa Serial:", g.serial);
+    if (newSerial !== null) g.serial = newSerial;
+    const newNotes = prompt("Sửa Ghi chú:", g.notes);
+    if (newNotes !== null) g.notes = newNotes;
+    saveState();
+    updateUI();
+  } else if (action === '3') {
+    if (confirm("Chắc chắn xóa thiết bị này khỏi hệ thống?")) {
+      state.gears = state.gears.filter(x => x.id !== gearId);
+      saveState();
+      updateUI();
+    }
+  }
+};
+
+window.promptCheckoutGear = (gearId) => {
+  const g = state.gears.find(x => x.id === gearId);
+  if (!g) return;
+  if (g.status === 'Đang bảo trì') {
+    alert("Thiết bị đang bảo trì, không thể xuất kho!");
+    return;
+  }
+
+  const staffName = prompt("Nhân sự mượn thiết bị (VD: THỐNG, BÌNH...):");
+  if (!staffName) return;
+
+  const jobId = prompt(`(Tùy chọn) Mã HD / Job ID nếu mang đi sự kiện:`) || '';
+
+  const newBooking = {
+    id: 'gb_' + Date.now(),
+    gearId: g.id,
+    staff: staffName,
+    jobId: jobId,
+    outDate: new Date().toISOString(),
+    status: 'out'
+  };
+
+  state.gearBookings = state.gearBookings || [];
+  state.gearBookings.push(newBooking);
+  saveState();
+  updateUI();
+};
+
+window.returnGear = (gearId) => {
+  const activeBooking = (state.gearBookings || []).find(b => b.gearId === gearId && b.status === 'out');
+  if (!activeBooking) return;
+
+  if (confirm(`Xác nhận thu hồi thiết bị từ ${activeBooking.staff}?`)) {
+    activeBooking.status = 'returned';
+    activeBooking.inDate = new Date().toISOString();
+    saveState();
+    updateUI();
+  }
+};
+
 updateUI();
 
 // ============================================================
@@ -3673,8 +4006,106 @@ setTimeout(() => {
       localStorage.removeItem('haru_fb_import');
       window.showPage('portfolios');
       window._openPortfolioModal(null, fbData);
-    } catch (err) {
-      console.error("Error parsing FB Import data:", err);
+    } catch (e) { console.error('Error importing fb data on load', e); }
+  }
+}, 500);
+
+// ==========================================
+// PHASE 4: CRM LEADS CONTROLLERS
+// ==========================================
+
+window.promptAddLead = () => {
+  const clientName = prompt("Tên Khách Hàng (hoặc Tên CD-CR):");
+  if (!clientName) return;
+  const phone = prompt("Số điện thoại (Tuỳ chọn):") || '';
+  const source = prompt("Nguồn Khách Hàng (VD: Facebook, Zalo, Tiktok, ...):") || 'Khác';
+  const notes = prompt("Ghi chú / Nhu cầu khách quan tâm:") || '';
+
+  const newLead = {
+    id: 'lead_' + Date.now(),
+    clientName,
+    phone,
+    source,
+    notes,
+    date: new Date().toISOString(),
+    updated: new Date().toISOString(),
+    status: 'Mới Hỏi'
+  };
+
+  state.leads = state.leads || [];
+  state.leads.push(newLead);
+  saveState();
+  updateUI();
+};
+
+window.promptEditLead = (leadId) => {
+  const lead = state.leads.find(x => x.id === leadId);
+  if (!lead) return;
+
+  const action = prompt(`Tùy chọn cho Lead của ${lead.clientName}:\n1: Sửa thông tin\n2: Xóa Khách Hàng này`);
+  if (action === '1') {
+    const nName = prompt("Tên Khách:", lead.clientName);
+    if (nName) lead.clientName = nName;
+    const nPhone = prompt("Số Điện Thoại:", lead.phone);
+    if (nPhone !== null) lead.phone = nPhone;
+    const nSource = prompt("Nguồn:", lead.source);
+    if (nSource !== null) lead.source = nSource;
+    const nNotes = prompt("Ghi chú:", lead.notes);
+    if (nNotes !== null) lead.notes = nNotes;
+    lead.updated = new Date().toISOString();
+    saveState();
+    updateUI();
+  } else if (action === '2') {
+    if (confirm("Chắc chắn xóa khách hàng này khỏi danh sách Lead?")) {
+      state.leads = state.leads.filter(x => x.id !== leadId);
+      saveState();
+      updateUI();
     }
   }
-}, 1500);
+};
+
+window.moveLeadStatus = (leadId, dir) => {
+  const lead = state.leads.find(x => x.id === leadId);
+  if (!lead) return;
+  const cols = ['Mới Hỏi', 'Đang Tư Vấn', 'Hẹn Thử Váy', 'Đã Chốt', 'Hủy'];
+  const curIdx = cols.indexOf(lead.status);
+  if (curIdx === -1) return;
+  let newIdx = curIdx + dir;
+  if (newIdx < 0) newIdx = 0;
+  if (newIdx >= cols.length) newIdx = cols.length - 1;
+
+  if (cols[newIdx] !== lead.status) {
+    lead.status = cols[newIdx];
+    lead.updated = new Date().toISOString();
+    saveState();
+    updateUI();
+  }
+};
+
+window.convertLeadToJob = (leadId) => {
+  const lead = state.leads.find(x => x.id === leadId);
+  if (!lead) return;
+
+  if (confirm(`Tạo một Hợp đồng (Job) mới từ thông tin của khách ${lead.clientName}?`)) {
+    // Open the new job modal and prefill some data via state injection or by calling the modal renderer
+    state.modal = {
+      isOpen: true,
+      type: 'job',
+      data: {
+        id: 'job_' + Date.now(),
+        client: lead.clientName,
+        phone: lead.phone,
+        notes: lead.notes,
+        status: 'Mới',
+        date: new Date().toISOString().split('T')[0],
+        venue: '',
+        package: 0,
+        deposit: 0,
+        services: []
+      }
+    };
+    // Close the leads panel in UI
+    window.showPage('dashboard'); // Redirect to dashboard to deal with new job modal
+    updateUI();
+  }
+};
