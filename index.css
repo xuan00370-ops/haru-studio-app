@@ -458,7 +458,16 @@ button {
   gap: 1.5rem;
 }
 
-.job-card {
+/* Áp dụng giao diện cho thẻ cũ hoặc wrapper mới */
+.job-card.swipe-container {
+  border: none;
+  /* Reset border bìa ngoài */
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.job-card:not(.swipe-container) {
   cursor: pointer;
   padding: 1.25rem;
   display: flex;
@@ -471,7 +480,24 @@ button {
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
-.job-card:hover {
+.job-card:not(.swipe-container):hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-bright);
+}
+
+/* Hover effect cho phiên bản mới (Swipe Wrapper) */
+.swipe-container .swipe-content {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s, border-color 0.2s !important;
+}
+
+.swipe-container:hover .swipe-content {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
   border-color: var(--border-bright);
