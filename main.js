@@ -257,6 +257,8 @@ window.initSwipeActions = () => {
     document.querySelectorAll('.swipe-content').forEach(el => {
       if (el !== activeSwipeElement) {
         el.style.transform = 'translateX(0)';
+        const c = el.closest('.swipe-container');
+        if (c) c.querySelectorAll('.swipe-action').forEach(a => a.style.opacity = '0');
       }
     });
 
@@ -283,6 +285,7 @@ window.initSwipeActions = () => {
 
     if (Math.abs(diffX) > 10) {
       isScrolling = true; // Khóa cuộn dọc lại
+      activeContainer.querySelectorAll('.swipe-action').forEach(a => a.style.opacity = '1');
     }
 
     if (isScrolling) {
@@ -308,6 +311,7 @@ window.initSwipeActions = () => {
 
     const diffX = currentX - startX;
     const jobId = activeContainer.getAttribute('data-job-id');
+    const containerRef = activeContainer;
 
     if (diffX > 75) {
       // Vuốt phải (Hiện Thùng rác đỏ) -> Bật tính năng Xóa
@@ -317,6 +321,9 @@ window.initSwipeActions = () => {
           if (window.deleteJob) window.deleteJob(jobId);
         } else {
           activeSwipeElement.style.transform = 'translateX(0)';
+          setTimeout(() => {
+            if (containerRef) containerRef.querySelectorAll('.swipe-action').forEach(a => a.style.opacity = '0');
+          }, 300);
         }
       }, 300);
     } else if (diffX < -75) {
@@ -330,10 +337,16 @@ window.initSwipeActions = () => {
           alert('Khách hàng này chưa có số điện thoại!');
         }
         activeSwipeElement.style.transform = 'translateX(0)';
+        setTimeout(() => {
+          if (containerRef) containerRef.querySelectorAll('.swipe-action').forEach(a => a.style.opacity = '0');
+        }, 300);
       }, 300);
     } else {
       // Vuốt chưa đủ lực -> Bật lại vị trí cũ
       activeSwipeElement.style.transform = 'translateX(0)';
+      setTimeout(() => {
+        if (containerRef) containerRef.querySelectorAll('.swipe-action').forEach(a => a.style.opacity = '0');
+      }, 300);
     }
 
     activeSwipeElement = null;

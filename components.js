@@ -657,18 +657,18 @@ function renderJobCard(job) {
 
     const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
     return `
-    <div class="job-card glass-panel swipe-container" data-job-id="${job.id}" style="padding: 0; overflow: hidden; position: relative; ${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}" oncontextmenu="return false;">
+    <div class="job-card glass-panel swipe-container" data-job-id="${job.id}" style="padding: 0; position: relative; border-radius: 12px; overflow: hidden; transform: translateZ(0); ${isCompleted ? 'border-left: 4px solid #22c55e; opacity: 0.85; background: rgba(34,197,94,0.03)' : ''}" oncontextmenu="return false;">
       
       <!-- Lớp nền nút bấm khi trượt thẻ (Swipe Actions) -->
-      <div class="swipe-action left-action" style="position: absolute; left: 0; top: 0; bottom: 0; width: 100px; background: #ef4444; color: white; display: flex; align-items: center; justify-content: flex-start; padding-left: 1.5rem; font-size: 1.5rem; border-radius: 12px 0 0 12px; z-index: 1;">
+      <div class="swipe-action left-action" style="position: absolute; left: 0; top: 0; bottom: 0; width: 100px; background: #ef4444; color: white; display: flex; align-items: center; justify-content: flex-start; padding-left: 1.5rem; font-size: 1.5rem; border-radius: 12px 0 0 12px; z-index: 1; opacity: 0; transition: opacity 0.2s;">
         <i class="fas fa-trash-alt"></i>
       </div>
-      <div class="swipe-action right-action" style="position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: #0088cc; color: white; display: flex; align-items: center; justify-content: flex-end; padding-right: 1.5rem; font-size: 1.5rem; border-radius: 0 12px 12px 0; z-index: 1;">
+      <div class="swipe-action right-action" style="position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: #0088cc; color: white; display: flex; align-items: center; justify-content: flex-end; padding-right: 1.5rem; font-size: 1.5rem; border-radius: 0 12px 12px 0; z-index: 1; opacity: 0; transition: opacity 0.2s;">
         <i class="fas fa-comment-dots"></i>
       </div>
 
       <!-- Nội dung chính của thẻ (Lớp trên cùng) -->
-      <div class="swipe-content" onclick="window.openQuickPreview('${job.id}')" style="position: relative; z-index: 2; background: var(--bg-card); padding: 1.25rem; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; border-radius: inherit;">
+      <div class="swipe-content" onclick="window.openQuickPreview('${job.id}')" style="position: relative; z-index: 2; background: var(--bg-card); padding: 1.25rem; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; border-radius: inherit; box-shadow: -2px 0 10px rgba(0,0,0,0.05);">
         
         <div class="job-card-header" style="margin-bottom: 0.5rem">
         <div style="display: flex; flex-direction: column; gap: 0.1rem">
