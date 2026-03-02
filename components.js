@@ -830,6 +830,7 @@ function renderJobCard(job) {
         </div>
       </div>
     </div>
+    </div>
   `;
   } catch (err) {
     console.error("Lỗi renderJobCard:", err, job);
