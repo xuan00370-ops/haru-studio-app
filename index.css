@@ -1856,6 +1856,170 @@ tr.paid-row {
   }
 }
 
+/* =====================
+   ANIMATIONS & MICRO-INTERACTIONS (v7)
+   ===================== */
+
+/* --- Reveal: fade-in + slide-up for page content --- */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.view-container.reveal {
+  animation: revealUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* --- Stagger animation for job cards --- */
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.job-grid > .job-card,
+.job-grid > .swipe-container {
+  animation: cardReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.job-grid > :nth-child(1) { animation-delay: 0.04s; }
+.job-grid > :nth-child(2) { animation-delay: 0.08s; }
+.job-grid > :nth-child(3) { animation-delay: 0.12s; }
+.job-grid > :nth-child(4) { animation-delay: 0.16s; }
+.job-grid > :nth-child(5) { animation-delay: 0.20s; }
+.job-grid > :nth-child(6) { animation-delay: 0.24s; }
+.job-grid > :nth-child(7) { animation-delay: 0.28s; }
+.job-grid > :nth-child(8) { animation-delay: 0.32s; }
+.job-grid > :nth-child(n+9) { animation-delay: 0.36s; }
+
+/* --- Bar grow animation for revenue chart --- */
+@keyframes barGrow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.year-chart-bar {
+  transform-origin: bottom;
+  animation: barGrow 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* --- Stat card entrance --- */
+@keyframes statSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-animate {
+  animation: statSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stat-animate:nth-child(1) { animation-delay: 0.05s; }
+.stat-animate:nth-child(2) { animation-delay: 0.10s; }
+.stat-animate:nth-child(3) { animation-delay: 0.15s; }
+.stat-animate:nth-child(4) { animation-delay: 0.20s; }
+.stat-animate:nth-child(5) { animation-delay: 0.25s; }
+
+/* --- Button hover lift & glow --- */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.btn-primary:hover::after {
+  opacity: 1;
+}
+
+/* --- Sidebar nav-item enhanced transitions --- */
+.nav-item {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-item:hover {
+  transform: translateX(3px);
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.14) 0%, rgba(22, 163, 74, 0.06) 100%);
+}
+
+.nav-item.active::after {
+  transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
+/* --- Glass panel enhanced hover --- */
+.glass-panel {
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel:hover {
+  transform: translateY(-2px);
+}
+
+/* --- Empty state animation --- */
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.empty-state-icon {
+  animation: emptyFloat 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* --- Monthly report band entrance --- */
+.monthly-report {
+  animation: revealUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+/* --- Smooth focus ring for inputs --- */
+.form-control:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  transition: border-color 0.2s, box-shadow 0.3s;
+}
+
+/* --- Status pill subtle pulse on new items --- */
+.status-mới {
+  animation: subtlePulse 2s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.15); }
+  50% { box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.08); }
+}
+
 /* ============ MOBILE RESPONSIVE FIXES (MODAL) ============ */
 @media (max-width: 768px) {
 

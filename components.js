@@ -459,23 +459,26 @@ export function renderDashboard(state, navigate) {
     });
     const maxRevenue = Math.max(...yearMonthStats.map(s => s.revenue), 1);
     const yearChartHtml = `
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.75rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
-        <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;color:var(--text-dim)">📊 Doanh thu ${state.currentYear}</span>
-        <span style="font-size:0.65rem;color:var(--text-dim)">${yearMonthStats.filter(s => s.count > 0).length} tháng có doanh thu</span>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1rem 1.25rem;margin-bottom:0.75rem;box-shadow:var(--shadow-sm)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:0.8rem;color:#fff">📊</div>
+          <span style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--text-dim)">Doanh thu ${state.currentYear}</span>
+        </div>
+        <span style="font-size:0.65rem;color:var(--text-dim);background:var(--accent-soft);padding:0.15rem 0.5rem;border-radius:10px;font-weight:700">${yearMonthStats.filter(s => s.count > 0).length} tháng có doanh thu</span>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:3px;height:44px">
-        ${yearMonthStats.map(s => {
-      const barH = s.revenue > 0 ? Math.max(4, Math.round((s.revenue / maxRevenue) * 44)) : 4;
+      <div style="display:flex;align-items:flex-end;gap:4px;height:52px">
+        ${yearMonthStats.map((s, idx) => {
+      const barH = s.revenue > 0 ? Math.max(6, Math.round((s.revenue / maxRevenue) * 52)) : 6;
       const isCur = s.month === state.currentMonth;
-      const barColor = isCur ? 'var(--primary)' : s.revenue > 0 ? '#3b82f6' : 'var(--border)';
-      return `<div onclick="window.navigate&&window.navigate('dashboard');window.updateMonth&&window.updateMonth(${s.month},${state.currentYear})" title="T${s.month}: ${s.count} job — ${s.revenue.toLocaleString('vi-VN')}đ"
-              style="flex:1;height:${barH}px;background:${barColor};border-radius:3px 3px 0 0;cursor:pointer;opacity:${s.revenue > 0 ? 1 : 0.35};transition:opacity 0.2s;min-width:0"
-              onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=${s.revenue > 0 ? 1 : 0.35}"></div>`;
+      const barBg = isCur ? 'linear-gradient(180deg,#16a34a,#22c55e)' : s.revenue > 0 ? 'linear-gradient(180deg,#3b82f6,#60a5fa)' : 'var(--border)';
+      return `<div class="year-chart-bar" onclick="window.navigate&&window.navigate('dashboard');window.updateMonth&&window.updateMonth(${s.month},${state.currentYear})" title="T${s.month}: ${s.count} job — ${s.revenue.toLocaleString('vi-VN')}đ"
+              style="flex:1;height:${barH}px;background:${barBg};border-radius:4px 4px 1px 1px;cursor:pointer;opacity:${s.revenue > 0 ? 1 : 0.3};min-width:0;animation-delay:${idx * 0.04}s;transition:opacity 0.2s,transform 0.2s"
+              onmouseover="this.style.opacity=0.75;this.style.transform='scaleY(1.08)'" onmouseout="this.style.opacity=${s.revenue > 0 ? 1 : 0.3};this.style.transform='scaleY(1)'"></div>`;
     }).join('')}
       </div>
-      <div style="display:flex;gap:3px;margin-top:3px">
-        ${yearMonthStats.map(s => `<div style="flex:1;text-align:center;font-size:0.45rem;color:${s.month === state.currentMonth ? 'var(--primary)' : 'var(--text-dim)'};font-weight:${s.month === state.currentMonth ? '900' : '600'};min-width:0;overflow:hidden">T${s.month}</div>`).join('')}
+      <div style="display:flex;gap:4px;margin-top:4px">
+        ${yearMonthStats.map(s => `<div style="flex:1;text-align:center;font-size:0.5rem;color:${s.month === state.currentMonth ? 'var(--primary)' : 'var(--text-dim)'};font-weight:${s.month === state.currentMonth ? '900' : '600'};min-width:0;overflow:hidden">T${s.month}</div>`).join('')}
       </div>
     </div>`;
 
@@ -546,10 +549,10 @@ export function renderDashboard(state, navigate) {
       `;
       })() : ''}
 
-    <div class="monthly-report glass-panel" style="margin-top: 0.5rem; padding: 0.6rem 0.8rem; border: 1px solid var(--border-bright)">
+    <div class="monthly-report glass-panel" style="margin-top: 0.5rem; padding: 0.75rem 1rem; border: 1px solid var(--border-bright); border-radius: 16px">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap">
-        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap">
-          <div class="stat-card" style="min-width:50px">
+        <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap">
+          <div class="stat-card stat-animate" style="min-width:50px">
             <span class="label" style="font-size: 0.5rem">Tổng Dự án</span>
             <div class="value" style="font-size: 0.9rem; font-weight: 800">${monthJobs.length}${(() => {
         const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
@@ -565,7 +568,7 @@ export function renderDashboard(state, navigate) {
           </div>
           <div style="width:1px;height:28px;background:var(--border)"></div>
           <div style="display: flex; gap: 0.8rem; flex-wrap: wrap">
-            <div style="min-width: 80px">
+            <div class="stat-animate" style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Doanh thu</span>
               <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency(revenue)}${(() => {
         const prevDate = new Date(state.currentYear, state.currentMonth - 2, 1);
@@ -579,15 +582,15 @@ export function renderDashboard(state, navigate) {
         return `<span style="font-size:0.55rem;font-weight:900;color:${c};margin-left:4px;background:${c}18;padding:1px 4px;border-radius:4px">${arrow}${Math.abs(pct)}%</span>`;
       })()}</div>
             </div>
-            <div style="min-width: 80px">
+            <div class="stat-animate" style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Nhân sự/Edit</span>
               <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency(staffCosts + editCosts)}</div>
             </div>
-            <div style="min-width: 80px">
+            <div class="stat-animate" style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Ads/Office</span>
               <div style="font-size: 0.85rem; font-weight: 800">${formatCurrency((meta.ads || 0) + (meta.office || 0))}</div>
             </div>
-            <div style="min-width: 80px">
+            <div class="stat-animate" style="min-width: 80px">
               <span style="font-size: 0.5rem; text-transform: uppercase; font-weight: 800; color:var(--text-dim); display:block">Lợi nhuận ròng</span>
               <div style="font-size: 1rem; font-weight: 900; color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">
                 ${formatCurrency(netProfit)}${(() => {
@@ -626,7 +629,20 @@ export function renderDashboard(state, navigate) {
     </div>
 
     <div class="job-grid" style="margin-top: 1.5rem">
-      ${monthJobs.length > 0 ? monthJobs.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).map(job => renderJobCard(job)).join('') : '<div class="empty-state">Chưa có dự án nào được ghi nhận</div>'}
+      ${monthJobs.length > 0 ? monthJobs.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).map(job => renderJobCard(job)).join('') : `
+        <div style="grid-column:1/-1;text-align:center;padding:3rem 1.5rem">
+          <div class="empty-state-icon" style="font-size:3.5rem;margin-bottom:1rem">📋</div>
+          <h3 style="font-size:1.15rem;font-weight:800;color:var(--text-main);margin-bottom:0.4rem">
+            Chưa có dự án nào trong Tháng ${state.currentMonth}
+          </h3>
+          <p style="font-size:0.85rem;color:var(--text-dim);max-width:340px;margin:0 auto 1.25rem">
+            Bắt đầu thêm dự án mới để quản lý tiến độ và tài chính hiệu quả.
+          </p>
+          <button class="btn btn-primary" onclick="window.openModal('add_job')" style="margin:0 auto">
+            <i class="fas fa-plus"></i> Thêm Dự Án Mới
+          </button>
+        </div>
+      `}
     </div>
   `;
 
@@ -2546,7 +2562,11 @@ export function renderEditVideo(state) {
                </div>
             </div>
          </div>`;
-  }).join('') : '<div class="empty-state">Không có video task nào trong tháng này</div>'}
+  }).join('') : `<div style="grid-column:1/-1;text-align:center;padding:2.5rem 1rem">
+        <div class="empty-state-icon" style="font-size:3rem;margin-bottom:0.75rem">🎞️</div>
+        <h3 style="font-size:1.05rem;font-weight:800;color:var(--text-main);margin-bottom:0.3rem">Không có video task nào</h3>
+        <p style="font-size:0.8rem;color:var(--text-dim);max-width:300px;margin:0 auto">Thêm thành phẩm Video vào đơn hàng để theo dõi tiến độ edit tại đây.</p>
+      </div>`}
     </div>`}
   `;
 
@@ -3055,6 +3075,14 @@ export function renderKanban(state) {
       <button onclick="window.setKanbanEditorFilter('TẤT CẢ')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">Tất cả (${clips.length})</button>
       ${allEditors.map(e => `<button onclick="window.setKanbanEditorFilter('${e}')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === e ? 'background:#a855f7;color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">✏️ ${e} (${clips.filter(c => c.editor === e).length})</button>`).join('')}
     </div>
+
+    ${displayClips.length === 0 ? `
+      <div style="text-align:center;padding:2.5rem 1rem;margin-bottom:1rem;background:var(--bg-card);border-radius:16px;border:1px dashed var(--border-bright)">
+        <div class="empty-state-icon" style="font-size:3rem;margin-bottom:0.75rem">🎬</div>
+        <h3 style="font-size:1.1rem;font-weight:800;color:var(--text-main);margin-bottom:0.3rem">Chưa có video clip nào</h3>
+        <p style="font-size:0.82rem;color:var(--text-dim);max-width:320px;margin:0 auto">Thêm thành phẩm Video vào dự án để theo dõi tiến độ hậu kỳ tại đây.</p>
+      </div>
+    ` : ''}
 
     <div class="kanban-board" style="display:flex;gap:0.6rem;overflow-x:auto;padding-bottom:1rem;min-height:400px">
       ${stages.map(s => `
@@ -3718,9 +3746,11 @@ function renderPA3ReportModal(state) {
   return container;
 }
 
-// Helper: render staff payment chips on job card
+// Helper: render staff payment chips on job card (v7: collapsed with +N more)
 function renderStaffChips(job) {
-  return (job.services || []).map(function (s, idx) {
+  const services = (job.services || []);
+  const MAX_VISIBLE = 3;
+  const visibleChips = services.slice(0, MAX_VISIBLE).map(function (s, idx) {
     var paid = s.paid;
     var label = _staffStr(s.staff).split(' ')[0] + ' - ' + (s.service || '');
     var bg = paid ? 'rgba(21,128,61,0.10)' : 'rgba(0,0,0,0.035)';
@@ -3730,12 +3760,18 @@ function renderStaffChips(job) {
     var title = paid ? 'Đã thanh toán — click để bỏ' : 'Chưa thanh toán — click để đánh dấu';
     return '<span onclick="event.stopPropagation();window.toggleServicePaid(\'' + job.id + '\',' + idx + ',' + (!paid) + ',this)"'
       + ' style="display:inline-flex;align-items:center;gap:0.2rem;cursor:pointer;'
-      + 'padding:0.2rem 0.55rem;border-radius:20px;font-size:0.82rem;font-weight:700;'
+      + 'padding:0.2rem 0.55rem;border-radius:20px;font-size:0.78rem;font-weight:700;'
       + 'background:' + bg + ';color:' + clr + ';border:1px solid ' + bdr + ';transition:all 0.15s"'
       + ' title="' + title + '">'
       + icon + label
       + '</span>';
   }).join(' ');
+
+  const remaining = services.length - MAX_VISIBLE;
+  const moreChip = remaining > 0
+    ? ' <span style="display:inline-flex;align-items:center;padding:0.2rem 0.55rem;border-radius:20px;font-size:0.72rem;font-weight:800;background:var(--accent-soft);color:var(--primary);border:1px solid var(--border-bright);cursor:default" title="' + services.slice(MAX_VISIBLE).map(s => _staffStr(s.staff).split(' ')[0] + ' - ' + (s.service || '')).join(', ') + '">+' + remaining + ' nữa</span>'
+    : '';
+  return visibleChips + moreChip;
 }
 
 // ============================================================
@@ -4618,6 +4654,16 @@ export function renderEditPhoto(state) {
       </div>
     </div>`;
   };
+
+  if (total === 0) {
+    container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline ' + EDIT_DAYS + ' ngày</p></div></header>'
+      + '<div style="text-align:center;padding:4rem 2rem;color:var(--text-dim)">'
+      + '<div style="font-size:3rem;margin-bottom:1rem">📸</div>'
+      + '<div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-main)">Chưa có thành phẩm ảnh nào</div>'
+      + '<p style="font-size:0.85rem;max-width:400px;margin:0 auto">Khi dự án có deliverables loại <b>Photo</b>, chúng sẽ hiển thị ở đây để theo dõi tiến độ hậu kỳ.</p>'
+      + '</div>';
+    return container;
+  }
 
   container.innerHTML = '<header class="section-header"><div><h1 class="view-title">📸 Edit Photo Tracker</h1><p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.2rem">Tiến độ hậu kỳ hình ảnh — Deadline ' + EDIT_DAYS + ' ngày</p></div></header>'
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem"><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #3b82f6;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Tổng Ảnh</div><div style="font-size:1.6rem;font-weight:900;color:#3b82f6">' + total + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #22c55e;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Đã xong</div><div style="font-size:1.6rem;font-weight:900;color:#22c55e">' + done + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #f97316;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Còn lại</div><div style="font-size:1.6rem;font-weight:900;color:#f97316">' + (total - done) + '</div></div><div class="glass-panel" style="padding:0.8rem;border-top:3px solid #ef4444;text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;font-weight:800">Quá hạn</div><div style="font-size:1.6rem;font-weight:900;color:#ef4444">' + overdue + '</div></div></div>'
