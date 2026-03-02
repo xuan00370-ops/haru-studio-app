@@ -2178,22 +2178,41 @@ window.addStaff = (data) => {
 };
 
 window.promptAddStaff = () => {
-  const name = prompt('Tên nhân sự mới:')?.trim();
-  if (!name) return;
-  const role = (prompt('Vai trò (Photo Lead / Cinema Lead / Photographer / CTV):', 'CTV') || 'CTV').trim();
-  const phone = (prompt('Số điện thoại (có thể để trống):') || '').trim();
-  window.addStaff({ name, role, phone, bank: { no: '', name: '', bank: '' } });
+  // Legacy — toggle inline form instead
+  const form = document.getElementById('staff-add-form');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+};
+
+window.submitAddStaff = () => {
+  const name = document.getElementById('staff-add-name')?.value?.trim();
+  const role = document.getElementById('staff-add-role')?.value || 'CTV';
+  const phone = document.getElementById('staff-add-phone')?.value?.trim() || '';
+  const bankNo = document.getElementById('staff-add-bankno')?.value?.trim() || '';
+  const bankName = document.getElementById('staff-add-bankname')?.value?.trim() || '';
+  const bank = document.getElementById('staff-add-bank')?.value?.trim() || '';
+  window.addStaff({ name, role, phone, bank: { no: bankNo, name: bankName, bank } });
 };
 
 window.promptEditStaff = (originalName) => {
+  // Legacy — toggle inline edit form instead
+  const safeName = originalName.replace(/\s/g, '-');
+  const form = document.getElementById(`staff-edit-${safeName}`);
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+};
+
+window.submitEditStaff = (originalName) => {
   const member = state.staff.find(s => s.name === originalName);
   if (!member) { alert('Không tìm thấy nhân sự'); return; }
-  const newName = (prompt('Tên:', member.name) || '').trim() || member.name;
-  const newRole = (prompt('Vai trò:', member.role) || '').trim() || member.role;
-  const newPhone = (prompt('SĐT:', member.phone) || '').trim();
+  const newName = document.getElementById(`edit-name-${originalName}`)?.value?.trim() || member.name;
+  const newRole = document.getElementById(`edit-role-${originalName}`)?.value || member.role;
+  const newPhone = document.getElementById(`edit-phone-${originalName}`)?.value?.trim() ?? member.phone;
+  const newBankNo = document.getElementById(`edit-bankno-${originalName}`)?.value?.trim() || '';
+  const newBankName = document.getElementById(`edit-bankname-${originalName}`)?.value?.trim() || '';
+  const newBank = document.getElementById(`edit-bank-${originalName}`)?.value?.trim() || '';
   member.name = newName;
   member.role = newRole;
   member.phone = newPhone;
+  member.bank = { no: newBankNo, name: newBankName, bank: newBank };
   window.addHistory(`Sửa nhân sự: ${originalName} → ${newName}`);
   saveState();
   updateUI();

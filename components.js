@@ -3440,18 +3440,57 @@ export function renderStaff(state) {
     });
   });
 
+  const roleOptions = (window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `<option>${opt}</option>`).join('');
+
   container.innerHTML = `
     <header class="section-header">
       <div>
-        <h1 class="view-title">Quản Lý Nhân Sự & Bảng Lương</h1>
-        <p style="color: var(--text-dim); font-size: 0.9rem;">Danh sách nhân sự & Hệ thống tự động tính lương tháng ${state.currentMonth}/${state.currentYear}</p>
+        <h1 class="view-title">Quản Lý Nhân Sự &amp; Bảng Lương</h1>
+        <p style="color: var(--text-dim); font-size: 0.9rem;">Danh sách nhân sự &amp; Hệ thống tự động tính lương tháng ${state.currentMonth}/${state.currentYear}</p>
       </div>
       <div>
-        <button class="btn btn-primary" onclick="window.promptAddStaff()">
+        <button class="btn btn-primary" onclick="document.getElementById('staff-add-form').style.display = document.getElementById('staff-add-form').style.display === 'none' ? 'block' : 'none'">
           <i class="fas fa-plus"></i> Thêm Nhân Sự
         </button>
       </div>
     </header>
+
+    <!-- INLINE ADD STAFF FORM -->
+    <div id="staff-add-form" class="glass-panel" style="display:none; padding:1.5rem; margin-bottom:1.5rem; border:2px solid rgba(22,163,74,0.3); background:rgba(22,163,74,0.03)">
+      <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem; color:var(--primary)"><i class="fas fa-user-plus" style="margin-right:0.5rem"></i>Thêm Nhân Sự Mới</h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:1rem">
+        <div>
+          <label style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block; margin-bottom:0.3rem">Tên nhân sự *</label>
+          <input type="text" id="staff-add-name" class="form-control" placeholder="Nguyễn Văn A" style="font-size:0.85rem; padding:0.6rem">
+        </div>
+        <div>
+          <label style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block; margin-bottom:0.3rem">Vai trò</label>
+          <select id="staff-add-role" class="form-control" style="font-size:0.85rem; padding:0.6rem">
+            ${roleOptions}
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block; margin-bottom:0.3rem">Số điện thoại</label>
+          <input type="text" id="staff-add-phone" class="form-control" placeholder="09xxxxxxxx" style="font-size:0.85rem; padding:0.6rem">
+        </div>
+        <div>
+          <label style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block; margin-bottom:0.3rem">Số TK Ngân hàng</label>
+          <input type="text" id="staff-add-bankno" class="form-control" placeholder="00xxxxxxxxx" style="font-size:0.85rem; padding:0.6rem">
+        </div>
+        <div>
+          <label style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block; margin-bottom:0.3rem">Tên chủ TK</label>
+          <input type="text" id="staff-add-bankname" class="form-control" placeholder="NGUYEN VAN A" style="font-size:0.85rem; padding:0.6rem">
+        </div>
+        <div>
+          <label style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block; margin-bottom:0.3rem">Ngân hàng</label>
+          <input type="text" id="staff-add-bank" class="form-control" placeholder="Vietcombank" style="font-size:0.85rem; padding:0.6rem">
+        </div>
+      </div>
+      <div style="display:flex; gap:0.5rem">
+        <button class="btn btn-primary btn-sm" onclick="window.submitAddStaff()"><i class="fas fa-check" style="margin-right:0.3rem"></i>Thêm nhân sự</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('staff-add-form').style.display='none'">Hủy</button>
+      </div>
+    </div>
 
     <!-- PAYROLL AUTOMATION TABLE -->
     <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; margin-bottom:2rem; overflow:hidden">
@@ -3505,22 +3544,44 @@ export function renderStaff(state) {
     </div>
 
     <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:1rem; color:var(--text-main)">Danh Bạ Nhân Sự</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem">
-      ${staffList.map(s => `
-        <div class="glass-panel" style="padding: 1.25rem">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem">
+      ${staffList.map(s => {
+    const eName = s.name.replace(/'/g, "\\'");
+    return `
+        <div class="glass-panel" style="padding: 1.25rem" id="staff-card-${s.name.replace(/\s/g, '-')}">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem">
             <h3 style="font-size: 1.1rem; color: var(--text-main)">${s.name}</h3>
             <span style="font-size: 0.75rem; color: var(--text-dim); background: var(--bg-hover); padding: 0.1rem 0.4rem; border-radius: 4px">${s.role}</span>
           </div>
-          <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.75rem">
-            <i class="fas fa-phone"></i> ${s.phone || 'Chưa có SĐT'}
+          <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem">
+            <i class="fas fa-phone" style="width:16px"></i> ${s.phone || 'Chưa có SĐT'}
+          </div>
+          <div style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 0.75rem">
+            <i class="fas fa-university" style="width:16px"></i> ${s.bank?.no ? s.bank.no + ' - ' + (s.bank.name || '') : 'Chưa có TK'}
+          </div>
+          <!-- INLINE EDIT FORM (hidden) -->
+          <div id="staff-edit-${s.name.replace(/\s/g, '-')}" style="display:none; padding:0.75rem; margin-bottom:0.75rem; background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.15); border-radius:8px">
+            <div style="display:grid; gap:0.5rem; margin-bottom:0.5rem">
+              <input type="text" id="edit-name-${eName}" class="form-control" value="${s.name}" placeholder="Tên" style="font-size:0.8rem; padding:0.4rem 0.6rem">
+              <select id="edit-role-${eName}" class="form-control" style="font-size:0.8rem; padding:0.4rem 0.6rem">
+                ${(window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `<option ${s.role === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+              </select>
+              <input type="text" id="edit-phone-${eName}" class="form-control" value="${s.phone || ''}" placeholder="SĐT" style="font-size:0.8rem; padding:0.4rem 0.6rem">
+              <input type="text" id="edit-bankno-${eName}" class="form-control" value="${s.bank?.no || ''}" placeholder="Số TK" style="font-size:0.8rem; padding:0.4rem 0.6rem">
+              <input type="text" id="edit-bankname-${eName}" class="form-control" value="${s.bank?.name || ''}" placeholder="Tên chủ TK" style="font-size:0.8rem; padding:0.4rem 0.6rem">
+              <input type="text" id="edit-bank-${eName}" class="form-control" value="${s.bank?.bank || ''}" placeholder="Ngân hàng" style="font-size:0.8rem; padding:0.4rem 0.6rem">
+            </div>
+            <div style="display:flex; gap:0.4rem">
+              <button class="btn btn-primary btn-sm" style="flex:1; font-size:0.75rem" onclick="window.submitEditStaff('${eName}')">Lưu</button>
+              <button class="btn btn-secondary btn-sm" style="font-size:0.75rem" onclick="document.getElementById('staff-edit-${s.name.replace(/\s/g, '-')}').style.display='none'">Hủy</button>
+            </div>
           </div>
           <div style="display: flex; gap: 0.4rem">
-             <button class="btn btn-secondary btn-sm" style="flex: 1" onclick="window.promptEditStaff('${s.name}')">Sửa</button>
-             <button class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: rgba(239,68,68,0.2)" onclick="window.deleteStaff('${s.name}')">Xóa</button>
+             <button class="btn btn-secondary btn-sm" style="flex: 1" onclick="document.getElementById('staff-edit-${s.name.replace(/\s/g, '-')}').style.display = document.getElementById('staff-edit-${s.name.replace(/\s/g, '-')}').style.display === 'none' ? 'block' : 'none'"><i class="fas fa-pen" style="margin-right:0.3rem"></i>Sửa</button>
+             <button class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: rgba(239,68,68,0.2)" onclick="window.deleteStaff('${eName}')"><i class="fas fa-trash"></i></button>
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+  }).join('')}
     </div>
   `;
   return container;
