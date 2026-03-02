@@ -2177,6 +2177,32 @@ window.addStaff = (data) => {
   updateUI();
 };
 
+window.promptAddStaff = () => {
+  const name = prompt('Tên nhân sự mới:')?.trim();
+  if (!name) return;
+  const role = (prompt('Vai trò (Photo Lead / Cinema Lead / Photographer / CTV):', 'CTV') || 'CTV').trim();
+  const phone = (prompt('Số điện thoại (có thể để trống):') || '').trim();
+  window.addStaff({ name, role, phone, bank: { no: '', name: '', bank: '' } });
+};
+
+window.promptEditStaff = (originalName) => {
+  const member = state.staff.find(s => s.name === originalName);
+  if (!member) { alert('Không tìm thấy nhân sự'); return; }
+  const newName = (prompt('Tên:', member.name) || '').trim() || member.name;
+  const newRole = (prompt('Vai trò:', member.role) || '').trim() || member.role;
+  const newPhone = (prompt('SĐT:', member.phone) || '').trim();
+  member.name = newName;
+  member.role = newRole;
+  member.phone = newPhone;
+  window.addHistory(`Sửa nhân sự: ${originalName} → ${newName}`);
+  saveState();
+  updateUI();
+};
+
+window.deleteStaff = (name) => {
+  window.removeStaff(name);
+};
+
 window.quickAddCTV = () => {
   const name = prompt('Tên CTV:')?.trim();
   if (!name) return;
