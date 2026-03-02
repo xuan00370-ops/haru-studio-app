@@ -3,8 +3,9 @@ import { mockData } from './data.js';
 import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
-  renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderHistory,
-  renderLoginScreen, renderEditorPortal, renderPortfolioAdmin, renderKanban, renderAnalytics, renderGearList, renderLeadsKanban
+  renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderEditPhoto, renderHistory,
+  renderLoginScreen, renderEditorPortal, renderPortfolioAdmin, renderKanban, renderAnalytics, renderGearList, renderLeadsKanban,
+  renderWatermark, renderWorkspace, renderStaffPortal, renderGalleryClient
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence, updateBaselineState } from './firebase.js';
