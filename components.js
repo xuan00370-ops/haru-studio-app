@@ -5347,12 +5347,17 @@ export function renderGearList(state) {
 
   const gears = state.gears || [];
   const activeBookings = (state.gearBookings || []).filter(b => b.status === 'out');
+  const totalValue = gears.reduce((s, g) => s + (g.price || 0), 0);
+  const fmtVND = v => v ? v.toLocaleString('vi-VN') + ' đ' : '—';
+
+  // Collect unique categories for filter
+  const categories = [...new Set(gears.map(g => g.category || g.type))].sort();
 
   container.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem">
       <div>
         <h2 style="font-size:2rem; font-weight:900; color:var(--text-main); margin:0; letter-spacing:-0.5px">KHO THIẾT BỊ <span style="font-size:1.4rem">📷</span></h2>
-        <p style="color:var(--text-dim); margin-top:0.3rem; font-size:0.95rem">Quản lý và theo dõi máy ảnh, lens, thiết bị bay.</p>
+        <p style="color:var(--text-dim); margin-top:0.3rem; font-size:0.95rem">Quản lý ${gears.length} thiết bị · Tổng giá trị <strong style="color:var(--primary)">${fmtVND(totalValue)}</strong></p>
       </div>
       <div>
         <button class="btn btn-primary" onclick="window.promptAddGear()" style="padding:0.6rem 1rem">
@@ -5362,18 +5367,30 @@ export function renderGearList(state) {
     </div>
 
     <!-- Stats -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.5rem; justify-content: start">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:1.5rem; justify-content: start">
       <div class="stat-card">
         <div class="stat-value">${gears.length}</div>
         <div class="stat-label">Tổng thiết bị</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">${gears.filter(g => g.type === 'Camera').length}</div>
-        <div class="stat-label">Máy ảnh</div>
+        <div class="stat-label">📷 Máy ảnh</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">${gears.filter(g => g.type === 'Lens').length}</div>
-        <div class="stat-label">Ống kính</div>
+        <div class="stat-label">🔭 Ống kính</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${gears.filter(g => g.type === 'Audio').length}</div>
+        <div class="stat-label">🎙 Âm thanh</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${gears.filter(g => g.type === 'Lưu trữ').length}</div>
+        <div class="stat-label">💾 Lưu trữ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${gears.filter(g => g.type === 'Dựng').length}</div>
+        <div class="stat-label">🖥 Dựng</div>
       </div>
       <div class="stat-card" style="border-left:4px solid #f59e0b">
         <div class="stat-value" style="color:#f59e0b">${activeBookings.length}</div>
@@ -5381,23 +5398,20 @@ export function renderGearList(state) {
       </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar" style="margin-bottom:1rem">
-      <div class="filter-group">
-        <button class="filter-btn active" onclick="window.filterGear(this, 'ALL')">TẤT CẢ</button>
-        <button class="filter-btn" onclick="window.filterGear(this, 'Camera')">Máy Ảnh</button>
-        <button class="filter-btn" onclick="window.filterGear(this, 'Lens')">Ống Kính</button>
-        <button class="filter-btn" onclick="window.filterGear(this, 'Flycam')">Flycam</button>
+    <!-- Filter Bar by Category -->
+    <div class="filter-bar" style="margin-bottom:1rem; overflow-x:auto">
+      <div class="filter-group" style="flex-wrap:wrap; gap:0.4rem">
+        <button class="filter-btn active" onclick="window.filterGearCat(this, 'ALL')">TẤT CẢ</button>
+        ${categories.map(c => `<button class="filter-btn" onclick="window.filterGearCat(this, '${c}')">${c}</button>`).join('')}
       </div>
     </div>
 
     <div class="gear-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.2rem; align-items:start" id="gear-grid-container">
       ${gears.length === 0 ? '<div style="grid-column:1/-1; text-align:center; padding:3rem; background:rgba(0,0,0,0.02); border-radius:12px; border:2px dashed var(--border)">Chưa có thiết bị nào. Vui lòng thêm.</div>' : ''}
       ${gears.map(g => {
-    // Find if this gear is currently booked out
     const currentBooking = activeBookings.find(b => b.gearId === g.id);
     const statusStr = currentBooking ? 'ĐANG SỬ DỤNG' : g.status;
-    let badgeColor = '#16a34a'; // Sẵn sàng
+    let badgeColor = '#16a34a';
     if (statusStr === 'ĐANG SỬ DỤNG') badgeColor = '#f59e0b';
     if (statusStr === 'Đang bảo trì') badgeColor = '#ef4444';
 
@@ -5406,28 +5420,39 @@ export function renderGearList(state) {
     if (g.type === 'Flycam') typeIcon = '🚁';
     if (g.type === 'Gimbal') typeIcon = '🦾';
     if (g.type === 'Flash') typeIcon = '⚡';
+    if (g.type === 'Audio') typeIcon = '🎙';
+    if (g.type === 'Lưu trữ') typeIcon = '💾';
+    if (g.type === 'Dựng') typeIcon = '🖥';
 
     return `
-          <div class="glass-panel gear-item-card" data-type="${g.type}" style="border: 1px solid var(--border); padding: 1.25rem; position:relative; overflow:hidden; border-top: 4px solid ${badgeColor}; transition: 0.2s">
+          <div class="glass-panel gear-item-card" data-type="${g.type}" data-category="${g.category || g.type}" style="border: 1px solid var(--border); padding: 1.25rem; position:relative; overflow:hidden; border-top: 4px solid ${badgeColor}; transition: 0.2s">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem">
-              <div>
-                <div style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px">${typeIcon} ${g.type}</div>
-                <div style="font-size:1.15rem; font-weight:800; color:var(--text-main); margin-top:0.15rem">${g.name}</div>
+              <div style="flex:1; min-width:0">
+                <div style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px">${typeIcon} ${g.category || g.type}</div>
+                <div style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin-top:0.15rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap" title="${g.name}">${g.name}</div>
               </div>
-              <button class="hide-on-mobile" onclick="window.promptEditGear('${g.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-dim); transition:0.2s; font-size:1rem" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">
+              <button onclick="window.promptEditGear('${g.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-dim); transition:0.2s; font-size:1rem; flex-shrink:0; margin-left:0.5rem" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
             </div>
             
-            <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem; padding-bottom:0.75rem; border-bottom:1px solid rgba(0,0,0,0.06); margin-bottom:0.75rem">
+            <div style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.85rem; padding-bottom:0.75rem; border-bottom:1px solid rgba(0,0,0,0.06); margin-bottom:0.75rem">
               <div style="display:flex; justify-content:space-between">
-                <span style="color:var(--text-dim)">Serial:</span>
-                <span style="font-weight:700; color:var(--text-main)">${g.serial || 'N/A'}</span>
+                <span style="color:var(--text-dim)">Giá trị:</span>
+                <span style="font-weight:700; color:var(--primary)">${fmtVND(g.price)}</span>
               </div>
+              ${(g.qty || 1) > 1 ? `<div style="display:flex; justify-content:space-between">
+                <span style="color:var(--text-dim)">Số lượng:</span>
+                <span style="font-weight:700; color:var(--text-main)">${g.qty}</span>
+              </div>` : ''}
               <div style="display:flex; justify-content:space-between">
                 <span style="color:var(--text-dim)">Trạng thái:</span>
                 <span style="font-weight:800; color:${badgeColor}">${statusStr}</span>
               </div>
+              ${g.serial ? `<div style="display:flex; justify-content:space-between">
+                <span style="color:var(--text-dim)">Serial:</span>
+                <span style="font-weight:700; color:var(--text-main)">${g.serial}</span>
+              </div>` : ''}
               ${g.notes ? `<div style="font-size:0.75rem; color:#ef4444; font-style:italic">Ghi chú: ${g.notes}</div>` : ''}
             </div>
 
@@ -5441,7 +5466,7 @@ export function renderGearList(state) {
             ` : `
               <div style="display:flex; gap:0.5rem">
                 <button onclick="window.promptCheckoutGear('${g.id}')" class="btn btn-secondary" style="flex:1; font-size:0.8rem; padding:0.5rem; border-color:var(--primary); color:var(--primary); font-weight:800" ${statusStr === 'Đang bảo trì' ? 'disabled style="opacity:0.5"' : ''}>
-                  <i class="fas fa-sign-out-alt"></i> Xuất Kho (Book)
+                  <i class="fas fa-sign-out-alt"></i> Xuất Kho
                 </button>
               </div>
             `}

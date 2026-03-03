@@ -4196,6 +4196,19 @@ window.filterGear = (btnEl, type) => {
   });
 };
 
+window.filterGearCat = (btnEl, category) => {
+  document.querySelectorAll('.filter-group .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  const cards = document.querySelectorAll('.gear-item-card');
+  cards.forEach(c => {
+    if (category === 'ALL' || c.getAttribute('data-category') === category) {
+      c.style.display = 'block';
+    } else {
+      c.style.display = 'none';
+    }
+  });
+};
+
 window.promptAddGear = () => {
   const name = prompt("Tên thiết bị (VD: Sony A7M4):");
   if (!name) return;
@@ -4290,6 +4303,130 @@ window.returnGear = (gearId) => {
     updateUI();
   }
 };
+
+// ============================================================
+// GEAR SEED DATA — Import từ Google Sheet "chi phí thiết bị"
+// Chạy khi chưa có seed data (kiểm tra ID prefix g_seed_)
+// ============================================================
+// Patch: fix missing status for all existing gears
+(state.gears || []).forEach(g => { if (!g.status) g.status = 'Sẵn sàng'; });
+
+const hasSeedGears = (state.gears || []).some(g => g.id && g.id.startsWith('g_seed_'));
+if (!hasSeedGears) {
+  const SEED_GEARS = [
+    // Body CAM
+    { name: 'Sony A7s3+rig', type: 'Camera', category: 'Body CAM', price: 57000000, qty: 1 },
+    { name: 'Sony A7iv+rig', type: 'Camera', category: 'Body CAM', price: 40000000, qty: 1 },
+    { name: 'Pin FZ100: 2zin + 4 đỏ + 1 K&F', type: 'Camera', category: 'Body CAM', price: 2500000, qty: 7 },
+    { name: 'Pocket 3', type: 'Camera', category: 'Body CAM', price: 12000000, qty: 1 },
+    { name: 'Cam360 X4 + 2 pin', type: 'Camera', category: 'Body CAM', price: 13000000, qty: 1 },
+    { name: 'Mavic Mini 3 Pro 2pin', type: 'Flycam', category: 'Body CAM', price: 14000000, qty: 1 },
+    { name: 'Fujifilm Instax Mini Evo', type: 'Camera', category: 'Body CAM', price: 5400000, qty: 1 },
+    // Lens
+    { name: 'Sigma 28-45mm F1.8', type: 'Lens', category: 'Lens', price: 27500000, qty: 1 },
+    { name: 'Sony 16-35mm F2.8 GM', type: 'Lens', category: 'Lens', price: 29000000, qty: 1 },
+    { name: 'Sony 85mm F1.4 GM', type: 'Lens', category: 'Lens', price: 41000000, qty: 1 },
+    { name: 'Sony 50mm F1.4 GM', type: 'Lens', category: 'Lens', price: 31000000, qty: 1 },
+    // Thiết bị âm thanh
+    { name: 'Máy ghi âm Tascam X8', type: 'Audio', category: 'Thiết bị âm thanh', price: 11000000, qty: 1 },
+    { name: 'Máy ghi âm Olympus L-11', type: 'Audio', category: 'Thiết bị âm thanh', price: 1000000, qty: 1 },
+    { name: 'Mic Hollyland Max2 + 2 miclab', type: 'Audio', category: 'Thiết bị âm thanh', price: 7000000, qty: 1 },
+    { name: 'Deity TC-1', type: 'Audio', category: 'Thiết bị âm thanh', price: 10500000, qty: 1 },
+    { name: 'Máy ghi âm PR-2', type: 'Audio', category: 'Thiết bị âm thanh', price: 12000000, qty: 2 },
+    { name: 'Mic thu âm đầu mic', type: 'Audio', category: 'Thiết bị âm thanh', price: 1600000, qty: 1 },
+    // Truyền hình ảnh
+    { name: 'Hollyland MARS 300 PRO + 4pin NF', type: 'Audio', category: 'Truyền hình ảnh', price: 4000000, qty: 1 },
+    // Thiết bị dựng
+    { name: 'iPad Pro 12.9in 2018 1TB 4G', type: 'Dựng', category: 'Thiết bị dựng', price: 15000000, qty: 1 },
+    { name: 'Mac Mini M4 16/256', type: 'Dựng', category: 'Thiết bị dựng', price: 12600000, qty: 1 },
+    { name: 'MacBook Air M1 15/512', type: 'Dựng', category: 'Thiết bị dựng', price: 17500000, qty: 1 },
+    { name: 'MacBook Pro 14 16/512', type: 'Dựng', category: 'Thiết bị dựng', price: 32000000, qty: 1 },
+    { name: 'Chuột Logitech Master 3', type: 'Dựng', category: 'Thiết bị dựng', price: 2000000, qty: 1 },
+    // Văn phòng
+    { name: 'Máy in Brother', type: 'Khác', category: 'Văn phòng', price: 1700000, qty: 1 },
+    { name: 'Nguồn UPS', type: 'Khác', category: 'Văn phòng', price: 800000, qty: 1 },
+    { name: 'Pin dự phòng Ugreen 25000mAh', type: 'Khác', category: 'Văn phòng', price: 1500000, qty: 1 },
+    { name: 'Thổi bụi Nitecore', type: 'Khác', category: 'Văn phòng', price: 800000, qty: 1 },
+    { name: 'HUB Hagibit + SSD 500GB', type: 'Khác', category: 'Văn phòng', price: 3000000, qty: 1 },
+    { name: 'Bàn phím iPad', type: 'Khác', category: 'Văn phòng', price: 500000, qty: 1 },
+    { name: 'Switch LAN Xiaomi', type: 'Khác', category: 'Văn phòng', price: 1400000, qty: 1 },
+    { name: 'Quạt không cánh', type: 'Khác', category: 'Văn phòng', price: 3200000, qty: 1 },
+    { name: 'Loa Oppo', type: 'Khác', category: 'Văn phòng', price: 500000, qty: 1 },
+    { name: 'Quạt nhỏ', type: 'Khác', category: 'Văn phòng', price: 150000, qty: 1 },
+    // Lưu trữ
+    { name: 'NAS Synology - 20TB', type: 'Lưu trữ', category: 'Lưu trữ', price: 11000000, qty: 1 },
+    { name: 'HUB Acasis 40Gb', type: 'Lưu trữ', category: 'Lưu trữ', price: 1800000, qty: 1 },
+    { name: 'Box ổ cứng 2TB', type: 'Lưu trữ', category: 'Lưu trữ', price: 2500000, qty: 1 },
+    { name: 'NAS Orico - 8TB', type: 'Lưu trữ', category: 'Lưu trữ', price: 8500000, qty: 1 },
+    { name: 'HDD 8TB', type: 'Lưu trữ', category: 'Lưu trữ', price: 6500000, qty: 2 },
+    { name: 'HDD 10TB', type: 'Lưu trữ', category: 'Lưu trữ', price: 7000000, qty: 2 },
+    { name: 'HDD 1TB Di động', type: 'Lưu trữ', category: 'Lưu trữ', price: 500000, qty: 1 },
+    { name: 'Dox ổ cứng RAID - 16TB', type: 'Lưu trữ', category: 'Lưu trữ', price: 11000000, qty: 1 },
+    { name: 'Dọc ổ cứng 5 bay', type: 'Lưu trữ', category: 'Lưu trữ', price: 11000000, qty: 1 },
+    { name: 'Samsung T7 - 2TB', type: 'Lưu trữ', category: 'Lưu trữ', price: 10100000, qty: 4 },
+    { name: 'SanDisk XS1000', type: 'Lưu trữ', category: 'Lưu trữ', price: 2000000, qty: 1 },
+    { name: 'SSD NVMe 1TB WD', type: 'Lưu trữ', category: 'Lưu trữ', price: 3000000, qty: 2 },
+    { name: 'Thẻ nhớ 128GB SD (nhanh)', type: 'Lưu trữ', category: 'Lưu trữ', price: 8000000, qty: 12 },
+    { name: 'Thẻ nhớ 128GB SD', type: 'Lưu trữ', category: 'Lưu trữ', price: 2200000, qty: 4 },
+    { name: 'Thẻ nhớ 128GB MicroSD', type: 'Lưu trữ', category: 'Lưu trữ', price: 0, qty: 5 },
+    { name: 'Thẻ nhớ 64GB SD', type: 'Lưu trữ', category: 'Lưu trữ', price: 0, qty: 7 },
+    { name: 'Đọc thẻ nhớ Ugreen', type: 'Lưu trữ', category: 'Lưu trữ', price: 200000, qty: 1 },
+    // Phụ kiện quay
+    { name: 'Gimbal RS3 Pro', type: 'Gimbal', category: 'Phụ kiện quay', price: 12500000, qty: 1 },
+    { name: 'Chân mono Ulanzi MT79', type: 'Khác', category: 'Phụ kiện quay', price: 480000, qty: 1 },
+    { name: 'Chân mono Ulanzi', type: 'Khác', category: 'Phụ kiện quay', price: 1200000, qty: 1 },
+    { name: 'Monopod M500A', type: 'Khác', category: 'Phụ kiện quay', price: 2000000, qty: 1 },
+    { name: 'Chân máy quay', type: 'Khác', category: 'Phụ kiện quay', price: 1000000, qty: 1 },
+    { name: 'Hollyland Solidcom C1-4S', type: 'Audio', category: 'Phụ kiện quay', price: 21000000, qty: 1 },
+    { name: 'Bộ đàm 4 cái + tai nghe', type: 'Audio', category: 'Phụ kiện quay', price: 2000000, qty: 1 },
+    { name: 'Kẹp macsef iPhone Ulanzi', type: 'Khác', category: 'Phụ kiện quay', price: 300000, qty: 1 },
+    // Tủ chống ẩm
+    { name: 'Tủ chống ẩm 80L', type: 'Khác', category: 'Tủ chống ẩm', price: 2600000, qty: 1 },
+    { name: 'Tủ chống ẩm 100L', type: 'Khác', category: 'Tủ chống ẩm', price: 4400000, qty: 1 },
+    // Đèn Led
+    { name: 'Đèn Molus X100 + Pin', type: 'Flash', category: 'Đèn Led', price: 7000000, qty: 1 },
+    { name: 'Chân đèn gấp gọn', type: 'Flash', category: 'Đèn Led', price: 1000000, qty: 2 },
+    { name: 'Chân đèn MT01', type: 'Flash', category: 'Đèn Led', price: 1000000, qty: 1 },
+    // Flash
+    { name: 'Sony HVL F60RM2', type: 'Flash', category: 'Flash', price: 18000000, qty: 2 },
+    { name: 'Sony HVL F60RM', type: 'Flash', category: 'Flash', price: 6500000, qty: 1 },
+    { name: 'Nguồn Flash', type: 'Flash', category: 'Flash', price: 3000000, qty: 1 },
+    // Filter
+    { name: 'Filter K&F ND 82', type: 'Lens', category: 'Filter', price: 1000000, qty: 1 },
+    { name: 'Blackmist 1/4 K&F 67mm', type: 'Lens', category: 'Filter', price: 500000, qty: 1 },
+    { name: 'Filter K&F UV 67/77/82', type: 'Lens', category: 'Filter', price: 2000000, qty: 4 },
+    // Thiết bị sạc
+    { name: 'Dox sạc FZ100 Tilta', type: 'Khác', category: 'Thiết bị sạc', price: 800000, qty: 1 },
+    { name: 'Sạc pin AA', type: 'Khác', category: 'Thiết bị sạc', price: 1200000, qty: 1 },
+    { name: 'Sạc 65W', type: 'Khác', category: 'Thiết bị sạc', price: 500000, qty: 1 },
+    { name: '12 Pin AA', type: 'Khác', category: 'Thiết bị sạc', price: 2000000, qty: 12 },
+    { name: '4 Pin AA', type: 'Khác', category: 'Thiết bị sạc', price: 200000, qty: 4 },
+    { name: 'Sạc pin Flycam', type: 'Khác', category: 'Thiết bị sạc', price: 700000, qty: 1 },
+    // Balo
+    { name: 'Balo Pytech 35L', type: 'Khác', category: 'Balo', price: 6800000, qty: 1 },
+    { name: 'Balo Pytech 22L', type: 'Khác', category: 'Balo', price: 1500000, qty: 1 },
+    { name: 'Túi đeo chéo K&F', type: 'Khác', category: 'Balo', price: 500000, qty: 1 },
+    { name: 'Thùng Máy', type: 'Khác', category: 'Balo', price: 4000000, qty: 1 },
+    { name: 'Hộp thẻ nhớ', type: 'Khác', category: 'Balo', price: 200000, qty: 1 },
+    // Màn hình
+    { name: 'Samsung 4K 28in', type: 'Dựng', category: 'Màn hình', price: 7000000, qty: 1 },
+    { name: 'LG 4K 27in', type: 'Dựng', category: 'Màn hình', price: 3600000, qty: 1 },
+  ];
+  const seedItems = SEED_GEARS.map((g, i) => ({
+    id: 'g_seed_' + i,
+    name: g.name,
+    type: g.type,
+    category: g.category,
+    price: g.price,
+    qty: g.qty || 1,
+    serial: '',
+    notes: '',
+    status: 'Sẵn sàng'
+  }));
+  state.gears = [...(state.gears || []), ...seedItems];
+  console.log(`✅ Seed ${seedItems.length} thiết bị từ Google Sheet (tổng: ${state.gears.length})`);
+  saveState();
+}
 
 updateUI();
 
