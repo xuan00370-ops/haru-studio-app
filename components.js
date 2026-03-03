@@ -169,7 +169,8 @@ export function renderBottomNav(activePage, navigate) {
     { id: 'edit_photo', icon: '📷', label: 'Edit Photo' },
     { id: 'edit_video', icon: '🎞️', label: 'Edit' },
     { id: 'calendar', icon: '📅', label: 'Lịch' },
-    { id: 'kanban', icon: '📋', label: 'Kanban' }
+    { id: 'kanban', icon: '📋', label: 'Kanban' },
+    { id: 'staff', icon: '🎬', label: 'Nhân sự' }
   ];
 
   nav.innerHTML = items.map(item => `
