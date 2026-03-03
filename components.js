@@ -166,29 +166,18 @@ export function renderBottomNav(activePage, navigate) {
   // Chỉ hiện các nút quan trọng nhất cho Mobile
   const items = [
     { id: 'dashboard', icon: '📊', label: 'Dự án' },
-    { id: 'portfolio', icon: '🖼️', label: 'Album' },
-    { id: 'staff', icon: '🎭', label: 'Nhân sự' },
     { id: 'edit_photo', icon: '📷', label: 'Edit Photo' },
     { id: 'edit_video', icon: '🎞️', label: 'Edit' },
-    { id: 'calendar', icon: '📅', label: 'Lịch' }
+    { id: 'calendar', icon: '📅', label: 'Lịch' },
+    { id: 'kanban', icon: '📋', label: 'Kanban' }
   ];
-  if (window.state?.staffViewMode !== 'staff') {
-    items.push({ id: 'finance', icon: '📒', label: 'Tiền' });
-    items.push({ id: 'leads', icon: '🎯', label: 'Sale' });
-    items.push({ id: 'gear', icon: '📷', label: 'Thiết bị' });
-  }
 
   nav.innerHTML = items.map(item => `
     <div class="bottom-nav-item ${activePage === item.id ? 'active' : ''}" onclick="window.navigate('${item.id}')">
       <span class="icon">${item.icon}</span>
       <span>${item.label}</span>
     </div>
-  `).join('') + `
-    <div class="bottom-nav-item" onclick="window.toggleTheme();window.updateUI()" style="color:var(--text-main)">
-      <span class="icon" style="font-size:1.1rem">${document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</span>
-      <span>${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}</span>
-    </div>
-  `;
+  `).join('');
 
   return nav;
 }
