@@ -3345,7 +3345,7 @@ export function renderStaff(state) {
       </div>
     </div>
 
-    <!--PAYROLL AUTOMATION TABLE-- >
+    <!--PAYROLL AUTOMATION TABLE-->
     <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; margin-bottom:2rem; overflow:hidden">
       <div style="padding:1rem 1.25rem; background:rgba(22,163,74,0.05); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
         <div style="font-weight:900; color:var(--text-main); font-size:1.1rem">💰 Bảng Kê Lương Tháng ${state.currentMonth}/${state.currentYear}</div>
