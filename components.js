@@ -2918,12 +2918,12 @@ export function renderKanban(state) {
   const displayClips = kanbanEditorFilter === 'TẤT CẢ' ? clips : clips.filter(c => c.editor === kanbanEditorFilter);
 
   container.innerHTML = `
-  < header class="section-header" >
+  <header class="section-header">
       <h1 class="view-title">📋 Kanban Board</h1>
       <span style="font-size:0.85rem;color:var(--text-dim)">${displayClips.length}/${clips.length} clip</span>
-    </header >
+    </header>
 
-    < !--Editor filter chips-- >
+    <!--Editor filter chips-->
   <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.75rem;margin-bottom:0.75rem">
     <button onclick="window.setKanbanEditorFilter('TẤT CẢ')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">Tất cả (${clips.length})</button>
     ${allEditors.map(e => `<button onclick="window.setKanbanEditorFilter('${e}')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === e ? 'background:#a855f7;color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">✏️ ${e} (${clips.filter(c => c.editor === e).length})</button>`).join('')}
@@ -3066,10 +3066,10 @@ export function renderAnalytics(state) {
   const statusColors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
   container.innerHTML = `
-  < header class="section-header" >
+  <header class="section-header">
       <h1 class="view-title">📊 Analytics Dashboard</h1>
       <span style="font-size:0.85rem;color:var(--text-dim)">Năm ${year} — ${state.jobs.length} dự án</span>
-    </header >
+    </header>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
       <div class="glass-panel" style="padding:1.2rem;grid-column:1/3">
@@ -3187,7 +3187,7 @@ export function renderHistory(state) {
   };
 
   container.innerHTML = `
-  < header class="section-header" style = "display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem" >
+  <header class="section-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
        <div>
          <h1 class="view-title">📋 Lịch sử hoạt động</h1>
          <span style="font-size: 0.85rem; color: var(--text-dim)">${state.history.length} hoạt động</span>
@@ -3200,7 +3200,7 @@ export function renderHistory(state) {
            📥 Nhập Backup
          </button>
        </div>
-    </header >
+    </header>
 
   <div class="glass-panel" style="margin-top: 1.5rem; padding: 1.5rem">
     <div style="position: relative; padding-left: 2rem">
@@ -3293,10 +3293,10 @@ export function renderStaff(state) {
     });
   });
 
-  const roleOptions = (window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `< option > ${opt}</option > `).join('');
+  const roleOptions = (window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `<option> ${opt}</option> `).join('');
 
   container.innerHTML = `
-  < header class="section-header" >
+  <header class="section-header">
       <div>
         <h1 class="view-title">Quản Lý Nhân Sự &amp; Bảng Lương</h1>
         <p style="color: var(--text-dim); font-size: 0.9rem;">Danh sách nhân sự &amp; Hệ thống tự động tính lương tháng ${state.currentMonth}/${state.currentYear}</p>
@@ -3306,9 +3306,9 @@ export function renderStaff(state) {
           <i class="fas fa-plus"></i> Thêm Nhân Sự
         </button>
       </div>
-    </header >
+    </header>
 
-    < !--INLINE ADD STAFF FORM-- >
+    <!--INLINE ADD STAFF FORM-->
     <div id="staff-add-form" class="glass-panel" style="display:none; padding:1.5rem; margin-bottom:1.5rem; border:2px solid rgba(22,163,74,0.3); background:rgba(22,163,74,0.03)">
       <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem; color:var(--primary)"><i class="fas fa-user-plus" style="margin-right:0.5rem"></i>Thêm Nhân Sự Mới</h3>
       <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:1rem">
@@ -3445,10 +3445,10 @@ export function renderNAS(state) {
   const container = document.createElement('div');
   container.className = 'view-container reveal';
   container.innerHTML = `
-  < header class="section-header" >
+  <header class="section-header">
        <h1 class="view-title">NAS / Drive — Cấu hình hệ thống</h1>
        <button class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Lưu cấu hình</button>
-    </header >
+    </header>
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
     <div class="glass-panel" style="padding: 1.5rem">
@@ -3510,14 +3510,14 @@ export function renderSync(state) {
   const logColorMap = { added: 'var(--success)', updated: 'var(--accent-blue)', skipped: 'var(--accent-orange)', error: 'var(--danger)', info: 'var(--text-dim)' };
 
   container.innerHTML = `
-  < header class="section-header" >
+  <header class="section-header">
        <h1 class="view-title">🔄 Sync Dữ liệu</h1>
        <div style="display: flex; gap: 0.5rem">
           <button class="btn btn-warning btn-sm" onclick="window.importGoLiveData()" style="background: var(--warning); color: #fff; border:none; margin-right: 1rem;"><i class="fas fa-magic"></i> Khởi tạo Dữ liệu Go-Live</button>
           <button class="btn btn-secondary btn-sm" onclick="window.exportCSV()"><i class="fas fa-file-export"></i> Xuất CSV</button>
           <button class="btn btn-primary btn-sm" onclick="window.runSync()"><i class="fas fa-cloud-download-alt"></i> Sync toàn bộ</button>
        </div>
-    </header >
+    </header>
 
   ${lastSync ? `
     <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1.5rem">
