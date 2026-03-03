@@ -2866,8 +2866,17 @@ function updateMonth(month, year) {
   updateUI();
 }
 
+// Debounced updateUI — avoid multiple re-renders in quick succession
+let _updateUIScheduled = false;
 function updateUI() {
-  window.updateUI = updateUI;
+  if (_updateUIScheduled) return;
+  _updateUIScheduled = true;
+  requestAnimationFrame(_doUpdateUI);
+}
+window.updateUI = updateUI;
+
+function _doUpdateUI() {
+  _updateUIScheduled = false;
   app.innerHTML = '';
 
   // ── Phase 6: Cổng Trưng Bày Tự Động (Haru Gallery) ──

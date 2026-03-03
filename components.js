@@ -92,11 +92,8 @@ export function renderSidebar(activePage, navigate) {
       <div class="nav-item ${activePage === 'clients' ? 'active' : ''}" onclick="window.navigate('clients')">
         <span class="icon">&#129309;</span> Khách hàng
       </div>
-      <div class="nav-item ${activePage === 'finance' ? 'active' : ''}" onclick="window.navigate('finance')">
-        <span class="icon">&#128210;</span> Giao dịch
-      </div>
-      <div class="nav-item ${activePage === 'tax' ? 'active' : ''}" onclick="window.navigate('tax')">
-        <span class="icon">&#127974;</span> Thuế
+      <div class="nav-item ${activePage === 'finance' || activePage === 'tax' ? 'active' : ''}" onclick="window.navigate('finance')">
+        <span class="icon">&#128176;</span> Tài chính
       </div>
       <div class="nav-item ${activePage === 'staff' ? 'active' : ''}" onclick="window.navigate('staff')">
         <span class="icon">&#127917;</span> Nhân sự
@@ -110,7 +107,9 @@ export function renderSidebar(activePage, navigate) {
       </div>
 
 
-      <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase;">Hệ thống</div>
+
+      <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.collapse-icon').textContent=this.nextElementSibling.style.display==='none'?'▸':'▾'" style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase; cursor: pointer; display:flex; align-items:center; gap:0.3rem; user-select:none"><span class="collapse-icon">${['sync', 'nas', 'history', 'trash', 'settings'].includes(activePage) ? '▾' : '▸'}</span>Hệ thống</div>
+      <div style="display:${['sync', 'nas', 'history', 'trash', 'settings'].includes(activePage) ? 'block' : 'none'}">
       <div class="nav-item ${activePage === 'sync' ? 'active' : ''}" onclick="window.navigate('sync')">
         <span class="icon">&#128260;</span> Sync dữ liệu
       </div>
@@ -125,6 +124,7 @@ export function renderSidebar(activePage, navigate) {
       </div>
       <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.navigate('settings')">
         <span class="icon">👑</span> Admin Center
+      </div>
       </div>` : ''}
 
 
@@ -1859,6 +1859,14 @@ export function renderFinance(state) {
   const container = document.createElement('div');
   container.className = 'view-container reveal';
 
+  // Tab switcher header
+  const finTab = state._financeTab || 'giao_dich';
+  const tabBar = `
+    <div style="display:flex;gap:0.3rem;margin-bottom:1.2rem;border-bottom:2px solid var(--border);padding-bottom:0">
+      <button onclick="window.state._financeTab='giao_dich';window.updateUI()" style="padding:0.6rem 1.2rem;border:none;background:none;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;border-bottom:3px solid ${finTab === 'giao_dich' ? 'var(--primary)' : 'transparent'};color:${finTab === 'giao_dich' ? 'var(--primary)' : 'var(--text-dim)'}">💰 Giao dịch</button>
+      <button onclick="window.state._financeTab='thue';window.navigate('tax')" style="padding:0.6rem 1.2rem;border:none;background:none;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;border-bottom:3px solid ${finTab === 'thue' ? 'var(--primary)' : 'transparent'};color:${finTab === 'thue' ? 'var(--primary)' : 'var(--text-dim)'}">🏛 Thuế</button>
+    </div>`;
+
   // Flatten all services from all jobs into transactions
   const transactions = [];
   state.jobs.forEach(job => {
@@ -1911,8 +1919,9 @@ export function renderFinance(state) {
   transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
   container.innerHTML = `
+  ${tabBar}
   <header class="section-header" >
-       <h1 class="view-title">Bảng Giao dịch</h1>
+       <h1 class="view-title">💰 Tài chính — Giao dịch</h1>
        <div style="display: flex; gap: 0.5rem">
           <button class="btn btn-secondary btn-sm" onclick="window.exportCSV()"><i class="fas fa-file-export"></i> Xuất CSV</button>
           <button class="btn btn-primary btn-sm" onclick="document.getElementById('txn-manual-form')?.scrollIntoView({behavior:'smooth'})"><i class="fas fa-plus"></i> Thêm chi phí lẻ</button>
@@ -2011,8 +2020,16 @@ export function renderTax(state) {
   const netProfit = profit - tax;
   const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : 0;
 
+  // Tab switcher (matching renderFinance)
+  const tabBarTax = `
+    <div style="display:flex;gap:0.3rem;margin-bottom:1.2rem;border-bottom:2px solid var(--border);padding-bottom:0">
+      <button onclick="window.state._financeTab='giao_dich';window.navigate('finance')" style="padding:0.6rem 1.2rem;border:none;background:none;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;border-bottom:3px solid transparent;color:var(--text-dim)">💰 Giao dịch</button>
+      <button style="padding:0.6rem 1.2rem;border:none;background:none;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;border-bottom:3px solid var(--primary);color:var(--primary)">🏛 Thuế</button>
+    </div>`;
+
   container.innerHTML = `
-  <h1 class="view-title" >💰 Thuế & Lợi nhuận ròng</h1>
+  ${tabBarTax}
+  <h1 class="view-title" >💰 Tài chính — Thuế & Lợi nhuận</h1>
     <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 2rem">Tháng ${state.currentMonth}/${state.currentYear} • ${monthJobs.length} dự án</div>
 
     <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 2.5rem">
