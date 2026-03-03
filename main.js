@@ -51,7 +51,7 @@ export const state = {
     serviceRoles: ['QUAY PS', 'CHỤP PS', 'QUAY TT', 'CHỤP TT', 'Quay Flycam', 'Editor', 'Hỗ trợ', 'Quản lý', 'Khác', 'CTV'],
     rates: mockData.settings?.rates || {},
     accounts: [
-      { username: 'ADMIN', password: 'ADMIN', role: 'admin', displayName: 'Admin' },
+      { username: 'ADMIN', password: '2808', role: 'admin', displayName: 'Admin' },
       { username: 'EDIT', password: 'EDIT', role: 'editor', displayName: 'Editor' }
     ]
   },
@@ -3061,7 +3061,7 @@ const SESSION_KEY = 'haru_session';
 window.login = (username, password) => {
   // Hardcoded admin/editor accounts
   const HARDCODED_ACCOUNTS = [
-    { username: 'ADMIN', password: 'ADMIN', role: 'admin', displayName: 'Admin' },
+    { username: 'ADMIN', password: '2808', role: 'admin', displayName: 'Admin' },
     { username: 'EDIT', password: 'EDIT', role: 'editor', displayName: 'Editor' }
   ];
   let account = HARDCODED_ACCOUNTS.find(a => a.username.toLowerCase() === username.toLowerCase() && a.password === password);
