@@ -821,7 +821,7 @@ function renderJobCard(job) {
         return `<span onclick="window.toggleClientTag('${job.id}','${t}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.35rem;border-radius:4px;border:1px solid ${tc[t]}${active ? '' : '30'};background:${tc[t]}${active ? '20' : '05'};color:${tc[t]};opacity:${active ? 1 : 0.5};transition:all 0.2s">${t}</span>`;
       }).join('')}
           <span onclick="window.openChat('${job.id}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.4rem;border-radius:4px;background:var(--primary-glow);color:var(--primary);border:1px solid var(--border-bright);margin-left:auto">💬 ${(job.comments || []).length}</span>
-          <span onclick="window.openQR('${job.id}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.4rem;border-radius:4px;background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630">📱 QR</span>
+          <span onclick="window.cloneJobAsTemplate('${job.id}')" style="cursor:pointer;font-size:0.58rem;font-weight:800;padding:0.15rem 0.4rem;border-radius:4px;background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630" title="Dùng làm template">📋 Clone</span>
         </div>
       </div>
     </div>
@@ -1092,6 +1092,39 @@ function renderJobDetailModal(state) {
       <div id="form-validation-errors" style="display:none; background: #fef2f2; border: 1px solid #fca5a5;
         border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; color: #b91c1c; font-size: 0.9rem"></div>
 
+      <!-- 📅 TIMELINE PROGRESS BAR -->
+      ${(() => {
+      const steps = [
+        { label: 'Quay/Chụp', icon: '📸' },
+        { label: 'Hậu kỳ', icon: '🎬' },
+        { label: 'Review', icon: '👀' },
+        { label: 'Giao hàng', icon: '📦' }
+      ];
+      const cl = job.checklist || {};
+      const hasEdit = validServices.some(s => s.service?.toLowerCase().includes('quay'));
+      const editDone = validServices.every(s => !s.service?.toLowerCase().includes('quay') || s.editStatus === 'Hoàn thành');
+      const jobDate = new Date(job.date);
+      const isPast = jobDate < new Date();
+
+      let currentStep = 0;
+      if (isPast) currentStep = 1; // đã chụp
+      if (hasEdit && editDone) currentStep = 2; // edit xong
+      if (job.status === 'Đã hoàn thành' || cl.albumDelivered) currentStep = 3;
+      if (cl.fullyPaid && cl.albumDelivered) currentStep = 4; // done all
+
+      return `<div style="display:flex;align-items:center;gap:0;margin-bottom:1.25rem;padding:0.8rem 1rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px">
+          ${steps.map((s, i) => {
+        const done = i < currentStep;
+        const active = i === currentStep;
+        const lineColor = done ? 'var(--primary)' : 'var(--border)';
+        return `${i > 0 ? `<div style="flex:1;height:3px;background:${lineColor};border-radius:2px"></div>` : ''}
+              <div style="display:flex;flex-direction:column;align-items:center;gap:0.15rem;min-width:56px">
+                <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;${done ? 'background:var(--primary);color:#fff' : active ? 'background:var(--primary-glow);color:var(--primary);border:2px solid var(--primary)' : 'background:var(--bg-hover);color:var(--text-dim);border:1px solid var(--border)'}">${done ? '✓' : s.icon}</div>
+                <span style="font-size:0.58rem;font-weight:${active ? 800 : 600};color:${done ? 'var(--primary)' : active ? 'var(--text-main)' : 'var(--text-dim)'}">${s.label}</span>
+              </div>`;
+      }).join('')}
+        </div>`;
+    })()}
       <div style="display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start">
 
         <!-- LEFT COLUMN: all editable fields -->
@@ -1920,9 +1953,10 @@ export function renderFinance(state) {
 
   container.innerHTML = `
   ${tabBar}
-  <header class="section-header" >
+  <header class="section-header">
        <h1 class="view-title">💰 Tài chính — Giao dịch</h1>
        <div style="display: flex; gap: 0.5rem">
+          <button class="btn btn-secondary btn-sm" onclick="window.navigate('year-report')"><i class="fas fa-chart-bar"></i> Báo cáo năm</button>
           <button class="btn btn-secondary btn-sm" onclick="window.exportCSV()"><i class="fas fa-file-export"></i> Xuất CSV</button>
           <button class="btn btn-primary btn-sm" onclick="document.getElementById('txn-manual-form')?.scrollIntoView({behavior:'smooth'})"><i class="fas fa-plus"></i> Thêm chi phí lẻ</button>
        </div>
@@ -5333,6 +5367,152 @@ export function renderGearList(state) {
     </div>
   `;
 
+
   return container;
 }
 
+// ── Báo Cáo Năm (Idea 7) ──
+export function renderYearReport(state) {
+  const container = document.createElement('div');
+  container.className = 'view-container reveal';
+  const year = state.currentYear;
+  const months = [];
+  let maxRevenue = 0;
+
+  for (let m = 1; m <= 12; m++) {
+    const mJobs = state.jobs.filter(j => {
+      if (j.isTrash) return false;
+      const d = new Date(j.date);
+      return d.getFullYear() === year && (d.getMonth() + 1) === m;
+    });
+    const revenue = mJobs.reduce((s, j) => s + (j.package || 0), 0);
+    const staffCost = mJobs.reduce((s, j) => s + j.services.reduce((ss, sv) => ss + (sv.cost || 0), 0), 0);
+    const editCost = mJobs.reduce((s, j) => s + j.services.reduce((ss, sv) => ss + (sv.edit || 0), 0), 0);
+    const totalCost = staffCost + editCost;
+    const profit = revenue - totalCost;
+    if (revenue > maxRevenue) maxRevenue = revenue;
+    months.push({ m, jobs: mJobs.length, revenue, totalCost, profit });
+  }
+
+  const totalYear = months.reduce((s, m) => s + m.revenue, 0);
+  const totalCostYear = months.reduce((s, m) => s + m.totalCost, 0);
+  const totalProfitYear = months.reduce((s, m) => s + m.profit, 0);
+  const totalJobsYear = months.reduce((s, m) => s + m.jobs, 0);
+  const margin = totalYear > 0 ? ((totalProfitYear / totalYear) * 100).toFixed(1) : 0;
+
+  // Top staff
+  const staffEarnings = {};
+  state.jobs.filter(j => !j.isTrash && new Date(j.date).getFullYear() === year).forEach(job => {
+    (job.services || []).forEach(s => {
+      if (s.staff) staffEarnings[s.staff] = (staffEarnings[s.staff] || 0) + (s.cost || 0);
+      if (s.editStaff) staffEarnings[s.editStaff] = (staffEarnings[s.editStaff] || 0) + (s.edit || 0);
+    });
+  });
+  const topStaff = Object.entries(staffEarnings).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  const barH = 140;
+  const chartBars = months.map(m => {
+    const h = maxRevenue > 0 ? Math.max(4, (m.revenue / maxRevenue) * barH) : 4;
+    const profitH = maxRevenue > 0 ? Math.max(0, (m.profit / maxRevenue) * barH) : 0;
+    const isActive = m.m === state.currentMonth;
+    return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:0.2rem">
+      <span style="font-size:0.6rem;font-weight:700;color:var(--text-dim)">${m.revenue > 0 ? formatCurrency(m.revenue) : ''}</span>
+      <div style="width:100%;max-width:36px;display:flex;flex-direction:column;justify-content:flex-end;height:${barH}px">
+        <div style="width:100%;height:${h}px;background:${isActive ? 'var(--primary)' : 'rgba(22,163,74,0.3)'};border-radius:4px 4px 0 0;position:relative">
+          <div style="width:100%;height:${profitH}px;background:${isActive ? '#15803d' : 'rgba(22,163,74,0.15)'};border-radius:4px 4px 0 0;position:absolute;bottom:0"></div>
+        </div>
+      </div>
+      <span style="font-size:0.7rem;font-weight:${isActive ? 900 : 600};color:${isActive ? 'var(--primary)' : 'var(--text-dim)'}">T${m.m}</span>
+      <span style="font-size:0.55rem;color:var(--text-dim)">${m.jobs} job</span>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <header class="section-header">
+      <div>
+        <h1 class="view-title">📊 Báo Cáo Năm ${year}</h1>
+        <p style="color:var(--text-dim);font-size:0.85rem">Tổng hợp doanh thu, chi phí và lợi nhuận cả năm</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="window.navigate('finance')">← Tài chính</button>
+    </header>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin:1.5rem 0">
+      <div class="glass-panel" style="padding:1.2rem;border-top:3px solid var(--success)">
+        <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;font-weight:800;margin-bottom:0.3rem">Tổng doanh thu</div>
+        <div style="font-size:1.4rem;font-weight:900;color:var(--success)">${formatCurrency(totalYear)}</div>
+      </div>
+      <div class="glass-panel" style="padding:1.2rem;border-top:3px solid var(--danger)">
+        <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;font-weight:800;margin-bottom:0.3rem">Tổng chi phí</div>
+        <div style="font-size:1.4rem;font-weight:900;color:var(--danger)">${formatCurrency(totalCostYear)}</div>
+      </div>
+      <div class="glass-panel" style="padding:1.2rem;border-top:3px solid var(--primary)">
+        <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;font-weight:800;margin-bottom:0.3rem">Lợi nhuận ròng</div>
+        <div style="font-size:1.4rem;font-weight:900;color:var(--primary)">${formatCurrency(totalProfitYear)}</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.2rem">Margin: ${margin}%</div>
+      </div>
+      <div class="glass-panel" style="padding:1.2rem;border-top:3px solid #8b5cf6">
+        <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;font-weight:800;margin-bottom:0.3rem">Tổng dự án</div>
+        <div style="font-size:1.4rem;font-weight:900;color:#8b5cf6">${totalJobsYear}</div>
+      </div>
+    </div>
+
+    <div class="glass-panel" style="padding:1.5rem;margin-bottom:2rem">
+      <h3 style="font-size:1rem;font-weight:900;margin-bottom:1rem">📈 Doanh thu theo tháng</h3>
+      <div style="display:flex;gap:0.3rem;align-items:flex-end;padding:0 0.5rem">${chartBars}</div>
+      <div style="display:flex;gap:1rem;justify-content:center;margin-top:0.8rem;font-size:0.7rem;color:var(--text-dim)">
+        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(22,163,74,0.3);border-radius:2px;margin-right:4px"></span>Doanh thu</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(22,163,74,0.15);border-radius:2px;margin-right:4px"></span>Lợi nhuận</span>
+      </div>
+    </div>
+
+    <div class="glass-panel" style="padding:0;margin-bottom:2rem;overflow:hidden">
+      <div style="padding:1rem 1.25rem;background:rgba(22,163,74,0.05);border-bottom:1px solid var(--border)">
+        <h3 style="font-size:1rem;font-weight:900">📋 Chi tiết từng tháng</h3>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:600px;font-size:0.82rem">
+          <thead><tr style="background:var(--bg-body);color:var(--text-dim);font-size:0.7rem;text-transform:uppercase">
+            <th style="padding:0.6rem 1rem;text-align:left;font-weight:800;border-bottom:1px solid var(--border)">Tháng</th>
+            <th style="padding:0.6rem 1rem;text-align:right;font-weight:800;border-bottom:1px solid var(--border)">Jobs</th>
+            <th style="padding:0.6rem 1rem;text-align:right;font-weight:800;border-bottom:1px solid var(--border)">Doanh thu</th>
+            <th style="padding:0.6rem 1rem;text-align:right;font-weight:800;border-bottom:1px solid var(--border)">Chi phí</th>
+            <th style="padding:0.6rem 1rem;text-align:right;font-weight:800;border-bottom:1px solid var(--border)">Lợi nhuận</th>
+          </tr></thead>
+          <tbody>
+            ${months.map(m => `<tr style="border-bottom:1px solid var(--border-bright);${m.m === state.currentMonth ? 'background:rgba(22,163,74,0.04);font-weight:700' : ''}">
+              <td style="padding:0.6rem 1rem;font-weight:800">Tháng ${m.m}</td>
+              <td style="padding:0.6rem 1rem;text-align:right">${m.jobs}</td>
+              <td style="padding:0.6rem 1rem;text-align:right;color:var(--success)">${formatCurrency(m.revenue)}</td>
+              <td style="padding:0.6rem 1rem;text-align:right;color:var(--danger)">${formatCurrency(m.totalCost)}</td>
+              <td style="padding:0.6rem 1rem;text-align:right;font-weight:800;color:${m.profit >= 0 ? 'var(--primary)' : 'var(--danger)'}">${formatCurrency(m.profit)}</td>
+            </tr>`).join('')}
+            <tr style="background:var(--bg-body);font-weight:900">
+              <td style="padding:0.75rem 1rem">TỔNG NĂM</td>
+              <td style="padding:0.75rem 1rem;text-align:right">${totalJobsYear}</td>
+              <td style="padding:0.75rem 1rem;text-align:right;color:var(--success)">${formatCurrency(totalYear)}</td>
+              <td style="padding:0.75rem 1rem;text-align:right;color:var(--danger)">${formatCurrency(totalCostYear)}</td>
+              <td style="padding:0.75rem 1rem;text-align:right;color:var(--primary)">${formatCurrency(totalProfitYear)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    ${topStaff.length ? `
+    <div class="glass-panel" style="padding:1.25rem">
+      <h3 style="font-size:1rem;font-weight:900;margin-bottom:1rem">🏆 Top Nhân Sự Theo Thu Nhập</h3>
+      ${topStaff.map((s, i) => {
+    const pct = topStaff[0][1] > 0 ? (s[1] / topStaff[0][1] * 100) : 0;
+    const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+    return `<div style="display:flex;align-items:center;gap:0.8rem;padding:0.5rem 0;${i < topStaff.length - 1 ? 'border-bottom:1px solid var(--border-bright)' : ''}">
+          <span style="font-size:1.1rem">${medals[i]}</span>
+          <span style="font-weight:800;min-width:80px">${s[0]}</span>
+          <div style="flex:1;height:8px;background:var(--bg-hover);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--primary),#22c55e);border-radius:4px"></div></div>
+          <span style="font-weight:800;color:var(--primary);min-width:100px;text-align:right">${formatCurrency(s[1])}</span>
+        </div>`;
+  }).join('')}
+    </div>` : ''}
+  `;
+
+  return container;
+}

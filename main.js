@@ -5,7 +5,7 @@ import {
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderEditPhoto, renderHistory,
   renderLoginScreen, renderEditorPortal, renderPortfolioAdmin, renderKanban, renderAnalytics, renderGearList,
-  renderWorkspace, renderStaffPortal, renderGalleryClient
+  renderWorkspace, renderStaffPortal, renderGalleryClient, renderYearReport
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence, updateBaselineState } from './firebase.js';
@@ -700,6 +700,59 @@ window.addEventListener('online', () => {
 // Bắt đầu boot
 bootload();
 
+// 🔔 TELEGRAM AUTO-REMIND (chạy 1 lần/ngày khi load page)
+setTimeout(() => {
+  try {
+    if (!state.settings.teleEnable || !state.settings.teleBotToken || !state.settings.teleChatId) return;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem('haru_last_remind') === todayStr) return;
+
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+    const msgs = [];
+
+    // 1. Jobs ngày mai
+    const tomorrowJobs = state.jobs.filter(j => !j.isTrash && j.date === tomorrowStr);
+    if (tomorrowJobs.length > 0) {
+      msgs.push(`📅 <b>NHẮC: ${tomorrowJobs.length} JOB NGÀY MAI</b>\n${tomorrowJobs.map(j => `• ${j.client} — ${j.eventType || 'Sự kiện'}`).join('\n')}`);
+    }
+
+    // 2. Deadline edit video còn ≤ 3 ngày
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const urgentEdits = [];
+    state.jobs.forEach(j => {
+      if (j.isTrash) return;
+      (j.services || []).forEach(s => {
+        if (!s.service?.toLowerCase().includes('quay')) return;
+        if (s.editStatus === 'Hoàn thành') return;
+        const dl = new Date(j.date); dl.setDate(dl.getDate() + 20);
+        const daysLeft = Math.ceil((dl - today) / 864e5);
+        if (daysLeft <= 3 && daysLeft >= 0) {
+          urgentEdits.push(`• ${j.client} — ${s.editStaff || 'Chưa assign'} — còn ${daysLeft} ngày`);
+        }
+      });
+    });
+    if (urgentEdits.length > 0) {
+      msgs.push(`⚠️ <b>DEADLINE EDIT SẮP HẾT (≤3 ngày)</b>\n${urgentEdits.join('\n')}`);
+    }
+
+    if (msgs.length > 0) {
+      const fullMsg = encodeURIComponent(msgs.join('\n\n'));
+      fetch(`https://api.telegram.org/bot${state.settings.teleBotToken}/sendMessage?chat_id=${state.settings.teleChatId}&parse_mode=HTML&text=${fullMsg}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok) {
+            localStorage.setItem('haru_last_remind', todayStr);
+            console.log('🔔 Telegram reminder sent');
+          }
+        }).catch(() => { });
+    } else {
+      localStorage.setItem('haru_last_remind', todayStr);
+    }
+  } catch (e) { console.warn('Telegram remind error:', e); }
+}, 5000); // delay 5s sau khi boot xong
+
+
 // ============================================================
 // HELPERS
 // ============================================================
@@ -1376,6 +1429,39 @@ window.addJob = (jobData) => {
       }).catch(err => console.error('Lỗi gọi Drive API:', err));
     }
   }
+};
+
+// 📋 TEMPLATE: Clone job cũ thành job mới
+window.cloneJobAsTemplate = (jobId) => {
+  const src = state.jobs.find(j => j.id === jobId);
+  if (!src) { window.showToast?.('Không tìm thấy job gốc', 'error'); return; }
+
+  const newJob = JSON.parse(JSON.stringify(src)); // deep clone
+  newJob.id = 'TPL' + Date.now().toString(36).toUpperCase();
+  newJob.client = src.client + ' (Copy)';
+  newJob.date = new Date().toISOString().slice(0, 10); // today
+  newJob.status = 'Mới';
+  newJob.deposit = 0;
+  newJob.checklist = {};
+  newJob.comments = [];
+  newJob.clientRating = 0;
+  newJob.clientTags = [];
+  newJob.isCompleted = false;
+  newJob.completedDate = null;
+  // Reset service paid status
+  (newJob.services || []).forEach(s => {
+    s.paid = false;
+    s.editStatus = 'Chưa bắt đầu';
+    s.editPaid = false;
+  });
+
+  state.jobs.push(newJob);
+  window.addHistory(`📋 Clone template từ: ${src.client} → ${newJob.client}`);
+  saveState();
+  updateUI();
+  window.showToast?.(`📋 Đã tạo bản sao: ${newJob.client}`, 'success');
+  // Auto-open job detail
+  setTimeout(() => window.openModal?.('job_detail', newJob.id), 300);
 };
 
 window.updateJob = (jobId, updatedData, skipUpdateUI = false) => {
@@ -3062,6 +3148,7 @@ function _doUpdateUI() {
 
     case 'kanban': contentArea.appendChild(renderKanban(state)); break;
     case 'analytics': contentArea.appendChild(renderAnalytics(state)); break;
+    case 'year-report': contentArea.appendChild(renderYearReport(state)); break;
     case 'history': contentArea.appendChild(renderHistory(state)); break;
     case 'gear': contentArea.appendChild(renderGearList(state)); break;
 
