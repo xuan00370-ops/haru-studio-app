@@ -42,45 +42,6 @@
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* === DARK MODE === */
-[data-theme="dark"] {
-  --bg-deep: #0c1a0c;
-  --bg-main: #111f11;
-  --bg-sidebar: linear-gradient(180deg, #0f2810 0%, #0a1f0b 100%);
-  --bg-card: rgba(20, 40, 20, 0.85);
-  --bg-light: #162816;
-
-  --primary: #22c55e;
-  --primary-light: #4ade80;
-  --primary-glow: rgba(34, 197, 94, 0.25);
-
-  --accent: #86efac;
-  --accent-soft: rgba(34, 197, 94, 0.15);
-
-  --accent-blue: #60a5fa;
-  --accent-pink: #f472b6;
-  --accent-orange: #fb923c;
-  --accent-teal: #2dd4bf;
-
-  --text-main: #e8f5e9;
-  --text-muted: #a5d6a7;
-  --text-dim: #66bb6a;
-
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #3b82f6;
-
-  --border: rgba(34, 197, 94, 0.12);
-  --border-bright: rgba(34, 197, 94, 0.35);
-
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.5);
-
-  color-scheme: dark;
-}
-
 [data-theme="dark"] body {
   background: var(--bg-deep);
   color: var(--text-main);
@@ -1866,6 +1827,7 @@ tr.paid-row {
     opacity: 0;
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1882,32 +1844,60 @@ tr.paid-row {
     opacity: 0;
     transform: translateY(14px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 
-.job-grid > .job-card,
-.job-grid > .swipe-container {
+.job-grid>.job-card,
+.job-grid>.swipe-container {
   animation: cardReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.job-grid > :nth-child(1) { animation-delay: 0.04s; }
-.job-grid > :nth-child(2) { animation-delay: 0.08s; }
-.job-grid > :nth-child(3) { animation-delay: 0.12s; }
-.job-grid > :nth-child(4) { animation-delay: 0.16s; }
-.job-grid > :nth-child(5) { animation-delay: 0.20s; }
-.job-grid > :nth-child(6) { animation-delay: 0.24s; }
-.job-grid > :nth-child(7) { animation-delay: 0.28s; }
-.job-grid > :nth-child(8) { animation-delay: 0.32s; }
-.job-grid > :nth-child(n+9) { animation-delay: 0.36s; }
+.job-grid> :nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.job-grid> :nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.job-grid> :nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.job-grid> :nth-child(4) {
+  animation-delay: 0.16s;
+}
+
+.job-grid> :nth-child(5) {
+  animation-delay: 0.20s;
+}
+
+.job-grid> :nth-child(6) {
+  animation-delay: 0.24s;
+}
+
+.job-grid> :nth-child(7) {
+  animation-delay: 0.28s;
+}
+
+.job-grid> :nth-child(8) {
+  animation-delay: 0.32s;
+}
+
+.job-grid> :nth-child(n+9) {
+  animation-delay: 0.36s;
+}
 
 /* --- Bar grow animation for revenue chart --- */
 @keyframes barGrow {
   from {
     transform: scaleY(0);
   }
+
   to {
     transform: scaleY(1);
   }
@@ -1924,6 +1914,7 @@ tr.paid-row {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1934,11 +1925,25 @@ tr.paid-row {
   animation: statSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.stat-animate:nth-child(1) { animation-delay: 0.05s; }
-.stat-animate:nth-child(2) { animation-delay: 0.10s; }
-.stat-animate:nth-child(3) { animation-delay: 0.15s; }
-.stat-animate:nth-child(4) { animation-delay: 0.20s; }
-.stat-animate:nth-child(5) { animation-delay: 0.25s; }
+.stat-animate:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.stat-animate:nth-child(2) {
+  animation-delay: 0.10s;
+}
+
+.stat-animate:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.stat-animate:nth-child(4) {
+  animation-delay: 0.20s;
+}
+
+.stat-animate:nth-child(5) {
+  animation-delay: 0.25s;
+}
 
 /* --- Button hover lift & glow --- */
 .btn {
@@ -1950,7 +1955,7 @@ tr.paid-row {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -1988,8 +1993,15 @@ tr.paid-row {
 
 /* --- Empty state animation --- */
 @keyframes emptyFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .empty-state-icon {
@@ -2016,8 +2028,15 @@ textarea:focus {
 }
 
 @keyframes subtlePulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.15); }
-  50% { box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.08); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.08);
+  }
 }
 
 /* ============ MOBILE RESPONSIVE FIXES (MODAL) ============ */
@@ -2061,5 +2080,161 @@ textarea:focus {
   .deliverable-row>.del-qty-input {
     flex: 1 1 calc(50% - 1.5rem) !important;
     min-width: 80px !important;
+  }
+}
+
+/* ============================================================
+   MOBILE ENHANCEMENTS — Phase 1C
+   ============================================================ */
+
+/* --- Bottom Navigation (5-tab design) --- */
+@media (max-width: 900px) {
+  .bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9990;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    padding: 0.35rem 0;
+    justify-content: space-around;
+    align-items: center;
+    gap: 0;
+  }
+
+  .bottom-nav .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    padding: 0.3rem 0.5rem;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .bottom-nav .nav-item.active {
+    color: var(--primary);
+    background: var(--primary-glow);
+  }
+
+  .bottom-nav .nav-item .icon {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  /* Extra padding at bottom for bottom nav clearance */
+  .content-area,
+  .view-container {
+    padding-bottom: 72px !important;
+  }
+}
+
+/* --- Job/Gear Cards: 1 column on mobile --- */
+@media (max-width: 768px) {
+
+  .projects-grid,
+  .gear-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Gear filter bar: scrollable horizontal */
+  .gear-filter-bar {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.35rem !important;
+    padding: 0.5rem 0 !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+
+  .gear-filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gear-filter-bar button {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.7rem !important;
+    padding: 0.35rem 0.6rem !important;
+    min-height: 32px;
+  }
+}
+
+/* --- Modals: Full-screen on small screens --- */
+@media (max-width: 768px) {
+
+  .modal-glass,
+  .modal-overlay>div:first-child,
+  #gear-modal-overlay>div:first-child {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* --- Touch targets: minimum 44px --- */
+@media (max-width: 900px) {
+
+  button,
+  .btn,
+  .nav-item,
+  select,
+  .fab-btn {
+    min-height: 44px;
+  }
+
+  input,
+  textarea {
+    min-height: 40px;
+    font-size: 16px !important;
+    /* Prevent iOS zoom */
+  }
+}
+
+/* --- Gear card stats responsive --- */
+@media (max-width: 480px) {
+  .gear-stats {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  .gear-stats>div {
+    padding: 0.5rem !important;
+  }
+
+  .gear-stats .stat-number {
+    font-size: 1.2rem !important;
+  }
+}
+
+/* --- Dashboard cards responsive --- */
+@media (max-width: 480px) {
+  .dash-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* --- Staff cards 1 column on mobile --- */
+@media (max-width: 768px) {
+  .staff-grid {
+    grid-template-columns: 1fr !important;
   }
 }

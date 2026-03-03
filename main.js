@@ -4,8 +4,8 @@ import {
   renderDashboard, renderJobs, renderSidebar, renderBottomNav, renderStaff, renderClients,
   renderFinance, renderTax, renderSync, renderMonthPicker, renderNAS, renderModalOverlay,
   renderCalendar, renderTrash, renderSettings, renderDeadlineEdit, renderEditVideo, renderEditPhoto, renderHistory,
-  renderLoginScreen, renderEditorPortal, renderPortfolioAdmin, renderKanban, renderAnalytics, renderGearList, renderLeadsKanban,
-  renderWatermark, renderWorkspace, renderStaffPortal, renderGalleryClient
+  renderLoginScreen, renderEditorPortal, renderPortfolioAdmin, renderKanban, renderAnalytics, renderGearList,
+  renderWorkspace, renderStaffPortal, renderGalleryClient
 } from './components.js';
 
 import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence, updateBaselineState } from './firebase.js';
@@ -137,15 +137,6 @@ function initTheme() {
   localStorage.setItem('haru_theme', 'light');
 }
 
-window.toggleTheme = function () {
-  // Dark mode disabled by request.
-  document.documentElement.setAttribute('data-theme', 'light');
-  localStorage.setItem('haru_theme', 'light');
-};
-
-window.getThemeIcon = function () {
-  return '🌤️';
-};
 
 initTheme();
 
@@ -360,63 +351,6 @@ setTimeout(() => {
   if (window.initSwipeActions) window.initSwipeActions();
 }, 1000);
 
-// ============================================================
-// QR PREVIEW
-// ============================================================
-window.openQR = (jobId) => {
-  const job = state.jobs.find(j => j.id === jobId);
-  if (!job) return;
-
-  const existing = document.getElementById('qr-panel-overlay');
-  if (existing) existing.remove();
-
-  // Generate preview URL (placeholder - would be real URL in production)
-  const previewUrl = `${window.location.origin}/preview/${job.id}`;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'qr-panel-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center';
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const bg = isDark ? '#162816' : '#fff';
-
-  const panel = document.createElement('div');
-  panel.style.cssText = `background:${bg};border-radius:16px;padding:2rem;max-width:380px;width:90vw;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3)`;
-
-  // Generate QR
-  let qrHtml = '';
-  if (typeof qrcode === 'function') {
-    const qr = qrcode(0, 'M');
-    qr.addData(previewUrl);
-    qr.make();
-    qrHtml = qr.createSvgTag({ scalable: true });
-  } else {
-    qrHtml = '<div style="width:200px;height:200px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:auto">QR Library không sẵn sàng</div>';
-  }
-
-  const statusColor = { 'Đã hoàn thành': '#22c55e', 'Nhận feedback': '#3b82f6', 'Chưa gửi': '#f59e0b', 'Sắp diễn ra': '#ef4444' }[job.status] || '#94a3b8';
-
-  panel.innerHTML = `
-    <div style="font-size:1.3rem;font-weight:900;color:var(--text-main);margin-bottom:0.3rem">📱 QR Preview</div>
-    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1.2rem">Quét mã để xem album khách hàng</div>
-    <div style="display:inline-block;padding:1rem;background:#fff;border-radius:12px;margin-bottom:1rem">
-      <div style="width:180px;height:180px">${qrHtml}</div>
-    </div>
-    <div style="margin-bottom:1rem">
-      <div style="font-size:1rem;font-weight:800;color:var(--text-main)">${job.client}</div>
-      <div style="font-size:0.75rem;color:var(--text-dim)">${new Date(job.date).toLocaleDateString('vi-VN')} · ${job.eventType || 'Sự kiện'}</div>
-      <span style="font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:10px;background:${statusColor}20;color:${statusColor};margin-top:0.3rem;display:inline-block">${job.status}</span>
-    </div>
-    <div style="font-size:0.65rem;color:var(--text-dim);word-break:break-all;padding:0.4rem;background:var(--accent-soft);border-radius:6px;margin-bottom:1rem">${previewUrl}</div>
-    <div style="display:flex;gap:0.5rem;justify-content:center">
-      <button onclick="navigator.clipboard.writeText('${previewUrl}');this.textContent='✅ Đã copy!';setTimeout(()=>this.textContent='📋 Copy Link',1500)" style="background:var(--primary);color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.82rem">📋 Copy Link</button>
-      <button onclick="this.closest('#qr-panel-overlay').remove()" style="background:var(--accent-soft);color:var(--text-main);border:1px solid var(--border);padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.82rem">Đóng</button>
-    </div>
-  `;
-  overlay.appendChild(panel);
-  document.body.appendChild(overlay);
-};
 
 async function bootload() {
   // 1. Cố gắng Load từ LocalStorage trước cho nhanh
@@ -3116,12 +3050,12 @@ function updateUI() {
     case 'settings': contentArea.appendChild(renderSettings(state)); break;
     case 'sync': contentArea.appendChild(renderSync(state)); break;
     case 'nas': contentArea.appendChild(renderNAS(state)); break;
-    case 'watermark': contentArea.appendChild(renderWatermark(state)); break;
+
     case 'kanban': contentArea.appendChild(renderKanban(state)); break;
     case 'analytics': contentArea.appendChild(renderAnalytics(state)); break;
     case 'history': contentArea.appendChild(renderHistory(state)); break;
     case 'gear': contentArea.appendChild(renderGearList(state)); break;
-    case 'leads': contentArea.appendChild(renderLeadsKanban(state)); break;
+
     default: contentArea.appendChild(renderDashboard(periodState, window.navigate));
   }
 
@@ -3141,10 +3075,7 @@ function updateUI() {
     const fabMenu = document.createElement('div');
     fabMenu.className = 'fab-menu';
     fabMenu.innerHTML = `
-      <div class="fab-item" onclick="window.promptAddLead && window.promptAddLead()">
-        <span class="fab-label">Tạo Khách hàng (Lead)</span>
-        <button class="fab-btn"><i class="fas fa-user-plus"></i></button>
-      </div>
+
       <div class="fab-item" onclick="window.openModal()">
         <span class="fab-label">Tạo Hợp đồng (Job)</span>
         <button class="fab-btn"><i class="fas fa-file-signature"></i></button>
@@ -4210,86 +4141,134 @@ window.filterGearCat = (btnEl, category) => {
 };
 
 window.promptAddGear = () => {
-  const name = prompt("Tên thiết bị (VD: Sony A7M4):");
-  if (!name) return;
-  const typeOptions = "1: Camera\n2: Lens\n3: Flycam\n4: Gimbal\n5: Flash\n6: Khác";
-  const typeRes = prompt("Chọn loại thiết bị (nhập số):\n" + typeOptions);
-  let type = 'Khác';
-  if (typeRes === '1') type = 'Camera';
-  if (typeRes === '2') type = 'Lens';
-  if (typeRes === '3') type = 'Flycam';
-  if (typeRes === '4') type = 'Gimbal';
-  if (typeRes === '5') type = 'Flash';
-
-  const serial = prompt("Số Serial (Không bắt buộc):") || '';
-  const notes = prompt("Ghi chú / Tình trạng (Không bắt buộc):") || '';
-
-  const newGear = {
-    id: 'g_' + Date.now(),
-    name, type, serial, notes, status: 'Sẵn sàng'
+  const categories = ['Camera', 'Body CAM', 'Lens', 'Flycam', 'Gimbal', 'Flash', 'Filter', 'Thiết bị âm thanh', 'Thiết bị sạc', 'Thiết bị đựng', 'Phụ kiện quay', 'Lưu trữ', 'Màn hình', 'Truyền hình ảnh', 'Tủ chống ẩm', 'Văn phòng', 'Đèn Led', 'Balo', 'Khác'];
+  const ov = document.createElement('div');
+  ov.id = 'gear-modal-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:440px;width:100%;box-shadow:0 16px 40px rgba(0,0,0,0.2)">
+      <h3 style="font-size:1.1rem;font-weight:900;margin:0 0 1rem 0;color:var(--text-main)">📦 Thêm Thiết Bị Mới</h3>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <input id="gear-name" placeholder="Tên thiết bị *" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        <select id="gear-cat" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit">
+          ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+        </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <input id="gear-price" type="number" placeholder="Giá trị (VNĐ)" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+          <input id="gear-qty" type="number" placeholder="Số lượng" value="1" min="1" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        </div>
+        <input id="gear-serial" placeholder="Serial (tuỳ chọn)" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        <input id="gear-notes" placeholder="Ghi chú (tuỳ chọn)" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:1rem;justify-content:flex-end">
+        <button onclick="document.getElementById('gear-modal-overlay').remove()" style="padding:0.5rem 1rem;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-weight:700;font-family:inherit">Huỷ</button>
+        <button id="gear-save-btn" style="padding:0.5rem 1rem;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-weight:700;font-family:inherit">Lưu</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#gear-save-btn').onclick = () => {
+    const name = document.getElementById('gear-name').value.trim();
+    if (!name) { document.getElementById('gear-name').style.borderColor = '#ef4444'; return; }
+    const newGear = {
+      id: 'g_' + Date.now(), name,
+      type: document.getElementById('gear-cat').value,
+      category: document.getElementById('gear-cat').value,
+      price: parseInt(document.getElementById('gear-price').value) || 0,
+      qty: parseInt(document.getElementById('gear-qty').value) || 1,
+      serial: document.getElementById('gear-serial').value.trim(),
+      notes: document.getElementById('gear-notes').value.trim(),
+      status: 'Sẵn sàng'
+    };
+    state.gears = state.gears || [];
+    state.gears.push(newGear);
+    saveState(); updateUI(); ov.remove();
   };
-  state.gears = state.gears || [];
-  state.gears.push(newGear);
-  saveState();
-  updateUI();
+  setTimeout(() => document.getElementById('gear-name').focus(), 100);
 };
 
 window.promptEditGear = (gearId) => {
   const g = state.gears.find(x => x.id === gearId);
   if (!g) return;
-
-  const action = prompt("Tùy chọn cho " + g.name + ":\n1: Đổi trạng thái (Bảo trì/Sẵn sàng)\n2: Sửa thông tin\n3: Xóa thiết bị");
-  if (action === '1') {
-    const isReady = g.status === 'Sẵn sàng';
-    if (confirm(`Chuyển trạng thái thành: ${isReady ? 'Đang bảo trì' : 'Sẵn sàng'}?`)) {
-      g.status = isReady ? 'Đang bảo trì' : 'Sẵn sàng';
-      saveState();
-      updateUI();
-    }
-  } else if (action === '2') {
-    const newName = prompt("Sửa tên:", g.name);
-    if (newName) g.name = newName;
-    const newSerial = prompt("Sửa Serial:", g.serial);
-    if (newSerial !== null) g.serial = newSerial;
-    const newNotes = prompt("Sửa Ghi chú:", g.notes);
-    if (newNotes !== null) g.notes = newNotes;
-    saveState();
-    updateUI();
-  } else if (action === '3') {
-    if (confirm("Chắc chắn xóa thiết bị này khỏi hệ thống?")) {
+  const ov = document.createElement('div');
+  ov.id = 'gear-modal-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:440px;width:100%;box-shadow:0 16px 40px rgba(0,0,0,0.2)">
+      <h3 style="font-size:1.1rem;font-weight:900;margin:0 0 1rem 0;color:var(--text-main)">🔧 Chỉnh sửa: ${g.name}</h3>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <input id="ge-name" value="${g.name}" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        <input id="ge-serial" value="${g.serial || ''}" placeholder="Serial" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        <input id="ge-notes" value="${g.notes || ''}" placeholder="Ghi chú" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <input id="ge-price" type="number" value="${g.price || 0}" placeholder="Giá" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+          <input id="ge-qty" type="number" value="${g.qty || 1}" min="1" placeholder="SL" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        </div>
+        <select id="ge-status" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit">
+          <option value="Sẵn sàng" ${g.status === 'Sẵn sàng' ? 'selected' : ''}>✅ Sẵn sàng</option>
+          <option value="Đang bảo trì" ${g.status === 'Đang bảo trì' ? 'selected' : ''}>🔧 Đang bảo trì</option>
+          <option value="Đang xuất kho" ${g.status === 'Đang xuất kho' ? 'selected' : ''}>📦 Đang xuất kho</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:1rem;justify-content:space-between">
+        <button id="ge-del-btn" style="padding:0.5rem 1rem;border:1px solid #ef4444;border-radius:8px;background:#fff;color:#ef4444;cursor:pointer;font-weight:700;font-family:inherit">🗑 Xoá</button>
+        <div style="display:flex;gap:0.5rem">
+          <button onclick="document.getElementById('gear-modal-overlay').remove()" style="padding:0.5rem 1rem;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-weight:700;font-family:inherit">Huỷ</button>
+          <button id="ge-save-btn" style="padding:0.5rem 1rem;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-weight:700;font-family:inherit">Lưu</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#ge-save-btn').onclick = () => {
+    g.name = document.getElementById('ge-name').value.trim() || g.name;
+    g.serial = document.getElementById('ge-serial').value.trim();
+    g.notes = document.getElementById('ge-notes').value.trim();
+    g.price = parseInt(document.getElementById('ge-price').value) || 0;
+    g.qty = parseInt(document.getElementById('ge-qty').value) || 1;
+    g.status = document.getElementById('ge-status').value;
+    saveState(); updateUI(); ov.remove();
+  };
+  ov.querySelector('#ge-del-btn').onclick = () => {
+    if (confirm("Chắc chắn xóa thiết bị này?")) {
       state.gears = state.gears.filter(x => x.id !== gearId);
-      saveState();
-      updateUI();
+      saveState(); updateUI(); ov.remove();
     }
-  }
+  };
 };
 
 window.promptCheckoutGear = (gearId) => {
   const g = state.gears.find(x => x.id === gearId);
   if (!g) return;
-  if (g.status === 'Đang bảo trì') {
-    alert("Thiết bị đang bảo trì, không thể xuất kho!");
-    return;
-  }
-
-  const staffName = prompt("Nhân sự mượn thiết bị (VD: THỐNG, BÌNH...):");
-  if (!staffName) return;
-
-  const jobId = prompt(`(Tùy chọn) Mã HD / Job ID nếu mang đi sự kiện:`) || '';
-
-  const newBooking = {
-    id: 'gb_' + Date.now(),
-    gearId: g.id,
-    staff: staffName,
-    jobId: jobId,
-    outDate: new Date().toISOString(),
-    status: 'out'
+  if (g.status === 'Đang bảo trì') { alert("Thiết bị đang bảo trì, không thể xuất kho!"); return; }
+  const ov = document.createElement('div');
+  ov.id = 'gear-modal-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:400px;width:100%;box-shadow:0 16px 40px rgba(0,0,0,0.2)">
+      <h3 style="font-size:1.1rem;font-weight:900;margin:0 0 0.3rem 0;color:var(--text-main)">📤 Xuất Kho: ${g.name}</h3>
+      <p style="font-size:0.8rem;color:var(--text-dim);margin:0 0 1rem 0">Ghi nhận thiết bị được mượn / mang đi sự kiện</p>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <input id="co-staff" placeholder="Nhân sự mượn *" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+        <input id="co-job" placeholder="Mã Job / Sự kiện (tuỳ chọn)" style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit" />
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:1rem;justify-content:flex-end">
+        <button onclick="document.getElementById('gear-modal-overlay').remove()" style="padding:0.5rem 1rem;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-weight:700;font-family:inherit">Huỷ</button>
+        <button id="co-save-btn" style="padding:0.5rem 1rem;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-weight:700;font-family:inherit">Xuất Kho</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#co-save-btn').onclick = () => {
+    const staff = document.getElementById('co-staff').value.trim();
+    if (!staff) { document.getElementById('co-staff').style.borderColor = '#ef4444'; return; }
+    const newBooking = {
+      id: 'gb_' + Date.now(), gearId: g.id, staff,
+      jobId: document.getElementById('co-job').value.trim(),
+      outDate: new Date().toISOString(), status: 'out'
+    };
+    state.gearBookings = state.gearBookings || [];
+    state.gearBookings.push(newBooking);
+    saveState(); updateUI(); ov.remove();
   };
-
-  state.gearBookings = state.gearBookings || [];
-  state.gearBookings.push(newBooking);
-  saveState();
-  updateUI();
+  setTimeout(() => document.getElementById('co-staff').focus(), 100);
 };
 
 window.returnGear = (gearId) => {
@@ -4309,7 +4288,12 @@ window.returnGear = (gearId) => {
 // Chạy khi chưa có seed data (kiểm tra ID prefix g_seed_)
 // ============================================================
 // Patch: fix missing status for all existing gears
-(state.gears || []).forEach(g => { if (!g.status) g.status = 'Sẵn sàng'; });
+(state.gears || []).forEach(g => {
+  if (!g.status) g.status = 'Sẵn sàng';
+  if (!g.category) g.category = g.type || 'Khác';
+  if (g.price === undefined || g.price === null) g.price = 0;
+  if (!g.qty) g.qty = 1;
+});
 
 const hasSeedGears = (state.gears || []).some(g => g.id && g.id.startsWith('g_seed_'));
 if (!hasSeedGears) {
@@ -4454,103 +4438,3 @@ setTimeout(() => {
     } catch (e) { console.error('Error importing fb data on load', e); }
   }
 }, 500);
-
-// ==========================================
-// PHASE 4: CRM LEADS CONTROLLERS
-// ==========================================
-
-window.promptAddLead = () => {
-  const clientName = prompt("Tên Khách Hàng (hoặc Tên CD-CR):");
-  if (!clientName) return;
-  const phone = prompt("Số điện thoại (Tuỳ chọn):") || '';
-  const source = prompt("Nguồn Khách Hàng (VD: Facebook, Zalo, Tiktok, ...):") || 'Khác';
-  const notes = prompt("Ghi chú / Nhu cầu khách quan tâm:") || '';
-
-  const newLead = {
-    id: 'lead_' + Date.now(),
-    clientName,
-    phone,
-    source,
-    notes,
-    date: new Date().toISOString(),
-    updated: new Date().toISOString(),
-    status: 'Mới Hỏi'
-  };
-
-  state.leads = state.leads || [];
-  state.leads.push(newLead);
-  saveState();
-  updateUI();
-};
-
-window.promptEditLead = (leadId) => {
-  const lead = state.leads.find(x => x.id === leadId);
-  if (!lead) return;
-
-  const action = prompt(`Tùy chọn cho Lead của ${lead.clientName}:\n1: Sửa thông tin\n2: Xóa Khách Hàng này`);
-  if (action === '1') {
-    const nName = prompt("Tên Khách:", lead.clientName);
-    if (nName) lead.clientName = nName;
-    const nPhone = prompt("Số Điện Thoại:", lead.phone);
-    if (nPhone !== null) lead.phone = nPhone;
-    const nSource = prompt("Nguồn:", lead.source);
-    if (nSource !== null) lead.source = nSource;
-    const nNotes = prompt("Ghi chú:", lead.notes);
-    if (nNotes !== null) lead.notes = nNotes;
-    lead.updated = new Date().toISOString();
-    saveState();
-    updateUI();
-  } else if (action === '2') {
-    if (confirm("Chắc chắn xóa khách hàng này khỏi danh sách Lead?")) {
-      state.leads = state.leads.filter(x => x.id !== leadId);
-      saveState();
-      updateUI();
-    }
-  }
-};
-
-window.moveLeadStatus = (leadId, dir) => {
-  const lead = state.leads.find(x => x.id === leadId);
-  if (!lead) return;
-  const cols = ['Mới Hỏi', 'Đang Tư Vấn', 'Hẹn Thử Váy', 'Đã Chốt', 'Hủy'];
-  const curIdx = cols.indexOf(lead.status);
-  if (curIdx === -1) return;
-  let newIdx = curIdx + dir;
-  if (newIdx < 0) newIdx = 0;
-  if (newIdx >= cols.length) newIdx = cols.length - 1;
-
-  if (cols[newIdx] !== lead.status) {
-    lead.status = cols[newIdx];
-    lead.updated = new Date().toISOString();
-    saveState();
-    updateUI();
-  }
-};
-
-window.convertLeadToJob = (leadId) => {
-  const lead = state.leads.find(x => x.id === leadId);
-  if (!lead) return;
-
-  if (confirm(`Tạo một Hợp đồng (Job) mới từ thông tin của khách ${lead.clientName}?`)) {
-    // Open the new job modal and prefill some data via state injection or by calling the modal renderer
-    state.modal = {
-      isOpen: true,
-      type: 'job',
-      data: {
-        id: 'job_' + Date.now(),
-        client: lead.clientName,
-        phone: lead.phone,
-        notes: lead.notes,
-        status: 'Mới',
-        date: new Date().toISOString().split('T')[0],
-        venue: '',
-        package: 0,
-        deposit: 0,
-        services: []
-      }
-    };
-    // Close the leads panel in UI
-    window.showPage('dashboard'); // Redirect to dashboard to deal with new job modal
-    updateUI();
-  }
-};

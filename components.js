@@ -64,10 +64,7 @@ export function renderSidebar(activePage, navigate) {
         <span><span class="icon">🚀</span> Không gian làm việc</span>
       </div>
       ` : ''}
-      <div class="nav-item ${activePage === 'leads' ? 'active' : ''}" onclick="window.navigate('leads')" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); margin-bottom: 0.75rem; font-weight: 800;">
-        <span class="icon">🎯</span> CRM Phễu Khách
-        <span style="font-size:0.6rem;background:rgba(239,68,68,0.15);color:#ef4444;padding:0.15rem 0.4rem;border-radius:6px;font-weight:900;margin-left:auto">SALE</span>
-      </div>
+
       <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.navigate('dashboard')">
         <span class="icon">&#128202;</span> Dự án
       </div>
@@ -142,9 +139,7 @@ export function renderSidebar(activePage, navigate) {
           `).join('') : '<div style="font-size: 0.7rem; color: var(--text-dim); font-style: italic">Chỉ mình bạn</div>'}
         </div>
 
-        <div class="nav-item" onclick="window.toggleTheme();window.updateUI()" style="cursor:pointer">
-          <span class="icon">${document.documentElement.getAttribute('data-theme') === 'dark' ? '&#9728;&#65039;' : '&#127769;'}</span> ${document.documentElement.getAttribute('data-theme') === 'dark' ? 'Sáng' : 'Tối'}
-        </div>
+
         <div class="nav-item" onclick="window.logout()" style="color: #ef4444">
           <span class="icon">&#128682;</span> Đăng xuất
         </div>
@@ -2859,167 +2854,7 @@ export function renderSettings(state) {
 // ============================================================
 // KANBAN BOARD
 // ============================================================
-// ============================================================
-// WATERMARK TOOL
-// ============================================================
-export function renderWatermark(state) {
-  const container = document.createElement('div');
-  container.className = 'view-container reveal';
 
-  container.innerHTML = `
-    <header class="section-header">
-      <h1 class="view-title">🎬 Watermark Tool</h1>
-      <span style="font-size:0.85rem;color:var(--text-dim)">Đóng dấu ảnh nhanh chóng</span>
-    </header>
-
-    <div class="glass-panel" style="margin-top:1rem;padding:1.5rem">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
-        <!-- Upload Area -->
-        <div>
-          <div id="wm-drop-zone" style="border:2px dashed var(--border-bright);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center" onclick="document.getElementById('wm-file-input').click()">
-            <div style="font-size:2.5rem;margin-bottom:0.5rem">📷</div>
-            <div style="font-size:0.85rem;font-weight:700;color:var(--text-main)">Kéo ảnh vào đây</div>
-            <div style="font-size:0.72rem;color:var(--text-dim)">hoặc click để chọn file</div>
-            <input type="file" id="wm-file-input" accept="image/*" style="display:none" />
-          </div>
-
-          <div style="margin-top:1rem">
-            <label style="font-size:0.75rem;font-weight:700;color:var(--text-dim);display:block;margin-bottom:0.3rem">Nội dung watermark:</label>
-            <input id="wm-text" type="text" value="© HARU STUDIO" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:var(--bg-main);color:var(--text-main)" />
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.8rem">
-            <div>
-              <label style="font-size:0.7rem;font-weight:700;color:var(--text-dim);display:block;margin-bottom:0.2rem">Vị trí:</label>
-              <select id="wm-position" style="width:100%;padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:var(--bg-main);color:var(--text-main)">
-                <option value="bottom-right">Dưới phải</option>
-                <option value="bottom-left">Dưới trái</option>
-                <option value="center">Giữa</option>
-                <option value="top-right">Trên phải</option>
-                <option value="tile">Lặp toàn ảnh</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:0.7rem;font-weight:700;color:var(--text-dim);display:block;margin-bottom:0.2rem">Opacity:</label>
-              <input id="wm-opacity" type="range" min="10" max="80" value="30" style="width:100%" />
-            </div>
-          </div>
-
-          <button id="wm-apply-btn" disabled style="margin-top:1rem;width:100%;background:var(--primary);color:#fff;border:none;padding:0.6rem;border-radius:8px;font-weight:800;cursor:pointer;font-family:inherit;font-size:0.9rem;opacity:0.5">
-            🖊️ Đóng Watermark
-          </button>
-        </div>
-
-        <!-- Preview Area -->
-        <div>
-          <div style="font-size:0.75rem;font-weight:700;color:var(--text-dim);margin-bottom:0.5rem">Preview:</div>
-          <div id="wm-preview" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center;background:var(--accent-soft)">
-            <span style="font-size:0.8rem;color:var(--text-dim)">Chưa có ảnh</span>
-          </div>
-          <button id="wm-download-btn" disabled style="margin-top:0.8rem;width:100%;background:#3b82f6;color:#fff;border:none;padding:0.5rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem;opacity:0.5">
-            💾 Tải ảnh có Watermark
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Watermark logic
-  setTimeout(() => {
-    let loadedImg = null;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    const fileInput = container.querySelector('#wm-file-input');
-    const dropZone = container.querySelector('#wm-drop-zone');
-    const applyBtn = container.querySelector('#wm-apply-btn');
-    const downloadBtn = container.querySelector('#wm-download-btn');
-    const preview = container.querySelector('#wm-preview');
-
-    const loadImage = (file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          loadedImg = img;
-          preview.innerHTML = '';
-          const previewImg = document.createElement('img');
-          previewImg.src = e.target.result;
-          previewImg.style.cssText = 'max-width:100%;max-height:400px;display:block';
-          preview.appendChild(previewImg);
-          applyBtn.disabled = false;
-          applyBtn.style.opacity = '1';
-          dropZone.innerHTML = `<div style="font-size:0.8rem;color:var(--primary);font-weight:700">✅ ${file.name}</div>`;
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    };
-
-    fileInput.onchange = (e) => { if (e.target.files[0]) loadImage(e.target.files[0]); };
-    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; };
-    dropZone.ondragleave = () => { dropZone.style.borderColor = 'var(--border-bright)'; };
-    dropZone.ondrop = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--border-bright)'; if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]); };
-
-    applyBtn.onclick = () => {
-      if (!loadedImg) return;
-      canvas.width = loadedImg.width;
-      canvas.height = loadedImg.height;
-      ctx.drawImage(loadedImg, 0, 0);
-
-      const text = container.querySelector('#wm-text').value || '© HARU STUDIO';
-      const pos = container.querySelector('#wm-position').value;
-      const opacity = container.querySelector('#wm-opacity').value / 100;
-      const fontSize = Math.max(16, loadedImg.width * 0.03);
-
-      ctx.font = `bold ${fontSize}px Outfit, sans-serif`;
-      ctx.fillStyle = `rgba(255,255,255,${opacity})`;
-      ctx.strokeStyle = `rgba(0,0,0,${opacity * 0.3})`;
-      ctx.lineWidth = 2;
-
-      if (pos === 'tile') {
-        ctx.save();
-        ctx.rotate(-0.3);
-        for (let y = -loadedImg.height; y < loadedImg.height * 2; y += fontSize * 4) {
-          for (let x = -loadedImg.width; x < loadedImg.width * 2; x += fontSize * text.length * 0.8) {
-            ctx.strokeText(text, x, y);
-            ctx.fillText(text, x, y);
-          }
-        }
-        ctx.restore();
-      } else {
-        let x, y;
-        const m = fontSize * 1.5;
-        switch (pos) {
-          case 'bottom-right': x = canvas.width - ctx.measureText(text).width - m; y = canvas.height - m; break;
-          case 'bottom-left': x = m; y = canvas.height - m; break;
-          case 'top-right': x = canvas.width - ctx.measureText(text).width - m; y = m + fontSize; break;
-          default: x = (canvas.width - ctx.measureText(text).width) / 2; y = canvas.height / 2;
-        }
-        ctx.strokeText(text, x, y);
-        ctx.fillText(text, x, y);
-      }
-
-      preview.innerHTML = '';
-      const resultImg = document.createElement('img');
-      resultImg.src = canvas.toDataURL('image/jpeg', 0.92);
-      resultImg.style.cssText = 'max-width:100%;max-height:400px;display:block';
-      preview.appendChild(resultImg);
-
-      downloadBtn.disabled = false;
-      downloadBtn.style.opacity = '1';
-    };
-
-    downloadBtn.onclick = () => {
-      const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/jpeg', 0.92);
-      a.download = `haru_watermark_${Date.now()}.jpg`;
-      a.click();
-    };
-  }, 100);
-
-  return container;
-}
 
 export function renderKanban(state) {
   const container = document.createElement('div');
@@ -3066,16 +2901,16 @@ export function renderKanban(state) {
   const displayClips = kanbanEditorFilter === 'TẤT CẢ' ? clips : clips.filter(c => c.editor === kanbanEditorFilter);
 
   container.innerHTML = `
-    <header class="section-header">
+  < header class="section-header" >
       <h1 class="view-title">📋 Kanban Board</h1>
       <span style="font-size:0.85rem;color:var(--text-dim)">${displayClips.length}/${clips.length} clip</span>
-    </header>
+    </header >
 
-    <!-- Editor filter chips -->
-    <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.75rem;margin-bottom:0.75rem">
-      <button onclick="window.setKanbanEditorFilter('TẤT CẢ')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">Tất cả (${clips.length})</button>
-      ${allEditors.map(e => `<button onclick="window.setKanbanEditorFilter('${e}')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === e ? 'background:#a855f7;color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">✏️ ${e} (${clips.filter(c => c.editor === e).length})</button>`).join('')}
-    </div>
+    < !--Editor filter chips-- >
+  <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.75rem;margin-bottom:0.75rem">
+    <button onclick="window.setKanbanEditorFilter('TẤT CẢ')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === 'TẤT CẢ' ? 'background:var(--primary);color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">Tất cả (${clips.length})</button>
+    ${allEditors.map(e => `<button onclick="window.setKanbanEditorFilter('${e}')" style="font-size:0.72rem;padding:0.2rem 0.65rem;border-radius:16px;cursor:pointer;font-weight:700;font-family:inherit;${kanbanEditorFilter === e ? 'background:#a855f7;color:#fff;border:none' : 'background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border)'}">✏️ ${e} (${clips.filter(c => c.editor === e).length})</button>`).join('')}
+  </div>
 
     ${displayClips.length === 0 ? `
       <div style="text-align:center;padding:2.5rem 1rem;margin-bottom:1rem;background:var(--bg-card);border-radius:16px;border:1px dashed var(--border-bright)">
@@ -3083,10 +2918,11 @@ export function renderKanban(state) {
         <h3 style="font-size:1.1rem;font-weight:800;color:var(--text-main);margin-bottom:0.3rem">Chưa có video clip nào</h3>
         <p style="font-size:0.82rem;color:var(--text-dim);max-width:320px;margin:0 auto">Thêm thành phẩm Video vào dự án để theo dõi tiến độ hậu kỳ tại đây.</p>
       </div>
-    ` : ''}
+    ` : ''
+    }
 
-    <div class="kanban-board" style="display:flex;gap:0.6rem;overflow-x:auto;padding-bottom:1rem;min-height:400px">
-      ${stages.map(s => `
+<div class="kanban-board" style="display:flex;gap:0.6rem;overflow-x:auto;padding-bottom:1rem;min-height:400px">
+  ${stages.map(s => `
         <div class="kanban-column" style="flex:1;min-width:200px;background:var(--bg-card);border-radius:12px;padding:0.6rem;border:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.8rem;padding-bottom:0.5rem;border-bottom:2px solid ${s.color}">
             <span>${s.icon}</span>
@@ -3095,20 +2931,20 @@ export function renderKanban(state) {
           </div>
           <div class="kanban-list" data-status="${s.id}" style="min-height:60px;display:flex;flex-direction:column;gap:0.4rem">
             ${(() => {
-      let list = displayClips.filter(c => c.editStatus === s.id);
-      if (s.id === 'Hoàn thành' && list.length > 50) {
-        list.sort((a, b) => new Date(b.date) - new Date(a.date));
-        list = list.slice(0, 50);
-      }
-      return list.map(c => {
-        const isLocked = window.state?.locks?.[c.jobId];
-        return `
+        let list = displayClips.filter(c => c.editStatus === s.id);
+        if (s.id === 'Hoàn thành' && list.length > 50) {
+          list.sort((a, b) => new Date(b.date) - new Date(a.date));
+          list = list.slice(0, 50);
+        }
+        return list.map(c => {
+          const isLocked = window.state?.locks?.[c.jobId];
+          return `
               <div class="kanban-card ${isLocked ? 'locked-card' : ''}" onclick="${isLocked ? '' : `window.openQuickPreview('${c.jobId}')`}" data-job-id="${c.jobId}" data-sidx="${c.sIdx}"
                 style="${isLocked ? 'opacity:0.6;pointer-events:none;' : ''} background:var(--bg-main);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.5rem;cursor:grab;border-left:3px solid ${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
-            : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
-              : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
-                : s.color
-          };position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)${c.daysLeft != null && c.daysLeft <= 3 ? ';background:rgba(239,68,68,0.03)' : c.daysLeft != null && c.daysLeft <= 7 ? ';background:rgba(245,158,11,0.03)' : ''}">
+              : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+                : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+                  : s.color
+            };position:relative;margin-bottom:0.4rem;box-shadow:0 1px 2px rgba(0,0,0,0.03)${c.daysLeft != null && c.daysLeft <= 3 ? ';background:rgba(239,68,68,0.03)' : c.daysLeft != null && c.daysLeft <= 7 ? ';background:rgba(245,158,11,0.03)' : ''}">
                 ${isLocked ? `<div style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:0.5rem;padding:0.15rem 0.4rem;border-radius:10px;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.2)">🔒 ${window.state.locks[c.jobId]}</div>` : ''}
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.15rem">
                   <span style="font-size:0.75rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="${c.client}">${c.client}</span>
@@ -3117,22 +2953,22 @@ export function renderKanban(state) {
                 <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.service}">🎥 ${c.service} <strong style="color:var(--text-main)">(x${c.qty})</strong></div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                   <span style="font-size:0.55rem;font-weight:700;color:${c.daysLeft != null && c.daysLeft <= 0 ? '#ef4444'
-            : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
-              : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
-                : 'var(--text-dim)'
-          }">⏰ ${c.deadlineStr || '—'}${c.daysLeft != null && c.daysLeft <= 3 && c.daysLeft > 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 7 && c.daysLeft > 3 ? ` <span style="background:#f59e0b20;color:#f59e0b;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">QH</span>` : ''
-          }</span>
+              : c.daysLeft != null && c.daysLeft <= 3 ? '#ef4444'
+                : c.daysLeft != null && c.daysLeft <= 7 ? '#f59e0b'
+                  : 'var(--text-dim)'
+            }">⏰ ${c.deadlineStr || '—'}${c.daysLeft != null && c.daysLeft <= 3 && c.daysLeft > 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 7 && c.daysLeft > 3 ? ` <span style="background:#f59e0b20;color:#f59e0b;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">${c.daysLeft}N</span>` : c.daysLeft != null && c.daysLeft <= 0 ? ` <span style="background:#ef444420;color:#ef4444;padding:0.1rem 0.25rem;border-radius:3px;font-weight:900">QH</span>` : ''
+            }</span>
                   <span style="font-size:0.55rem;font-weight:700;background:#a855f715;color:#a855f7;padding:0.15rem 0.3rem;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px" title="${c.editor || 'Chưa gán'}">✏️ ${c.editor || 'Trống'}</span>
                 </div>
               </div>
             `;
-      }).join('')
-    })()}
+        }).join('')
+      })()}
           </div>
         </div>
       `).join('')}
-    </div>
-  `;
+</div>
+`;
 
   // Initialize SortableJS after DOM
   setTimeout(() => {
@@ -3213,10 +3049,10 @@ export function renderAnalytics(state) {
   const statusColors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
   container.innerHTML = `
-    <header class="section-header">
+  < header class="section-header" >
       <h1 class="view-title">📊 Analytics Dashboard</h1>
       <span style="font-size:0.85rem;color:var(--text-dim)">Năm ${year} — ${state.jobs.length} dự án</span>
-    </header>
+    </header >
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
       <div class="glass-panel" style="padding:1.2rem;grid-column:1/3">
@@ -3253,7 +3089,7 @@ export function renderAnalytics(state) {
         <div style="font-size:1.4rem;font-weight:900;color:#8b5cf6;margin-top:0.3rem">${Object.keys(editorMap).length}</div>
       </div>
     </div>
-  `;
+`;
 
   // Render charts after DOM insert
   setTimeout(() => {
@@ -3334,7 +3170,7 @@ export function renderHistory(state) {
   };
 
   container.innerHTML = `
-  <header class="section-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+  < header class="section-header" style = "display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem" >
        <div>
          <h1 class="view-title">📋 Lịch sử hoạt động</h1>
          <span style="font-size: 0.85rem; color: var(--text-dim)">${state.history.length} hoạt động</span>
@@ -3347,7 +3183,7 @@ export function renderHistory(state) {
            📥 Nhập Backup
          </button>
        </div>
-    </header>
+    </header >
 
   <div class="glass-panel" style="margin-top: 1.5rem; padding: 1.5rem">
     <div style="position: relative; padding-left: 2rem">
@@ -3440,10 +3276,10 @@ export function renderStaff(state) {
     });
   });
 
-  const roleOptions = (window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `<option>${opt}</option>`).join('');
+  const roleOptions = (window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `< option > ${opt}</option > `).join('');
 
   container.innerHTML = `
-    <header class="section-header">
+  < header class="section-header" >
       <div>
         <h1 class="view-title">Quản Lý Nhân Sự &amp; Bảng Lương</h1>
         <p style="color: var(--text-dim); font-size: 0.9rem;">Danh sách nhân sự &amp; Hệ thống tự động tính lương tháng ${state.currentMonth}/${state.currentYear}</p>
@@ -3453,9 +3289,9 @@ export function renderStaff(state) {
           <i class="fas fa-plus"></i> Thêm Nhân Sự
         </button>
       </div>
-    </header>
+    </header >
 
-    <!-- INLINE ADD STAFF FORM -->
+    < !--INLINE ADD STAFF FORM-- >
     <div id="staff-add-form" class="glass-panel" style="display:none; padding:1.5rem; margin-bottom:1.5rem; border:2px solid rgba(22,163,74,0.3); background:rgba(22,163,74,0.03)">
       <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem; color:var(--primary)"><i class="fas fa-user-plus" style="margin-right:0.5rem"></i>Thêm Nhân Sự Mới</h3>
       <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:1rem">
@@ -3492,7 +3328,7 @@ export function renderStaff(state) {
       </div>
     </div>
 
-    <!-- PAYROLL AUTOMATION TABLE -->
+    <!--PAYROLL AUTOMATION TABLE-- >
     <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; margin-bottom:2rem; overflow:hidden">
       <div style="padding:1rem 1.25rem; background:rgba(22,163,74,0.05); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
         <div style="font-weight:900; color:var(--text-main); font-size:1.1rem">💰 Bảng Kê Lương Tháng ${state.currentMonth}/${state.currentYear}</div>
@@ -3583,7 +3419,7 @@ export function renderStaff(state) {
         </div>`;
   }).join('')}
     </div>
-  `;
+`;
   return container;
 }
 
@@ -3592,10 +3428,10 @@ export function renderNAS(state) {
   const container = document.createElement('div');
   container.className = 'view-container reveal';
   container.innerHTML = `
-  <header class="section-header" >
+  < header class="section-header" >
        <h1 class="view-title">NAS / Drive — Cấu hình hệ thống</h1>
        <button class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Lưu cấu hình</button>
-    </header>
+    </header >
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
     <div class="glass-panel" style="padding: 1.5rem">
@@ -3657,16 +3493,16 @@ export function renderSync(state) {
   const logColorMap = { added: 'var(--success)', updated: 'var(--accent-blue)', skipped: 'var(--accent-orange)', error: 'var(--danger)', info: 'var(--text-dim)' };
 
   container.innerHTML = `
-  <header class="section-header">
+  < header class="section-header" >
        <h1 class="view-title">🔄 Sync Dữ liệu</h1>
        <div style="display: flex; gap: 0.5rem">
           <button class="btn btn-warning btn-sm" onclick="window.importGoLiveData()" style="background: var(--warning); color: #fff; border:none; margin-right: 1rem;"><i class="fas fa-magic"></i> Khởi tạo Dữ liệu Go-Live</button>
           <button class="btn btn-secondary btn-sm" onclick="window.exportCSV()"><i class="fas fa-file-export"></i> Xuất CSV</button>
           <button class="btn btn-primary btn-sm" onclick="window.runSync()"><i class="fas fa-cloud-download-alt"></i> Sync toàn bộ</button>
        </div>
-    </header>
+    </header >
 
-    ${lastSync ? `
+  ${lastSync ? `
     <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1.5rem">
        <div class="glass-panel" style="padding: 1rem; text-align: center">
           <div style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700">Tổng dự án</div>
@@ -3689,41 +3525,42 @@ export function renderSync(state) {
           <div style="font-size: 1.5rem; font-weight: 900; color: var(--danger)">${lastSync.errors}</div>
        </div>
     </div>
-    ` : ''}
+    ` : ''
+    }
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
-    <div class="glass-panel" style="padding: 1.5rem">
-      <h3 style="font-size: 0.95rem; margin-bottom: 1.5rem"><i class="fas fa-link" style="color: var(--primary); margin-right: 0.5rem"></i>Cấu hình Sync</h3>
-      <div style="display: flex; flex-direction: column; gap: 1rem">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
+  <div class="glass-panel" style="padding: 1.5rem">
+    <h3 style="font-size: 0.95rem; margin-bottom: 1.5rem"><i class="fas fa-link" style="color: var(--primary); margin-right: 0.5rem"></i>Cấu hình Sync</h3>
+    <div style="display: flex; flex-direction: column; gap: 1rem">
+      <div>
+        <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Link Google Sheet</label>
+        <input type="text" class="form-control" id="sync-sheet-url" value="https://docs.google.com/spreadsheets/d/1hVxXhaDMYQcv1aZfTaZCQmlC-QtHQ-oMayIetOmIRvM/edit" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
         <div>
-          <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Link Google Sheet</label>
-          <input type="text" class="form-control" id="sync-sheet-url" value="https://docs.google.com/spreadsheets/d/1hVxXhaDMYQcv1aZfTaZCQmlC-QtHQ-oMayIetOmIRvM/edit" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
-          <div>
-            <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">NAS Root Path</label>
-            <input type="text" class="form-control" id="sync-nas-root" value="/Volumes/HARUwedding" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
-          </div>
-          <div>
-            <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Tháng / Năm</label>
-            <input type="text" class="form-control" value="${state.currentMonth}/${state.currentYear}" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem" readonly>
-          </div>
+          <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">NAS Root Path</label>
+          <input type="text" class="form-control" id="sync-nas-root" value="/Volumes/HARUwedding" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
         </div>
         <div>
-          <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Drive Folders API (tuỳ chọn)</label>
-          <input type="text" class="form-control" id="sync-drive-api" value="" placeholder="https://script.google.com/... (trả về mảng folders)" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
-        </div>
-        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem">
-          <button class="btn btn-primary btn-sm" style="flex: 1" onclick="window.runSync()"><i class="fas fa-cloud-download-alt"></i> Sync NAS + Drive</button>
-          <button class="btn btn-secondary btn-sm" style="flex: 1" onclick="window.exportJSON()"><i class="fas fa-save"></i> Sao lưu JSON</button>
+          <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Tháng / Năm</label>
+          <input type="text" class="form-control" value="${state.currentMonth}/${state.currentYear}" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem" readonly>
         </div>
       </div>
+      <div>
+        <label style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800">Drive Folders API (tuỳ chọn)</label>
+        <input type="text" class="form-control" id="sync-drive-api" value="" placeholder="https://script.google.com/... (trả về mảng folders)" style="margin-top: 0.3rem; font-size: 0.8rem; padding: 0.5rem">
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem">
+        <button class="btn btn-primary btn-sm" style="flex: 1" onclick="window.runSync()"><i class="fas fa-cloud-download-alt"></i> Sync NAS + Drive</button>
+        <button class="btn btn-secondary btn-sm" style="flex: 1" onclick="window.exportJSON()"><i class="fas fa-save"></i> Sao lưu JSON</button>
+      </div>
     </div>
+  </div>
 
-    <div class="glass-panel" style="padding: 1.5rem">
-      <h3 style="font-size: 0.95rem; margin-bottom: 1.5rem"><i class="fas fa-clipboard-list" style="color: var(--success); margin-right: 0.5rem"></i>Nhật ký Sync (${logs.length})</h3>
-      <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto">
-        ${logs.length > 0 ? logs.slice().reverse().map(log => `
+  <div class="glass-panel" style="padding: 1.5rem">
+    <h3 style="font-size: 0.95rem; margin-bottom: 1.5rem"><i class="fas fa-clipboard-list" style="color: var(--success); margin-right: 0.5rem"></i>Nhật ký Sync (${logs.length})</h3>
+    <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto">
+      ${logs.length > 0 ? logs.slice().reverse().map(log => `
                 <div style="display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.4rem 0; border-bottom: 1px solid var(--border)">
                    <div style="width: 8px; height: 8px; background: ${logColorMap[log.type] || 'var(--text-dim)'}; border-radius: 50%; margin-top: 0.4rem; flex-shrink: 0"></div>
                    <div style="flex: 1">
@@ -3733,9 +3570,9 @@ export function renderSync(state) {
                    </div>
                 </div>
              `).join('') : '<div style="font-size: 0.85rem; color: var(--text-dim); text-align: center; padding: 2rem">Chưa có sync log nào. Bấm "Sync NAS + Drive" để bắt đầu.</div>'}
-      </div>
     </div>
   </div>
+</div>
 `;
   return container;
 }
@@ -5398,9 +5235,12 @@ export function renderGearList(state) {
       </div>
     </div>
 
-    <!-- Filter Bar by Category -->
-    <div class="filter-bar" style="margin-bottom:1rem; overflow-x:auto">
-      <div class="filter-group" style="flex-wrap:wrap; gap:0.4rem">
+    <!-- Search + Filter Bar -->
+    <div style="margin-bottom:1rem">
+      <input type="text" placeholder="🔍 Tìm thiết bị..." oninput="(function(q){document.querySelectorAll('.gear-item-card').forEach(c=>{c.style.display=c.textContent.toLowerCase().includes(q.toLowerCase())?'':'none'})})(this.value)" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;margin-bottom:0.5rem;box-sizing:border-box" />
+    </div>
+    <div class="filter-bar gear-filter-bar" style="margin-bottom:1rem; overflow-x:auto">
+      <div class="filter-group" style="flex-wrap:nowrap; gap:0.4rem; display:flex">
         <button class="filter-btn active" onclick="window.filterGearCat(this, 'ALL')">TẤT CẢ</button>
         ${categories.map(c => `<button class="filter-btn" onclick="window.filterGearCat(this, '${c}')">${c}</button>`).join('')}
       </div>
@@ -5479,136 +5319,3 @@ export function renderGearList(state) {
   return container;
 }
 
-
-// ==========================================
-// PHASE 4: CRM LEADS KANBAN
-// ==========================================
-
-export function renderLeadsKanban(state) {
-  const container = document.createElement('div');
-  container.className = 'content-section';
-  // Use kanban layout styling
-  container.style.padding = '0';
-  container.style.height = '100%';
-  container.style.overflow = 'hidden';
-
-  const leads = state.leads || [];
-  const columns = [
-    { id: 'Mới Hỏi', name: '👋 Mới Hỏi', color: '#3b82f6' },
-    { id: 'Đang Tư Vấn', name: '💬 Đang Tư Vấn', color: '#f59e0b' },
-    { id: 'Hẹn Thử Váy', name: '👗 Hẹn Thử Váy', color: '#8b5cf6' },
-    { id: 'Đã Chốt', name: '✅ Đã Chốt', color: '#10b981' },
-    { id: 'Hủy', name: '❌ Hủy', color: '#ef4444' }
-  ];
-
-  container.innerHTML = `
-    <div style="padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; background:#fff; border-bottom:1px solid var(--border)">
-      <div>
-        <h2 style="font-size:1.6rem; font-weight:900; color:var(--text-main); margin:0;">CRM Phễu Khách Hàng 🎯</h2>
-        <div style="font-size:0.85rem; color:var(--text-dim); margin-top:0.2rem">Theo dõi và chăm sóc khách hàng từ lúc nhắn tin đến khi chốt hợp đồng.</div>
-      </div>
-      <div>
-        <button class="btn btn-primary" onclick="window.promptAddLead()" style="padding:0.6rem 1rem">
-          <i class="fas fa-plus"></i> Khách Mới
-        </button>
-      </div>
-    </div>
-    
-    <div class="kanban-board" style="height: calc(100vh - 150px); padding: 1rem 1.5rem; overflow-x: auto; background: var(--bg-body)">
-      ${columns.map(col => {
-    const colLeads = leads.filter(l => l.status === col.id).sort((a, b) => new Date(b.updated) - new Date(a.updated));
-
-    return `
-          <div class="kanban-column" style="background:#fff; border:1px solid rgba(0,0,0,0.05); box-shadow:0 4px 12px rgba(0,0,0,0.03)">
-            <div class="kanban-header" style="position:sticky; top:0; z-index:10; background:#fff; border-bottom:2px solid ${col.color}40; padding:1rem">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem">
-                <span style="font-weight:900; color:var(--text-main); font-size:1rem">${col.name}</span>
-                <div class="kanban-badge" style="background:${col.color}15; color:${col.color}; font-weight:800; font-size:0.8rem; padding:0.2rem 0.6rem; border-radius:12px">${colLeads.length}</div>
-              </div>
-            </div>
-            
-            <div class="kanban-list leads-list" data-status="${col.id}" style="padding:0.75rem; min-height:100px; display:flex; flex-direction:column; gap:0.75rem">
-              ${colLeads.map(lead => `
-                <div class="kanban-card glass-panel" data-id="${lead.id}" style="border:1px solid var(--border); padding:0; cursor:grab; border-left:4px solid ${col.color}; overflow:hidden; position:relative">
-                  
-                  <!-- Mobile Swipe Actions -->
-                  <div class="swipe-actions">
-                    <button class="swipe-btn" style="background:#ef4444" onclick="window.moveLeadStatus('${lead.id}', -1)">⏪ Lùi</button>
-                    <button class="swipe-btn" style="background:#16a34a" onclick="window.moveLeadStatus('${lead.id}', 1)">Tiến ⏩</button>
-                  </div>
-
-                  <div class="swipe-content" style="background:#fff; padding:1rem; position:relative; z-index:2">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.4rem">
-                      <div style="font-weight:800; font-size:0.95rem; color:var(--text-main)"><i class="fas fa-user-circle" style="color:var(--text-dim); margin-right:4px"></i>${lead.clientName}</div>
-                      <div style="font-size:0.65rem; font-weight:800; color:#6366f1; background:#6366f115; padding:0.15rem 0.4rem; border-radius:4px">${lead.source || 'Khác'}</div>
-                    </div>
-                    
-                    <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:0.6rem; display:flex; align-items:center; gap:0.3rem" onclick="window.location.href='tel:${lead.phone}'">
-                      <span>📞 ${lead.phone || 'N/A'}</span>
-                    </div>
-
-                    ${lead.notes ? `
-                      <div style="font-size:0.8rem; color:var(--text-dim); background:rgba(0,0,0,0.03); padding:0.45rem 0.6rem; border-radius:6px; margin-bottom:0.6rem; line-height:1.4">
-                        ${lead.notes}
-                      </div>
-                    ` : ''}
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; padding-top:0.6rem; border-top:1px dashed var(--border)">
-                      <div style="font-size:0.7rem; color:var(--text-dim); font-weight:600">
-                        ⏱️ ${new Date(lead.updated || lead.date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
-                      </div>
-
-                      <div style="display:flex; gap:0.4rem">
-                        <button class="hide-on-mobile" onclick="window.promptEditLead('${lead.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-dim); transition:0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'" title="Sửa thông tin">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        ${col.id === 'Đã Chốt' ? `
-                          <button onclick="window.convertLeadToJob('${lead.id}')" style="background:none; border:none; cursor:pointer; color:#10b981; transition:0.2s; font-weight:800; font-size:0.85rem" title="Tạo dự án mới">
-                            <i class="fas fa-arrow-right"></i> Add Job
-                          </button>
-                        ` : ''}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-  }).join('')}
-    </div>
-  `;
-
-  // Attach Swipe Events for mobile
-  setTimeout(() => {
-    const cards = container.querySelectorAll('.kanban-card');
-    cards.forEach(card => {
-      const content = card.querySelector('.swipe-content');
-      let startX = 0;
-      let currentX = 0;
-
-      content.addEventListener('touchstart', e => {
-        startX = e.touches[0].clientX;
-      }, { passive: true });
-
-      content.addEventListener('touchmove', e => {
-        currentX = e.touches[0].clientX - startX;
-        if (Math.abs(currentX) > 20) {
-          content.style.transform = `translateX(${currentX}px)`;
-        }
-      }, { passive: true });
-
-      content.addEventListener('touchend', () => {
-        if (currentX > 80) { // Swipe Right -> Next Phase
-          window.moveLeadStatus(card.dataset.id, 1);
-        } else if (currentX < -80) { // Swipe Left -> Prev Phase
-          window.moveLeadStatus(card.dataset.id, -1);
-        }
-        content.style.transform = 'translateX(0)';
-        currentX = 0;
-      });
-    });
-  }, 100);
-
-  return container;
-}
