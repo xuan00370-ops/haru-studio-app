@@ -1080,8 +1080,11 @@ function renderJobDetailModal(state) {
         </div>
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center">
+        <button onclick="window.shareJobLink('${job.id}')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 800; border-radius: 8px; border: 1px solid var(--border-bright); background: #fff; cursor: pointer; color: var(--text-dim); transition: 0.2s" onmouseover="this.style.borderColor='#2563eb';this.style.color='#2563eb'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-dim)'">
+          <i class="fas fa-share-alt" style="color: #2563eb"></i> Share
+        </button>
         <button onclick="window.exportInvoiceToPDF('${job.id}')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 800; border-radius: 8px; border: 1px solid var(--border-bright); background: #fff; cursor: pointer; color: var(--text-dim); transition: 0.2s" onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-dim)'">
-          <i class="fas fa-file-pdf" style="color: #ef4444"></i> Hóa Đơn PDF
+          <i class="fas fa-file-pdf" style="color: #ef4444"></i> PDF
         </button>
         <button class="close-btn" onclick="window.closeModal()">&#x2715;</button>
       </div>
@@ -5512,6 +5515,120 @@ export function renderYearReport(state) {
         </div>`;
   }).join('')}
     </div>` : ''}
+  `;
+
+  return container;
+}
+
+// ── Trang Tiến Độ Read-Only cho Khách Hàng (Idea 5) ──
+export function renderClientProgressView(job) {
+  const container = document.createElement('div');
+  container.style.cssText = 'min-height:100vh;background:linear-gradient(135deg,#f0fdf4 0%,#ecfdf5 50%,#f0f9ff 100%);font-family:system-ui,-apple-system,sans-serif;padding:0';
+
+  const cl = job.checklist || {};
+  const services = (job.services || []).filter(s => s && s.service);
+  const hasEdit = services.some(s => s.service?.toLowerCase().includes('quay'));
+  const editDone = services.every(s => !s.service?.toLowerCase().includes('quay') || s.editStatus === 'Hoàn thành');
+  const jobDate = new Date(job.date);
+  const isPast = jobDate < new Date();
+
+  let currentStep = 0;
+  if (isPast) currentStep = 1;
+  if (hasEdit && editDone) currentStep = 2;
+  if (job.status === 'Đã hoàn thành' || cl.albumDelivered) currentStep = 3;
+  if (cl.fullyPaid && cl.albumDelivered) currentStep = 4;
+
+  const steps = [
+    { label: 'Quay / Chụp', icon: '📸', desc: 'Thực hiện ngày sự kiện' },
+    { label: 'Hậu kỳ', icon: '🎬', desc: 'Chỉnh sửa & dựng phim' },
+    { label: 'Review', icon: '👀', desc: 'Xem duyệt & feedback' },
+    { label: 'Giao hàng', icon: '📦', desc: 'Bàn giao sản phẩm' }
+  ];
+
+  const timelineHTML = steps.map((s, i) => {
+    const done = i < currentStep;
+    const active = i === currentStep;
+    return `<div style="display:flex;align-items:flex-start;gap:1rem;${i < steps.length - 1 ? 'padding-bottom:1.5rem' : ''}">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;${done ? 'background:#16a34a;color:#fff;box-shadow:0 0 0 4px rgba(22,163,74,0.15)' : active ? 'background:#fff;color:#16a34a;border:3px solid #16a34a;box-shadow:0 0 0 4px rgba(22,163,74,0.1)' : 'background:#f1f5f9;color:#94a3b8;border:2px solid #e2e8f0'}">${done ? '✓' : s.icon}</div>
+        ${i < steps.length - 1 ? `<div style="width:3px;flex:1;min-height:20px;background:${done ? '#16a34a' : '#e2e8f0'};margin-top:0.3rem;border-radius:2px"></div>` : ''}
+      </div>
+      <div style="padding-top:0.4rem">
+        <div style="font-weight:800;font-size:0.95rem;color:${done ? '#16a34a' : active ? '#0f172a' : '#94a3b8'}">${s.label}</div>
+        <div style="font-size:0.8rem;color:${done ? '#16a34a80' : '#94a3b8'};margin-top:0.1rem">${done ? '✅ Hoàn tất' : active ? '🔄 Đang thực hiện' : s.desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const checklistItems = [
+    { key: 'contractSigned', label: 'Hợp đồng', icon: '📝' },
+    { key: 'depositReceived', label: 'Đặt cọc', icon: '💰' },
+    { key: 'albumDelivered', label: 'Album/Video', icon: '💿' },
+    { key: 'fullyPaid', label: 'Thanh toán', icon: '✅' }
+  ];
+
+  container.innerHTML = `
+    <div style="max-width:640px;margin:0 auto;padding:2rem 1.5rem">
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:2rem">
+        <div style="font-size:0.75rem;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:2px;margin-bottom:0.5rem">HARU WEDDING FILM</div>
+        <h1 style="font-size:1.8rem;font-weight:900;color:#0f172a;margin:0">Tiến Độ Dự Án</h1>
+        <p style="color:#64748b;font-size:0.9rem;margin-top:0.3rem">${job.client}</p>
+      </div>
+
+      <!-- Event Info Card -->
+      <div style="background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:1.5rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <div style="font-size:0.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase">Ngày sự kiện</div>
+            <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-top:0.2rem">${jobDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+          </div>
+          <div>
+            <div style="font-size:0.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase">Loại sự kiện</div>
+            <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-top:0.2rem">${job.eventType || 'Wedding'}</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #f1f5f9">
+          <div style="font-size:0.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase">Trạng thái</div>
+          <div style="display:inline-block;margin-top:0.3rem;padding:0.3rem 0.8rem;border-radius:20px;font-size:0.8rem;font-weight:700;background:${currentStep === 4 ? '#dcfce7;color:#16a34a' : '#fef3c7;color:#d97706'}">${currentStep === 4 ? '✅ Hoàn tất' : currentStep === 0 ? '📋 Sắp tới' : '🔄 Đang tiến hành'}</div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div style="background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:1.5rem">
+        <h3 style="font-size:0.9rem;font-weight:800;color:#0f172a;margin:0 0 1.25rem 0">📅 Tiến Độ Thực Hiện</h3>
+        ${timelineHTML}
+      </div>
+
+      <!-- Checklist -->
+      <div style="background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:1.5rem">
+        <h3 style="font-size:0.9rem;font-weight:800;color:#0f172a;margin:0 0 1rem 0">📋 Checklist</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+          ${checklistItems.map(item => {
+    const checked = cl[item.key];
+    return `<div style="display:flex;align-items:center;gap:0.6rem;padding:0.6rem 0.8rem;border-radius:10px;background:${checked ? '#f0fdf4' : '#f8fafc'};border:1px solid ${checked ? '#bbf7d0' : '#e2e8f0'}">
+              <span style="font-size:1.1rem">${checked ? '✅' : '⬜'}</span>
+              <span style="font-size:0.82rem;font-weight:${checked ? 700 : 500};color:${checked ? '#16a34a' : '#94a3b8'}">${item.label}</span>
+            </div>`;
+  }).join('')}
+        </div>
+      </div>
+
+      <!-- Services -->
+      ${services.length ? `
+      <div style="background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:1.5rem">
+        <h3 style="font-size:0.9rem;font-weight:800;color:#0f172a;margin:0 0 1rem 0">🎥 Dịch Vụ</h3>
+        ${services.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid #f1f5f9">
+          <span style="font-size:0.85rem;font-weight:600;color:#334155">${s.service}</span>
+          <span style="font-size:0.72rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:12px;${s.editStatus === 'Hoàn thành' ? 'background:#dcfce7;color:#16a34a' : s.editStatus === 'Đang edit' ? 'background:#fef3c7;color:#d97706' : 'background:#f1f5f9;color:#94a3b8'}">${s.editStatus || 'Chưa bắt đầu'}</span>
+        </div>`).join('')}
+      </div>` : ''}
+
+      <!-- Footer -->
+      <div style="text-align:center;color:#94a3b8;font-size:0.72rem;padding:1rem 0">
+        Powered by <strong>Haru Studio</strong> • Cập nhật tự động
+      </div>
+    </div>
   `;
 
   return container;

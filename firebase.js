@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get, onValue, off, update, runTransaction } from "firebase/database";
+import { getDatabase, ref, set, get, onValue, off, update, runTransaction, push } from "firebase/database";
 
 let db = null;
 let isInitialized = false;
@@ -384,3 +384,46 @@ export function watchFullState(onUpdate) {
     return unsubscribe;
 }
 
+// ── CHAT REALTIME (Idea 6) ──
+
+/**
+ * Gửi tin nhắn chat vào Firebase Realtime DB
+ * @param {string} jobId - ID của job
+ * @param {{ user: string, text: string, service?: string }} msg - Tin nhắn
+ */
+export async function sendChatMessage(jobId, msg) {
+    if (!isInitialized || !db) return null;
+    try {
+        const chatRef = ref(db, `haru_state/chats/${jobId}`);
+        const newMsg = {
+            ...msg,
+            time: Date.now()
+        };
+        await push(chatRef, newMsg);
+        return newMsg;
+    } catch (err) {
+        console.warn('sendChatMessage error:', err);
+        return null;
+    }
+}
+
+/**
+ * Lắng nghe tin nhắn chat realtime
+ * @param {string} jobId - ID của job
+ * @param {Function} onMessage - callback(messages: Array) khi có tin nhắn mới
+ * @returns {Function} unsubscribe
+ */
+export function watchChat(jobId, onMessage) {
+    if (!isInitialized || !db) return () => { };
+    const chatRef = ref(db, `haru_state/chats/${jobId}`);
+    const unsubscribe = onValue(chatRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            const messages = Object.values(data).sort((a, b) => a.time - b.time);
+            onMessage(messages);
+        } else {
+            onMessage([]);
+        }
+    });
+    return unsubscribe;
+}

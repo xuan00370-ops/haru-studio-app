@@ -8,7 +8,7 @@ import {
   renderWorkspace, renderStaffPortal, renderGalleryClient, renderYearReport
 } from './components.js';
 
-import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence, updateBaselineState } from './firebase.js';
+import { initFirebase, syncToFirebase, loadFromFirebase, watchPortfolios, triggerForceSync, watchForceSync, watchFullState, lockJob, unlockJob, watchLocks, trackUserPresence, watchPresence, updateBaselineState, sendChatMessage, watchChat } from './firebase.js';
 
 // ============================================================
 // STATE INITIALIZATION & FIREBASE
@@ -542,10 +542,31 @@ async function bootload() {
           // Chỉ render lại giao diện nếu ko bị vướng edit input
           updateUI();
         } else {
-          // Báo cho user biết có bản cập nhật mới vừa chìm xuống background
-          const toastEl = document.getElementById('toast-container');
-          if (!toastEl || !toastEl.innerHTML.includes('Dữ liệu vừa được đồng bộ')) {
-            window.showToast('⬇️ Dữ liệu vừa được đồng bộ ngầm. Sẽ hiển thị khi đóng hộp thoại.', 'var(--primary)');
+          // 🔀 CONFLICT DETECTION (Idea 8)
+          const editingJobId = state.modal.data;
+          const remoteJob = (freshData.jobs || []).find(j => j.id === editingJobId);
+          const localJob = state.jobs.find(j => j.id === editingJobId);
+
+          if (remoteJob && localJob && editingJobId) {
+            // Compare key fields
+            const fieldsToCheck = ['client', 'package', 'deposit', 'status', 'eventType', 'date', 'note'];
+            const diffs = [];
+            fieldsToCheck.forEach(f => {
+              if (JSON.stringify(remoteJob[f]) !== JSON.stringify(localJob[f])) {
+                diffs.push({ field: f, local: localJob[f], remote: remoteJob[f] });
+              }
+            });
+
+            if (diffs.length > 0) {
+              showConflictDialog(editingJobId, diffs, localJob, remoteJob);
+            } else {
+              window.showToast('⬇️ Dữ liệu vừa được đồng bộ ngầm. Sẽ hiển thị khi đóng hộp thoại.', 'var(--primary)');
+            }
+          } else {
+            const toastEl = document.getElementById('toast-container');
+            if (!toastEl || !toastEl.innerHTML.includes('Dữ liệu vừa được đồng bộ')) {
+              window.showToast('⬇️ Dữ liệu vừa được đồng bộ ngầm. Sẽ hiển thị khi đóng hộp thoại.', 'var(--primary)');
+            }
           }
         }
       });
@@ -925,9 +946,15 @@ window.addComment = (jobId, text, service = null) => {
   saveState();
 };
 
+// Store active chat unsubscriber
+let _activeChatUnsub = null;
+
 window.openChat = (jobId) => {
   const job = state.jobs.find(j => j.id === jobId);
   if (!job) return;
+
+  // Cleanup previous listener
+  if (_activeChatUnsub) { _activeChatUnsub(); _activeChatUnsub = null; }
 
   // Remove existing chat panel
   const existing = document.getElementById('chat-panel-overlay');
@@ -936,59 +963,171 @@ window.openChat = (jobId) => {
   const overlay = document.createElement('div');
   overlay.id = 'chat-panel-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:flex-end';
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      if (_activeChatUnsub) { _activeChatUnsub(); _activeChatUnsub = null; }
+      overlay.remove();
+    }
+  };
 
-  const comments = job.comments || [];
   const session = JSON.parse(localStorage.getItem('haru_session') || '{}');
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   const bg = isDark ? '#162816' : '#fff';
   const inputBg = isDark ? '#0f1f0f' : '#f8fdf8';
+  const me = session.displayName || 'Admin';
 
   const panel = document.createElement('div');
-  panel.style.cssText = `width: 380px; max - width: 90vw; background:${bg}; height: 100 %; display: flex; flex - direction: column; box - shadow: -4px 0 24px rgba(0, 0, 0, 0.2); animation:slideIn 0.2s ease`;
+  panel.style.cssText = `width:380px;max-width:90vw;background:${bg};height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.2);animation:slideIn 0.2s ease`;
   panel.innerHTML = `
-            < div style = "padding:1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center" >
+    <div style="padding:1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <div>
         <h3 style="font-size:1rem;font-weight:800;color:var(--text-main)">💬 ${job.client}</h3>
-        <span style="font-size:0.72rem;color:var(--text-dim)">${comments.length} tin nhắn</span>
+        <span id="chat-count" style="font-size:0.72rem;color:var(--text-dim)">Đang tải...</span>
       </div>
-      <button onclick="this.closest('#chat-panel-overlay').remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-dim)">✕</button>
-    </div >
+      <button id="chat-close-btn" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-dim)">✕</button>
+    </div>
     <div id="chat-messages" style="flex:1;overflow-y:auto;padding:0.8rem;display:flex;flex-direction:column;gap:0.5rem">
-      ${comments.length === 0 ? '<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:2rem">Chưa có tin nhắn nào.<br>Gửi ghi chú đầu tiên!</div>' : ''}
-      ${comments.map(c => {
-    const isMe = c.user === (session.displayName || 'Admin');
-    return `<div style="display:flex;flex-direction:column;align-items:${isMe ? 'flex-end' : 'flex-start'};max-width:85%${isMe ? ';align-self:flex-end' : ''}">
-          <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.15rem">${c.user} · ${new Date(c.time).toLocaleString('vi-VN')}</div>
-          <div style="background:${isMe ? 'var(--primary-glow)' : 'var(--accent-soft)'};padding:0.5rem 0.8rem;border-radius:${isMe ? '12px 12px 0 12px' : '12px 12px 12px 0'};font-size:0.82rem;color:var(--text-main);line-height:1.4">${c.text}</div>
-          ${c.service ? `<span style="font-size:0.55rem;color:var(--text-dim);margin-top:0.1rem">📹 ${c.service}</span>` : ''}
-        </div>`;
-  }).join('')}
+      <div style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:2rem">⏳ Đang tải tin nhắn...</div>
     </div>
     <div style="padding:0.6rem;border-top:1px solid var(--border);display:flex;gap:0.4rem">
       <input id="chat-input" type="text" placeholder="Nhập ghi chú..." style="flex:1;padding:0.5rem 0.8rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;background:${inputBg};color:var(--text-main)" />
       <button id="chat-send-btn" style="background:var(--primary);color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem">Gửi</button>
     </div>
-          `;
+  `;
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
 
-  // Scroll to bottom
-  const msgBox = document.getElementById('chat-messages');
-  if (msgBox) msgBox.scrollTop = msgBox.scrollHeight;
+  // Close button handler
+  document.getElementById('chat-close-btn').onclick = () => {
+    if (_activeChatUnsub) { _activeChatUnsub(); _activeChatUnsub = null; }
+    overlay.remove();
+  };
+
+  // Render messages helper
+  const renderMessages = (messages) => {
+    const msgBox = document.getElementById('chat-messages');
+    const countEl = document.getElementById('chat-count');
+    if (!msgBox) return;
+    if (countEl) countEl.textContent = `${messages.length} tin nhắn`;
+
+    if (messages.length === 0) {
+      msgBox.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:2rem">Chưa có tin nhắn nào.<br>Gửi ghi chú đầu tiên!</div>';
+      return;
+    }
+    msgBox.innerHTML = messages.map(c => {
+      const isMe = c.user === me;
+      return `<div style="display:flex;flex-direction:column;align-items:${isMe ? 'flex-end' : 'flex-start'};max-width:85%${isMe ? ';align-self:flex-end' : ''}">
+        <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.15rem">${c.user} · ${new Date(c.time).toLocaleString('vi-VN')}</div>
+        <div style="background:${isMe ? 'var(--primary-glow)' : 'var(--accent-soft)'};padding:0.5rem 0.8rem;border-radius:${isMe ? '12px 12px 0 12px' : '12px 12px 12px 0'};font-size:0.82rem;color:var(--text-main);line-height:1.4">${c.text}</div>
+        ${c.service ? `<span style="font-size:0.55rem;color:var(--text-dim);margin-top:0.1rem">📹 ${c.service}</span>` : ''}
+      </div>`;
+    }).join('');
+    msgBox.scrollTop = msgBox.scrollHeight;
+  };
+
+  // Start Firebase realtime listener (fallback to local comments)
+  _activeChatUnsub = watchChat(jobId, (messages) => {
+    if (messages.length > 0) {
+      renderMessages(messages);
+    } else {
+      // Fallback: show local comments
+      renderMessages(job.comments || []);
+    }
+  });
 
   // Send handler
-  const sendMsg = () => {
+  const sendMsg = async () => {
     const input = document.getElementById('chat-input');
-    if (input && input.value.trim()) {
-      window.addComment(jobId, input.value);
-      overlay.remove();
-      window.openChat(jobId); // Re-render
+    if (!input || !input.value.trim()) return;
+    const text = input.value.trim();
+    input.value = '';
+
+    const msg = { user: me, text };
+
+    // Try Firebase first
+    const sent = await sendChatMessage(jobId, msg);
+    if (!sent) {
+      // Fallback to local comments
+      window.addComment(jobId, text);
+      renderMessages(job.comments || []);
     }
   };
   document.getElementById('chat-send-btn').onclick = sendMsg;
   document.getElementById('chat-input').onkeydown = (e) => { if (e.key === 'Enter') sendMsg(); };
+  document.getElementById('chat-input').focus();
 };
+
+// 🔀 CONFLICT RESOLUTION DIALOG (Idea 8)
+function showConflictDialog(jobId, diffs, localJob, remoteJob) {
+  // Remove existing dialog
+  document.getElementById('conflict-dialog')?.remove();
+
+  const fieldNames = {
+    client: 'Tên khách', package: 'Gói', deposit: 'Cọc',
+    status: 'Trạng thái', eventType: 'Loại sự kiện', date: 'Ngày', note: 'Ghi chú'
+  };
+
+  const diffRows = diffs.map(d => `
+    <div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.8rem">
+      <div style="font-weight:700;color:#64748b">${fieldNames[d.field] || d.field}</div>
+      <div style="background:#fef2f2;padding:0.3rem 0.5rem;border-radius:6px;color:#b91c1c;word-break:break-word">📱 ${d.local ?? '(trống)'}</div>
+      <div style="background:#f0fdf4;padding:0.3rem 0.5rem;border-radius:6px;color:#16a34a;word-break:break-word">☁️ ${d.remote ?? '(trống)'}</div>
+    </div>
+  `).join('');
+
+  const dialog = document.createElement('div');
+  dialog.id = 'conflict-dialog';
+  dialog.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  dialog.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:520px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.15);overflow:hidden">
+      <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem">
+        <span style="font-size:1.5rem">⚠️</span>
+        <div>
+          <h3 style="margin:0;font-size:1rem;font-weight:900;color:#92400e">Phát Hiện Xung Đột</h3>
+          <p style="margin:0;font-size:0.75rem;color:#a16207">Người khác vừa sửa job này</p>
+        </div>
+      </div>
+      <div style="padding:1rem 1.5rem">
+        <div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:0.5rem;padding-bottom:0.5rem;font-size:0.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase">
+          <div>Trường</div>
+          <div>📱 Bản của bạn</div>
+          <div>☁️ Bản từ máy khác</div>
+        </div>
+        ${diffRows}
+      </div>
+      <div style="padding:1rem 1.5rem;display:flex;gap:0.5rem;border-top:1px solid #f1f5f9">
+        <button id="conflict-keep" style="flex:1;padding:0.6rem;border:2px solid #ef4444;background:#fff;border-radius:10px;font-weight:800;font-size:0.8rem;cursor:pointer;color:#ef4444">📱 Giữ của tôi</button>
+        <button id="conflict-take" style="flex:1;padding:0.6rem;border:none;background:#16a34a;border-radius:10px;font-weight:800;font-size:0.8rem;cursor:pointer;color:#fff">☁️ Nhận bản mới</button>
+        <button id="conflict-cancel" style="padding:0.6rem 1rem;border:1px solid #e2e8f0;background:#f8fafc;border-radius:10px;font-weight:700;font-size:0.8rem;cursor:pointer;color:#64748b">✕</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+
+  // Keep mine: giữ bản local, save + push lên Firebase
+  document.getElementById('conflict-keep').onclick = () => {
+    dialog.remove();
+    saveState();
+    window.showToast('📱 Đã giữ bản của bạn & đẩy lên mây.', 'var(--primary)');
+  };
+
+  // Take theirs: nhận bản remote, update local
+  document.getElementById('conflict-take').onclick = () => {
+    const idx = state.jobs.findIndex(j => j.id === jobId);
+    if (idx !== -1) {
+      state.jobs[idx] = { ...remoteJob };
+      saveState();
+      window.closeModal();
+      updateUI();
+      setTimeout(() => window.openModal?.('job_detail', jobId), 300);
+    }
+    dialog.remove();
+    window.showToast('☁️ Đã nhận bản mới từ máy khác.', 'var(--primary)');
+  };
+
+  // Cancel: dismiss dialog, do nothing
+  document.getElementById('conflict-cancel').onclick = () => dialog.remove();
+}
 
 function showValidationError(errors) {
   const errDiv = document.getElementById('form-validation-errors');
@@ -1463,6 +1602,51 @@ window.cloneJobAsTemplate = (jobId) => {
   // Auto-open job detail
   setTimeout(() => window.openModal?.('job_detail', newJob.id), 300);
 };
+
+// 📤 SHARE: Generate link cho khách xem tiến độ
+window.shareJobLink = (jobId) => {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const shareUrl = `${baseUrl}?view=${jobId}`;
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    window.showToast?.('📤 Đã copy link chia sẻ!', 'success');
+  }).catch(() => {
+    prompt('Copy link này:', shareUrl);
+  });
+};
+
+// Detect view mode on load
+(function detectViewMode() {
+  const params = new URLSearchParams(window.location.search);
+  const viewJobId = params.get('view');
+  if (!viewJobId) return;
+
+  // Wait for state to be loaded
+  const checkState = setInterval(() => {
+    if (!state.jobs.length) return;
+    clearInterval(checkState);
+
+    const job = state.jobs.find(j => j.id === viewJobId);
+    if (!job) {
+      document.getElementById('app').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui">
+          <div style="text-align:center;padding:2rem">
+            <div style="font-size:3rem;margin-bottom:1rem">🔍</div>
+            <h2>Không tìm thấy dự án</h2>
+            <p style="color:#666">Link này không hợp lệ hoặc dự án đã bị xoá.</p>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // Render client progress view
+    import('./components.js').then(mod => {
+      const view = mod.renderClientProgressView(job);
+      document.getElementById('app').innerHTML = '';
+      document.getElementById('app').appendChild(view);
+      document.title = `Tiến độ: ${job.client} — Haru Studio`;
+    });
+  }, 500);
+})();
 
 window.updateJob = (jobId, updatedData, skipUpdateUI = false) => {
   const index = state.jobs.findIndex(j => j.id === jobId);
