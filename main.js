@@ -2751,18 +2751,27 @@ console.error = (...args) => { window._debugLogs.push({ level: 'error', msg: arg
 window.runHealthCheck = (silent = false) => {
   const issues = [];
   const jobs = state.jobs.filter(j => !j.isTrash);
+  
+  // Check missing client
+  const noClient = jobs.filter(j => !j.client || j.client.trim() === '');
+  if (noClient.length) issues.push({ type: '🧑‍🤝‍🧑', msg: `${noClient.length} job thiếu Tên Khách Hàng`, items: noClient.map(j => j.id || j.jobNo || 'Không xác định') });
+
   // Check deliverables
   const noDeliverables = jobs.filter(j => (!j.deliverables || j.deliverables.length === 0) && j.status !== 'HỦY');
-  if (noDeliverables.length) issues.push({ type: '⚠️', msg: `${noDeliverables.length} job thiếu lộ trình/thành phẩm`, items: noDeliverables.map(j => j.client) });
+  if (noDeliverables.length) issues.push({ type: '⚠️', msg: `${noDeliverables.length} job thiếu lộ trình/thành phẩm`, items: noDeliverables.map(j => j.client || j.id) });
+  
   // Check staff empty
   const noStaff = jobs.filter(j => (!j.services || j.services.length === 0) && j.status !== 'HỦY');
-  if (noStaff.length) issues.push({ type: '👤', msg: `${noStaff.length} job chưa gán nhân sự chụp/quay`, items: noStaff.map(j => j.client) });
+  if (noStaff.length) issues.push({ type: '👤', msg: `${noStaff.length} job chưa gán nhân sự chụp/quay`, items: noStaff.map(j => j.client || j.id) });
+  
   // Check missing date
   const noDate = jobs.filter(j => !j.date || isNaN(new Date(j.date).getTime()));
   if (noDate.length) issues.push({ type: '📅', msg: `${noDate.length} job sai định dạng ngày`, items: noDate.map(j => j.client || j.id) });
+  
   // Check empty job number
   const noJobNo = jobs.filter(j => !j.jobNo && j.status !== 'HỦY');
-  if (noJobNo.length) issues.push({ type: '🏷️', msg: `${noJobNo.length} job thiếu mã Hợp đồng (Job No)`, items: noJobNo.map(j => j.client) });
+  if (noJobNo.length) issues.push({ type: '🏷️', msg: `${noJobNo.length} job thiếu mã Hợp đồng (Job No)`, items: noJobNo.map(j => j.client || j.id) });
+  
   // Check duplicate jobNo
   const jobNos = {};
   const duplicates = [];
@@ -2774,8 +2783,12 @@ window.runHealthCheck = (silent = false) => {
   });
   if (duplicates.length) {
     const dupJobs = jobs.filter(j => duplicates.includes(j.jobNo));
-    issues.push({ type: '🚨', msg: `${duplicates.length} mã Hợp đồng bị trùng lặp`, items: dupJobs.map(j => `${j.jobNo} (${j.client})`) });
+    issues.push({ type: '🚨', msg: `${duplicates.length} mã Hợp đồng bị trùng lặp`, items: dupJobs.map(j => `${j.jobNo} (${j.client || j.id})`) });
   }
+
+  // Check invalid revenue
+  const invalidRevenue = jobs.filter(j => j.package !== undefined && j.package !== '' && (isNaN(parseInt(j.package)) || parseInt(j.package) < 0));
+  if (invalidRevenue.length) issues.push({ type: '💰', msg: `${invalidRevenue.length} job có doanh thu không hợp lệ (< 0)`, items: invalidRevenue.map(j => j.client || j.id) });
 
   if (silent) return issues;
 
