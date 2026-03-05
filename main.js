@@ -1498,12 +1498,14 @@ function validateJobData(jobData, services = []) {
     errors.push('Tên khách hàng (CD-CR) không được để trống');
   if (!jobData.date)
     errors.push('Ngày tổ chức không được để trống');
-  if (!jobData.package || Number(jobData.package) <= 0)
-    errors.push('Giá trị gói phải lớn hơn 0');
+  if (jobData.package !== undefined && jobData.package !== '' && Number(jobData.package) < 0)
+    errors.push('Giá trị gói không được là số âm');
+
+  // Bỏ điều kiện bắt buộc chi phí > 0 để người dùng có thể gán nv với cost 0 (NV học việc/Admin)
   if (services.length > 0) {
-    const validServices = services.filter(s => s.staff && s.staff !== '' && s.cost > 0);
+    const validServices = services.filter(s => s.staff && s.staff !== '');
     if (validServices.length === 0)
-      errors.push('Cần ít nhất 1 dòng dịch vụ có nhân sự và chi phí > 0');
+      errors.push('Cần chọn nhân sự cho mỗi dòng dịch vụ đã thêm');
   }
   return errors;
 }
@@ -2751,7 +2753,7 @@ console.error = (...args) => { window._debugLogs.push({ level: 'error', msg: arg
 window.runHealthCheck = (silent = false) => {
   const issues = [];
   const jobs = state.jobs.filter(j => !j.isTrash);
-  
+
   // Check missing client
   const noClient = jobs.filter(j => !j.client || j.client.trim() === '');
   if (noClient.length) issues.push({ type: '🧑‍🤝‍🧑', msg: `${noClient.length} job thiếu Tên Khách Hàng`, items: noClient.map(j => j.id || j.jobNo || 'Không xác định') });
@@ -2759,19 +2761,19 @@ window.runHealthCheck = (silent = false) => {
   // Check deliverables
   const noDeliverables = jobs.filter(j => (!j.deliverables || j.deliverables.length === 0) && j.status !== 'HỦY');
   if (noDeliverables.length) issues.push({ type: '⚠️', msg: `${noDeliverables.length} job thiếu lộ trình/thành phẩm`, items: noDeliverables.map(j => j.client || j.id) });
-  
+
   // Check staff empty
   const noStaff = jobs.filter(j => (!j.services || j.services.length === 0) && j.status !== 'HỦY');
   if (noStaff.length) issues.push({ type: '👤', msg: `${noStaff.length} job chưa gán nhân sự chụp/quay`, items: noStaff.map(j => j.client || j.id) });
-  
+
   // Check missing date
   const noDate = jobs.filter(j => !j.date || isNaN(new Date(j.date).getTime()));
   if (noDate.length) issues.push({ type: '📅', msg: `${noDate.length} job sai định dạng ngày`, items: noDate.map(j => j.client || j.id) });
-  
+
   // Check empty job number
   const noJobNo = jobs.filter(j => !j.jobNo && j.status !== 'HỦY');
   if (noJobNo.length) issues.push({ type: '🏷️', msg: `${noJobNo.length} job thiếu mã Hợp đồng (Job No)`, items: noJobNo.map(j => j.client || j.id) });
-  
+
   // Check duplicate jobNo
   const jobNos = {};
   const duplicates = [];
