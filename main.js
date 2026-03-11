@@ -483,7 +483,7 @@ async function bootload() {
           clients: fbData.clients || state.clients,
           portfolios: fbData.portfolios || state.portfolios
         });
-        updateBaselineState(state);
+        updateBaselineState(fbData);
         console.log("🔥 Đã tải dữ liệu mới nhất từ Firebase! Portfolios:", state.portfolios);
       } else {
         console.log("🔥 Firebase init successful, but no fbData found.");
@@ -553,8 +553,8 @@ async function bootload() {
           portfolios: mergeArray(state.portfolios, freshData.portfolios)
         });
 
-        // Cập nhật lại baseline cục bộ để không bắn ngược lại những data mà máy khác vừa gửi sang
-        updateBaselineState(state);
+        // Cập nhật lại baseline bằng dữ liệu GỐC TRÊN MÂY (để hệ thống báo Diff và push bù các Job Local Local vừa tạo chưa lên mây)
+        updateBaselineState(freshData);
 
         if (!isEditing) {
           // Chỉ render lại giao diện nếu ko bị vướng edit input

@@ -161,9 +161,18 @@ export async function syncToFirebase(state) {
             // Cập nhật timestamp lần sync cuối
             updates['haru_state/lastUpdated'] = Date.now();
 
-            // LỌC BỎ UNDEFINED: Firebase Realtime DB sẽ throw error và sập luồng Sync 
-            // nếu có bất kỳ property nào mang giá trị 'undefined' (thường sinh ra do bỏ trống form nhập job)
-            const safeUpdates = JSON.parse(JSON.stringify(updates));
+            // LỌC BỎ UNDEFINED và EMPTY ARRAY: Firebase Realtime DB sẽ throw error và sập luồng Sync 
+            // nếu có bất kỳ property nào mang giá trị 'undefined' hoặc mảng rỗng []
+            const removeEmptyArrays = (obj) => {
+                if (Array.isArray(obj)) return obj.length === 0 ? null : obj.map(removeEmptyArrays);
+                if (obj !== null && typeof obj === 'object') {
+                    for (const key in obj) {
+                        obj[key] = removeEmptyArrays(obj[key]);
+                    }
+                }
+                return obj;
+            };
+            const safeUpdates = removeEmptyArrays(JSON.parse(JSON.stringify(updates)));
 
             await update(ref(db), safeUpdates);
             console.log("🔥 Firebase Diff-Based Update Xong! Bắn payload size:", Object.keys(safeUpdates).length, "nodes");
