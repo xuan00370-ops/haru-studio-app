@@ -160,8 +160,13 @@ export async function syncToFirebase(state) {
         if (hasChanges) {
             // Cập nhật timestamp lần sync cuối
             updates['haru_state/lastUpdated'] = Date.now();
-            await update(ref(db), updates);
-            console.log("🔥 Firebase Diff-Based Update Xong! Bắn payload size:", Object.keys(updates).length, "nodes");
+
+            // LỌC BỎ UNDEFINED: Firebase Realtime DB sẽ throw error và sập luồng Sync 
+            // nếu có bất kỳ property nào mang giá trị 'undefined' (thường sinh ra do bỏ trống form nhập job)
+            const safeUpdates = JSON.parse(JSON.stringify(updates));
+
+            await update(ref(db), safeUpdates);
+            console.log("🔥 Firebase Diff-Based Update Xong! Bắn payload size:", Object.keys(safeUpdates).length, "nodes");
 
             // Tự cập nhật baseline cục bộ để lần sau không gửi lại những phần vừa gửi
             updateBaselineState(state);
