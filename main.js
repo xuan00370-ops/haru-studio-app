@@ -523,16 +523,34 @@ async function bootload() {
         // NHƯNG KHÔNG gọi updateUI() để tránh giật form của họ.
         const isEditing = state.modal && state.modal.isOpen;
 
+        // Xử lý Merge thông minh: Giữ lại những item Local mới tạo chưa kịp Sync (tránh bị freshData đè mất)
+        const mergeArray = (localArr, remoteArr) => {
+          if (!remoteArr) return localArr || [];
+          if (!localArr) return remoteArr;
+
+          const remoteMap = new Map(remoteArr.map(item => [item.id || item.name, item]));
+          const merged = [...remoteArr]; // Lấy toàn bộ remote làm gốc
+
+          // Tìm những local item chưa hề tồn tại trên remote (vừa mới bấm Tạo xong)
+          localArr.forEach(localItem => {
+            const key = localItem.id || localItem.name;
+            if (key && !remoteMap.has(key)) {
+              merged.push(localItem);
+            }
+          });
+          return merged;
+        };
+
         Object.assign(state, {
-          jobs: freshData.jobs || state.jobs,
-          staff: freshData.staff || state.staff,
+          jobs: mergeArray(state.jobs, freshData.jobs),
+          staff: mergeArray(state.staff, freshData.staff),
           financeMetadata: freshData.financeMetadata || state.financeMetadata,
-          manualTransactions: freshData.manualTransactions || state.manualTransactions,
+          manualTransactions: mergeArray(state.manualTransactions, freshData.manualTransactions),
           // Không đè settings chứa firebaseConfig local
           settings: { ...freshData.settings, firebaseConfig: cfgStr },
           history: freshData.history || state.history,
-          clients: freshData.clients || state.clients,
-          portfolios: freshData.portfolios || state.portfolios
+          clients: mergeArray(state.clients, freshData.clients),
+          portfolios: mergeArray(state.portfolios, freshData.portfolios)
         });
 
         // Cập nhật lại baseline cục bộ để không bắn ngược lại những data mà máy khác vừa gửi sang
