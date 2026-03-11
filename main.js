@@ -542,6 +542,10 @@ async function bootload() {
           // Chỉ render lại giao diện nếu ko bị vướng edit input
           updateUI();
         } else {
+          // Vẫn phải render Dashboard bên dưới modal để dữ liệu mới cập nhật (Không gọi updateUI do cản trở view modal)
+          if (window.renderDashboard) window.renderDashboard(state);
+          if (window.renderKanban) window.renderKanban(state);
+          if (window.renderCalendar) window.renderCalendar(state);
           // 🔀 CONFLICT DETECTION (Idea 8)
           const editingJobId = state.modal.data;
           const remoteJob = (freshData.jobs || []).find(j => j.id === editingJobId);
