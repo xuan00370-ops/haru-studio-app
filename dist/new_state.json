@@ -1,0 +1,1528 @@
+{
+  "jobs": [
+    {
+      "id": "JOB-YLD829LH1",
+      "client": "Bích An\nHaruwedding",
+      "phone": "0906347428",
+      "date": "2026-03-01",
+      "venue": "nhà hàng hương cau 2, 86 Tân Canh\n17h có mặt",
+      "eventType": "chụp thôi nôi",
+      "package": 3000000,
+      "deposit": 600000,
+      "notes": "",
+      "services": [
+        {
+          "id": "s2ydv2",
+          "service": "Chụp PS",
+          "staff": "XUÂN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:38.863Z"
+    },
+    {
+      "id": "JOB-F38D4LHBQ",
+      "client": "Hoàng Nhật Sinh",
+      "phone": "0909109960",
+      "date": "2026-03-08",
+      "venue": "Địa chỉ nhà CR: 232/22/12 Hiệp Thành 13, P. Tân Thới Hiệp (Hiệp Thành, Q12 cũ), TPHCM\nĐịa chỉ nhà CD: Xã Phước An (Long Thọ cũ), Huyện Nhơn Trạch, Tỉnh Đồng Nai - (https://maps.app.goo.gl/wVqAuZjDDDX2ZXkn8)\nĐịa chỉ nhà hàng: Capella ParkView, 03 Đặng Văn Sâm, Phường 9, Quận Phú Nhuận, TPHCM",
+      "eventType": "",
+      "package": 17000000,
+      "deposit": 3400000,
+      "notes": "lên demo hình cho khách",
+      "services": [
+        {
+          "id": "td392q",
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "bpvq22",
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "1uz1lw",
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "JOB-7JE1KZJ2U",
+      "client": "Vy Phạm",
+      "phone": "0983082810",
+      "date": "2026-03-14",
+      "venue": "Công viên Sala Quận 2\nMetro Bến Thành Q1",
+      "eventType": "",
+      "package": 0,
+      "deposit": 0,
+      "notes": "",
+      "services": [
+        {
+          "id": "gnn0kk",
+          "service": "QUAY PRE",
+          "staff": "THỐNG",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "JOB-VYQY09CN9",
+      "client": "Duyên",
+      "phone": "",
+      "date": "2026-03-14",
+      "venue": "•\tNhà cô dâu: 80 Lãnh Binh Thăng, Phường 13, Quận 11, TP HCM\r\n•\tNhà chú rể: 785/21 Nguyễn Kiệm, Phường 3, Quận Gò Vấp, TP HCM\r\n•\tNhà hàng: Khách sạn La Vela, 280 Nam Kỳ Khởi Nghĩa, Phường Xuân Hòa, Quận 3, TP HCM",
+      "eventType": "",
+      "package": 24000000,
+      "deposit": 4800000,
+      "notes": "TẶNG ALBUM",
+      "services": [
+        {
+          "id": "fe9pl3",
+          "service": "QUAY PS",
+          "staff": "XUÂN",
+          "cost": 3000000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "006ls1",
+          "service": "QUAY TT",
+          "staff": "HIẾU",
+          "cost": 2000000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "wpqrug",
+          "service": "CHỤP PS",
+          "staff": "CAN",
+          "cost": 2500000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "6si2kc",
+          "service": "CHỤP PS",
+          "staff": "NGỌC TUYỀN",
+          "cost": 2500000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "zthcpa",
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1700000,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "JOB-TMBL3F70N",
+      "client": "Vân Hồ",
+      "phone": "0349347261",
+      "date": "2026-03-10",
+      "venue": "Địa chỉ nhà CD: 25/63/1 đường số 6, khu phố 26, phường Hiệp Bình, TPHCM (QThủ Đức cũ)",
+      "eventType": "chỉ lễ gia tiên",
+      "package": 22500000,
+      "deposit": 4500000,
+      "notes": "",
+      "services": [
+        {
+          "id": "whtj49",
+          "service": "QUAY PS",
+          "staff": "XUÂN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "9zgb41",
+          "service": "CHỤP PS",
+          "staff": "HÙNG",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "sbnzk2",
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "57qi5i",
+          "service": "QUAY PS ĐOẠN LÀM LỄ SK",
+          "staff": "TIẾN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "bf04x9",
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "16jka8",
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "JOB-01BBL9XWJ",
+      "client": "Trần Thư\nlễ gia tiên 2 nhà",
+      "phone": "0379900566",
+      "date": "2026-03-22",
+      "venue": "Địa chỉ nhà cô dâu: 124/31 Phan Huy Ích, phường Tân Sơn, HCM\n\nĐịa chỉ nhà chú rể: 272 ấp Bình Minh, xã Suối Cát, H Xuân Lộc, tỉnh Đồng Nai",
+      "eventType": "",
+      "package": 14600000,
+      "deposit": 2920000,
+      "notes": "",
+      "services": [
+        {
+          "id": "26skzb",
+          "service": "Quay PS",
+          "staff": "XUÂN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "lcuqrv",
+          "service": "Chụp PS",
+          "staff": "HIẾU",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "x6pfmk",
+          "service": "Chụp TT",
+          "staff": "BÌNH",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "JOB-187E3V1A2",
+      "client": "Ngọc Châu",
+      "phone": "0797718270",
+      "date": "2026-03-29",
+      "venue": "Địa chỉ nhà cô dâu và chú rể: \n- Chú rể: 17/3/2 đường 10 khu phố 45, phường Linh Xuân, HCM\n- Cô dâu: chưa chốt ksan\nĐịa chỉ nhà hàng: 38 Đặng Văn Bi, phường Thủ Đức",
+      "eventType": "",
+      "package": 15000000,
+      "deposit": 3000000,
+      "notes": "",
+      "services": [
+        {
+          "id": "d1hwfd",
+          "service": "Quay PS",
+          "staff": "XUÂN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "zph6cn",
+          "service": "Chụp PS",
+          "staff": "NGỌC TUYỀN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "xk0zgx",
+          "service": "Chụp TT",
+          "staff": "BÌNH",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "g64xlo",
+          "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
+          "staff": "Chênh lệch",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "zulylj",
+          "service": "148.900.000,00₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "laboza",
+          "service": "80.600.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "zm4sna",
+          "service": "16.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "ms4x68",
+          "service": "11.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "zqjjwh",
+          "service": "20.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "wu01wn",
+          "service": "0₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "i229bz",
+          "service": "10.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "ru648g",
+          "service": "10.300.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "JOB-I370F9H51",
+      "client": "Hoàng Nam",
+      "phone": "0762722931",
+      "date": "2026-04-26",
+      "venue": "49 tổ 2, ấp 3, Vĩnh Cửu, Đồng Nai, Việt Nam",
+      "eventType": "",
+      "package": 18500000,
+      "deposit": 5000000,
+      "notes": "",
+      "services": [
+        {
+          "id": "uirat3",
+          "service": "Quay PS",
+          "staff": "THỐNG",
+          "cost": 500,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "5k4etn",
+          "service": "Chụp PS",
+          "staff": "XUÂN",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "gvfgej",
+          "service": "Chụp TT",
+          "staff": "BÌNH",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "6ai4l1",
+          "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
+          "staff": "Chênh lệch",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "tqe0q3",
+          "service": "148.900.000,00₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "s8vkfv",
+          "service": "80.600.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "8g18uh",
+          "service": "16.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "65v6ok",
+          "service": "11.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "txhnjt",
+          "service": "20.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "54r819",
+          "service": "0₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "436g4d",
+          "service": "10.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "laipdn",
+          "service": "10.300.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:39.499Z"
+    },
+    {
+      "id": "JOB-5LE5X218V",
+      "client": "Thu Minh",
+      "phone": "0335276418",
+      "date": "2026-05-16",
+      "venue": "162/88 Nguyễn Văn Lượng phường 17 quận Gò Vấp\nNHÀ HÀNG HƯƠNG PHỐ, A12 Phan Văn Trị phường Hạnh Thông",
+      "eventType": "lễ sáng tiệc trưa",
+      "package": 20000000,
+      "deposit": 4000000,
+      "notes": "",
+      "services": [
+        {
+          "id": "afhxgz",
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 3000000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "hkxil3",
+          "service": "QUAY PS",
+          "staff": "BÌNH",
+          "cost": 3000000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "yt8g1e",
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2500000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "0zpjwp",
+          "service": "CHỤP TT",
+          "staff": "NGỌC TUYỀN",
+          "cost": 1700000,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "qqafv8",
+          "service": "ALBUM",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:40.138Z"
+    },
+    {
+      "id": "JOB-ID9Q8S8B0",
+      "client": "Vy Pham",
+      "phone": "0983082810",
+      "date": "2026-05-16",
+      "venue": "Nhà CD: 4-13 Lô G, Chung cư Đồng Diều, Phường Chánh Hưng\nNhà CR: E1 Cư xá Phú Lâm A, Phường Phú Lâm\nNhà hàng white palace Võ Văn Kiệt",
+      "eventType": "sáng gia tiên tối tiệc",
+      "package": 25000000,
+      "deposit": 5000000,
+      "notes": "TT lần 2: 3600k sau ngày quay pre",
+      "services": [
+        {
+          "id": "ugwryo",
+          "service": "QUAY PS",
+          "staff": "Nho",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "cy3o4a",
+          "service": "QUAY TT",
+          "staff": "TRỐNG",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "tev018",
+          "service": "CHỤP PS",
+          "staff": "BẢO",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "j109wi",
+          "service": "CHỤP TT",
+          "staff": "TRỐNG",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "t5sufz",
+          "service": "ALBUM",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "sbpeu1",
+          "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
+          "staff": "Chênh lệch",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "bfed9j",
+          "service": "148.900.000,00₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "c5sdld",
+          "service": "80.600.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "yrhvqh",
+          "service": "16.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "hhyn7f",
+          "service": "11.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "bw6l28",
+          "service": "20.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "d4j77g",
+          "service": "0₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "pwt2g6",
+          "service": "10.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "3jcbxq",
+          "service": "10.300.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:40.138Z"
+    },
+    {
+      "id": "JOB-C295CP475",
+      "client": "Diệu Nghi Planner",
+      "phone": "0818797768",
+      "date": "2026-06-06",
+      "venue": "Maison de charm - 793/57/16 Trần Xuân Soạn, Phường Tân Hưng, Quận 7, Thành phố Hồ Chí Minh",
+      "eventType": "chỉ tiệc",
+      "package": 21000000,
+      "deposit": 4200000,
+      "notes": "",
+      "services": [
+        {
+          "id": "f2j79m",
+          "service": "Quay PS",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "lo0lp9",
+          "service": "Quay PS",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "jvlewh",
+          "service": "Chụp PS",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "p8trzj",
+          "service": "Chụp TT",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:40.786Z"
+    },
+    {
+      "id": "JOB-OC8SY3BUS",
+      "client": "Mỹ Thanh",
+      "phone": "0562535455",
+      "date": "2026-06-20",
+      "venue": "Nhà CD & CR: 149/9 Lý Thánh tông, Phường Phú Thạnh\nNhà hàng diamond Âu Cơ",
+      "eventType": "",
+      "package": 14000000,
+      "deposit": 2800000,
+      "notes": "Tặng clip ngắn",
+      "services": [
+        {
+          "id": "zk66fu",
+          "service": "Quay TT",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "mcr5oz",
+          "service": "Chụp PS",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "ideh5y",
+          "service": "Chụp TT",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "0tdy6c",
+          "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
+          "staff": "Chênh lệch",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "3134yx",
+          "service": "148.900.000,00₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "oqp9pp",
+          "service": "80.600.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "pxryj2",
+          "service": "16.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "b0r1t9",
+          "service": "11.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "xpk645",
+          "service": "20.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "ib27lh",
+          "service": "0₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "9d1owo",
+          "service": "10.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "98b8g8",
+          "service": "10.300.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:40.786Z"
+    },
+    {
+      "id": "JOB-DPRUN1KDM",
+      "client": "Kim Ngân",
+      "phone": "0944734639",
+      "date": "2026-07-18",
+      "venue": "",
+      "eventType": "(lễ nhà thờ)",
+      "package": 22500000,
+      "deposit": 4500000,
+      "notes": "",
+      "services": [
+        {
+          "id": "usr6ht",
+          "service": "Chụp TT",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "1yp7or",
+          "service": "Quay PS",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "4s3skb",
+          "service": "Quay TT",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "glcnmw",
+          "service": "Chụp PS",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "wonkhv",
+          "service": "Chụp TT",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "c7rm6f",
+          "service": "TỔNG GIÁ TRỊ HỢP ĐỒNG",
+          "staff": "Chênh lệch",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "wmov59",
+          "service": "148.900.000,00₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "bjgpvp",
+          "service": "80.600.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "svim6n",
+          "service": "16.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "j06ob8",
+          "service": "11.500.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "b3w34w",
+          "service": "20.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "f31h3s",
+          "service": "0₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "kcxlow",
+          "service": "10.000.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        },
+        {
+          "id": "je5ytg",
+          "service": "10.300.000₫",
+          "staff": "",
+          "cost": 0,
+          "note": "",
+          "isDone": false
+        }
+      ],
+      "status": "Chưa bắt đầu",
+      "isTrash": false,
+      "createdAt": "2026-02-26T08:31:41.413Z"
+    },
+    {
+      "id": "59-T7",
+      "jobNo": 1,
+      "client": "Hà Mi",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Địa chỉ \n CD: 797 Xô Viết Nghệ Tĩnh P26 Q Bình Thạnh, Tp Hồ Chí Minh\n CR: Tp Hồng Ngự \n Địa chỉ nhà hàng: Nhà hàng Capella ParkView",
+      "package": 20000000,
+      "deposit": 4000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "CAN",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY TT",
+          "staff": "HIẾU",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "100 ẢNH ALBUM",
+          "staff": "",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "004- T1",
+      "jobNo": 2,
+      "client": "Phuong Linh",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Nhà hàng GEM CENTER, 8 Nguyễn Bỉnh Khiêm, Đa Kao, Quận 1, Thành phố Hồ Chí Minh",
+      "package": 13000000,
+      "deposit": 2000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 0,
+          "paid": true,
+          "edit": 0,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "TUẤN ANH",
+          "cost": 0,
+          "paid": true,
+          "edit": 0,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "LONG",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "71- T9",
+      "jobNo": 3,
+      "client": "Thuy Chi Nguyen",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "TRUNG TÂM HỘI NGHỊ TIỆC CƯỚI THANH TÙNG, 99 Đ. số 9, Dĩ An, Bình Dương.\n( TIỆC TRƯA)",
+      "package": 36000000,
+      "deposit": 8000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "HÙNG",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "TRƯƠNG MINH",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "BẢO",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "ANH TRẦN",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "BẢO",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "MINH ĐỨC",
+          "cost": 1000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "53-T7",
+      "jobNo": 4,
+      "client": "Nguyễn Thảo Hiền",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Nhà thờ Thánh Phao lô, 280 Vành Đai Trong, Bình Trị Đông B, Quận Bình Tân, TP HCM",
+      "package": 53000000,
+      "deposit": 10000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "CHỤP PS HALF DAY",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "TIẾN",
+          "cost": 1000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "HÙNG",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "NAM THẾ ANH",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "HIẾU",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "NGHĨA",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY DỌC TIKTOK",
+          "staff": "HIẾU",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "76- T10",
+      "jobNo": 5,
+      "client": "Nguyen Vo",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": " Nhà cô dâu: Ấp Đồng, Xã Trung An, Mỹ Tho, Tiền Giang\nNhà CR: 95 Đinh Tiên Hoàng, Phường Đa Kao, Q1\nNhà hàng: Maison De Charm",
+      "package": 11000000,
+      "deposit": 2000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "CHỤP PS",
+          "staff": "THỐNG",
+          "cost": 0,
+          "paid": true,
+          "edit": 0,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "HIẾU",
+          "cost": 0,
+          "paid": false,
+          "edit": 0,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "54-T7",
+      "jobNo": 6,
+      "client": "CD Thuý- Planner Diệu Nghi",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Nhà thờ Nhà Thờ Thạnh An, 2891 QL80, Thị trấn Thanh An, Vĩnh Thạnh, Cần Thơ \nNhà cô dâu: 3878 QL80, TT. Thạnh An, H. Vĩnh Thạnh, TP. Cần Thơ\n Địa điểm tổ chức tiệc nhà gái: Sân Bóng Đá Mini Hoàng Bảo (xéo nhà CD)",
+      "package": 39000000,
+      "deposit": 7000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "QUAY PS",
+          "staff": "THỐNG",
+          "cost": 3000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS",
+          "staff": "CAN",
+          "cost": 3000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS",
+          "staff": "TUYỀN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "QUAY PS HALF DAY",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": true,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP PS HALF DAY",
+          "staff": "BÌNH",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    },
+    {
+      "id": "T12",
+      "jobNo": 7,
+      "client": "Tuyết Vân\ntiệc 20 bàn",
+      "date": "2026-01-01",
+      "phone": "",
+      "venue": "Địa điểm tổ chức : tư gia ( 1239 đường Vĩnh Lộc , xã Vĩnh lộc b , bình chánh , tphcm)",
+      "package": 7000000,
+      "deposit": 1000000,
+      "status": "Mới",
+      "eventType": "",
+      "isTrash": false,
+      "visibility": true,
+      "timeline": {
+        "le": "",
+        "tiec": "",
+        "type": "both"
+      },
+      "deliverables": [],
+      "services": [
+        {
+          "service": "CHỤP PS",
+          "staff": "XUÂN",
+          "cost": 2000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        },
+        {
+          "service": "CHỤP TT",
+          "staff": "BÌNH",
+          "cost": 1000000,
+          "paid": false,
+          "edit": 500,
+          "date": "2026-01-01"
+        }
+      ],
+      "eventDays": []
+    }
+  ],
+  "clients": [
+    {
+      "id": "CUST-QiVDMyVBRGNo",
+      "name": "Bích An\nHaruwedding",
+      "phone": "0906347428",
+      "createdAt": "2026-02-26T08:31:38.863Z"
+    },
+    {
+      "id": "CUST-SG8lQzMlQTBu",
+      "name": "Hoàng Nhật Sinh",
+      "phone": "0909109960",
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "CUST-VnklMjBQaCVF",
+      "name": "Vy Phạm",
+      "phone": "0983082810",
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "CUST-RHV5JUMzJUFB",
+      "name": "Duyên",
+      "phone": "",
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "CUST-ViVDMyVBMm4l",
+      "name": "Vân Hồ",
+      "phone": "0349347261",
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "CUST-VHIlRTElQkEl",
+      "name": "Trần Thư\nlễ gia tiên 2 nhà",
+      "phone": "0379900566",
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "CUST-TmclRTElQkIl",
+      "name": "Ngọc Châu",
+      "phone": "0797718270",
+      "createdAt": "2026-02-26T08:31:38.865Z"
+    },
+    {
+      "id": "CUST-SG8lQzMlQTBu",
+      "name": "Hoàng Nam",
+      "phone": "0762722931",
+      "createdAt": "2026-02-26T08:31:39.499Z"
+    },
+    {
+      "id": "CUST-VGh1JTIwTWlu",
+      "name": "Thu Minh",
+      "phone": "0335276418",
+      "createdAt": "2026-02-26T08:31:40.138Z"
+    },
+    {
+      "id": "CUST-VnklMjBQaGFt",
+      "name": "Vy Pham",
+      "phone": "0983082810",
+      "createdAt": "2026-02-26T08:31:40.138Z"
+    },
+    {
+      "id": "CUST-RGklRTElQkIl",
+      "name": "Diệu Nghi Planner",
+      "phone": "0818797768",
+      "createdAt": "2026-02-26T08:31:40.786Z"
+    },
+    {
+      "id": "CUST-TSVFMSVCQiVC",
+      "name": "Mỹ Thanh",
+      "phone": "0562535455",
+      "createdAt": "2026-02-26T08:31:40.786Z"
+    },
+    {
+      "id": "CUST-S2ltJTIwTmcl",
+      "name": "Kim Ngân",
+      "phone": "0944734639",
+      "createdAt": "2026-02-26T08:31:41.413Z"
+    }
+  ],
+  "history": [],
+  "financeMetadata": {},
+  "manualTransactions": []
+}
