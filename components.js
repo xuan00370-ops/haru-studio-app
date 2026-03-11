@@ -1291,18 +1291,29 @@ function renderJobDetailModal(state) {
                 </div>
               </div>
               <div class="day-services-container" data-day="${idx}" style="display: flex; flex-direction: column; gap: 0.5rem">
-                ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => `
-                  <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window.state?.currentUser?.role !== 'admin' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
-                     <select class="form-control svc-role-input" multiple style="font-size: 0.85rem; padding: 0.3rem 0.5rem; height: 100px;">
-                       ${(window.state?.settings?.serviceRoles || []).map(opt => `<option value="${opt}" ${Array.isArray(s.service) ? (s.service.includes(opt) ? 'selected' : '') : (s.service === opt ? 'selected' : '')}>${opt}</option>`).join('')}
+                ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => {
+            const sRole = Array.isArray(s.service) ? s.service : [s.service];
+            const isHoverCard = s.staff === window.state?.currentUser?.username;
+            return `
+                  <div class="day-service-row" data-sidx="${sIdx}" style="display: flex; gap: 0.5rem; align-items: start; background: ${isHoverCard ? '#f8fafc' : '#fff'}; border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px">
+                    <div style="flex: 1.5; min-width: 0; padding-right: 0.5rem; border-right: 1px dashed var(--border)">
+                     <select class="form-control svc-role-input" multiple style="font-size: 0.8rem; padding: 0.2rem 0.4rem; height: 65px; overflow-y: auto;">
+                       <option value="QUAY PS" ${sRole.includes('QUAY PS') ? 'selected' : ''}>QUAY PS</option>
+                       <option value="CHỤP PS" ${sRole.includes('CHỤP PS') ? 'selected' : ''}>CHỤP PS</option>
+                       <option value="QUAY TT" ${sRole.includes('QUAY TT') ? 'selected' : ''}>QUAY TT</option>
+                       <option value="CHỤP TT" ${sRole.includes('CHỤP TT') ? 'selected' : ''}>CHỤP TT</option>
+                       <option value="Quay Flycam" ${sRole.includes('Quay Flycam') ? 'selected' : ''}>Quay Flycam</option>
+                       <option value="Edit" ${sRole.includes('Edit') ? 'selected' : ''}>Edit</option>
+                       <option value="Khác" ${sRole.includes('Khác') ? 'selected' : ''}>Khác</option>
                      </select>
-                     <div style="display:flex; flex-direction:column">
-                       <select class="form-control svc-staff-input" data-date="${day.date || job.date}" data-job-id="${job.id || ''}" onchange="window._checkConflictUI(this)" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
-                         <option value="Chưa xếp">-- Chọn người --</option>
-                         ${window.state?.staff?.map(staff => `<option value="${staff.name}" ${s.staff === staff.name ? 'selected' : ''}>${staff.name}</option>`).join('') || ''}
-                       </select>
-                       <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
-                     </div>
+                   </div>
+                    <div style="flex: 1.5">
+                      <select class="form-control svc-staff-input" data-date="${day.date || job.date}" data-job-id="${job.id || ''}" onchange="window._checkConflictUI(this)" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 800; color: var(--text-main)">
+                        <option value="">Chọn Thợ</option>
+                         ${(window.state?.staff || []).map(st => `<option value="${st.name}" ${s.staff === st.name ? 'selected' : ''}>${st.name}</option>`).join('')}
+                      </select>
+                      <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
+                    </div>
                      ${window.state?.currentUser?.role !== 'admin' ? '' : `
                      <div style="position: relative">
                         <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
@@ -1313,9 +1324,11 @@ function renderJobDetailModal(state) {
                         <input type="number" class="form-control svc-edit-input" value="${s.edit || 0}" placeholder="Tiền Edit" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--warning)">
                      </div>
                      `}
-                     <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.day-service-row').remove()" title="Xóa nhân sự này"><i class="fas fa-trash"></i></button>
+                     <div style="width: 40px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.5rem">
+                       <button class="btn" style="color: var(--danger); padding: 0.2rem; background: none; border: none" onclick="this.closest('.day-service-row').remove(); window.saveJobDetail(window.state.modal.data, false)" title="Xoá"><i class="fas fa-trash"></i></button>
+                     </div>
                   </div>
-                `).join('')}
+                `}).join('')}
               </div>
             </div>
 
@@ -1552,15 +1565,26 @@ window._addServiceToDayInModal = (dayIdx) => {
   const newRow = document.createElement('div');
   newRow.className = 'day-service-row';
   newRow.setAttribute('data-sidx', sIdx);
-  newRow.style.cssText = `display: grid; grid-template-columns: 1fr 1.2fr ${isStaffView ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
+  newRow.style.cssText = `display: flex; gap: 0.5rem; align-items: start; background: #fff; border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
   newRow.innerHTML = `
-     <select class="form-control svc-role-input" multiple style="font-size: 0.85rem; padding: 0.3rem 0.5rem; height: 100px;">
-       ${(window.state?.settings?.serviceRoles || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+   <div style="flex: 1.5; min-width: 0; padding-right: 0.5rem; border-right: 1px dashed var(--border)">
+     <select class="form-control svc-role-input" multiple style="font-size: 0.8rem; padding: 0.2rem 0.4rem; height: 65px; overflow-y: auto;">
+       <option value="QUAY PS">QUAY PS</option>
+       <option value="CHỤP PS">CHỤP PS</option>
+       <option value="QUAY TT">QUAY TT</option>
+       <option value="CHỤP TT">CHỤP TT</option>
+       <option value="Quay Flycam">Quay Flycam</option>
+       <option value="Edit">Edit</option>
+       <option value="Khác">Khác</option>
      </select>
-     <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
-       <option value="Chưa xếp">-- Chọn người --</option>
-       ${(window.state?.staff || []).map(staff => `<option value="${staff.name}">${staff.name}</option>`).join('')}
+   </div>
+   <div style="flex: 1.5">
+     <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 800; color: var(--text-main)">
+       <option value="">Chọn Thợ</option>
+       ${(window.state?.staff || []).map(st => `<option value="${st.name}">${st.name}</option>`).join('')}
      </select>
+     <div class="conflict-warning" style="display:none; color: #ef4444; font-size: 0.7rem; margin-top: 0.2rem; font-weight: 700;"></div>
+   </div>
      ${isStaffView ? '' : `
      <div style="position: relative">
         <span style="position: absolute; left: 0.4rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-dim)">đ</span>
@@ -1571,7 +1595,9 @@ window._addServiceToDayInModal = (dayIdx) => {
         <input type="number" class="form-control svc-edit-input" value="0" placeholder="Tiền Edit" style="font-size: 0.85rem; padding: 0.3rem 0.5rem 0.3rem 1.2rem; color: var(--warning)">
      </div>
      `}
-     <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.day-service-row').remove(); window.saveJobDetail(window.state.modal.data, false)" title="Xóa"><i class="fas fa-trash"></i></button>
+     <div style="width: 40px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.5rem">
+       <button class="btn" style="color: var(--danger); padding: 0.2rem; background: none; border: none" onclick="this.closest('.day-service-row').remove(); window.saveJobDetail(window.state.modal.data, false)" title="Xoá"><i class="fas fa-trash"></i></button>
+     </div>
   `;
   container.appendChild(newRow);
   window.saveJobDetail(window.state.modal.data, false);
