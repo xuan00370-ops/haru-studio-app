@@ -1773,7 +1773,7 @@ window.saveJobDetail = (jobId, closeModalAfter = true) => {
       const costInp = row.querySelector('.svc-cost-input');
       const editInp = row.querySelector('.svc-edit-input');
 
-      const svc = roleInp ? roleInp.value.trim() : '';
+      const svc = roleInp ? Array.from(roleInp.selectedOptions).map(o => o.value) : [];
       const stf = staffInp ? staffInp.value.trim() : '';
       const cst = parseInt(costInp?.value) || 0;
       const edt = parseInt(editInp?.value) || 0;
@@ -1783,7 +1783,7 @@ window.saveJobDetail = (jobId, closeModalAfter = true) => {
         paid = !!job.services[sIdx].paid;
       }
 
-      if (svc && stf) {
+      if (svc.length > 0 && stf) {
         parsedServices.push({ service: svc, staff: stf, cost: cst, edit: edt, paid, date: dayDate });
       }
     });
@@ -2391,7 +2391,8 @@ window.promptAddStaff = () => {
 
 window.submitAddStaff = () => {
   const name = document.getElementById('staff-add-name')?.value?.trim();
-  const role = document.getElementById('staff-add-role')?.value || 'CTV';
+  const roleSelect = document.getElementById('staff-add-role');
+  const role = roleSelect ? Array.from(roleSelect.selectedOptions).map(o => o.value) : ['CTV'];
   const phone = document.getElementById('staff-add-phone')?.value?.trim() || '';
   const bankNo = document.getElementById('staff-add-bankno')?.value?.trim() || '';
   const bankName = document.getElementById('staff-add-bankname')?.value?.trim() || '';
@@ -2410,7 +2411,8 @@ window.submitEditStaff = (originalName) => {
   const member = state.staff.find(s => s.name === originalName);
   if (!member) { alert('Không tìm thấy nhân sự'); return; }
   const newName = document.getElementById(`edit-name-${originalName}`)?.value?.trim() || member.name;
-  const newRole = document.getElementById(`edit-role-${originalName}`)?.value || member.role;
+  const roleSelect = document.getElementById(`edit-role-${originalName}`);
+  const newRole = roleSelect ? Array.from(roleSelect.selectedOptions).map(o => o.value) : member.role;
   const newPhone = document.getElementById(`edit-phone-${originalName}`)?.value?.trim() ?? member.phone;
   const newBankNo = document.getElementById(`edit-bankno-${originalName}`)?.value?.trim() || '';
   const newBankName = document.getElementById(`edit-bankname-${originalName}`)?.value?.trim() || '';

@@ -1293,8 +1293,8 @@ function renderJobDetailModal(state) {
               <div class="day-services-container" data-day="${idx}" style="display: flex; flex-direction: column; gap: 0.5rem">
                 ${(job.services || []).filter(s => s.date === (day.date || job.date) || (!s.date && idx === 0)).map((s, sIdx) => `
                   <div class="day-service-row" data-sidx="${sIdx}" style="display: grid; grid-template-columns: 1fr 1.2fr ${window.state?.currentUser?.role !== 'admin' ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
-                     <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
-                       ${(window.state?.settings?.serviceRoles || []).map(opt => `<option value="${opt}" ${s.service === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                     <select class="form-control svc-role-input" multiple style="font-size: 0.85rem; padding: 0.3rem 0.5rem; height: 100px;">
+                       ${(window.state?.settings?.serviceRoles || []).map(opt => `<option value="${opt}" ${Array.isArray(s.service) ? (s.service.includes(opt) ? 'selected' : '') : (s.service === opt ? 'selected' : '')}>${opt}</option>`).join('')}
                      </select>
                      <div style="display:flex; flex-direction:column">
                        <select class="form-control svc-staff-input" data-date="${day.date || job.date}" data-job-id="${job.id || ''}" onchange="window._checkConflictUI(this)" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
@@ -1550,7 +1550,7 @@ window._addServiceToDayInModal = (dayIdx) => {
   newRow.setAttribute('data-sidx', sIdx);
   newRow.style.cssText = `display: grid; grid-template-columns: 1fr 1.2fr ${isStaffView ? '' : '110px 110px'} 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
   newRow.innerHTML = `
-     <select class="form-control svc-role-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem">
+     <select class="form-control svc-role-input" multiple style="font-size: 0.85rem; padding: 0.3rem 0.5rem; height: 100px;">
        ${(window.state?.settings?.serviceRoles || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
      </select>
      <select class="form-control svc-staff-input" style="font-size: 0.85rem; padding: 0.3rem 0.5rem; font-weight: 700">
@@ -3345,7 +3345,7 @@ export function renderStaff(state) {
         </div>
         <div>
           <label style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; display:block; margin-bottom:0.3rem">Vai trò</label>
-          <select id="staff-add-role" class="form-control" style="font-size:0.85rem; padding:0.6rem">
+          <select id="staff-add-role" class="form-control" multiple style="font-size:0.85rem; padding:0.6rem; height: 100px;">
             ${roleOptions}
           </select>
         </div>
@@ -3431,7 +3431,7 @@ export function renderStaff(state) {
         <div class="glass-panel" style="padding: 1.25rem" id="staff-card-${s.name.replace(/\s/g, '-')}">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem">
             <h3 style="font-size: 1.1rem; color: var(--text-main)">${s.name}</h3>
-            <span style="font-size: 0.75rem; color: var(--text-dim); background: var(--bg-hover); padding: 0.1rem 0.4rem; border-radius: 4px">${s.role}</span>
+            <span style="font-size: 0.75rem; color: var(--text-dim); background: var(--bg-hover); padding: 0.1rem 0.4rem; border-radius: 4px">${Array.isArray(s.role) ? s.role.join(', ') : (s.role || '')}</span>
           </div>
           <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem">
             <i class="fas fa-phone" style="width:16px"></i> ${s.phone || 'Chưa có SĐT'}
@@ -3443,8 +3443,8 @@ export function renderStaff(state) {
           <div id="staff-edit-${s.name.replace(/\s/g, '-')}" style="display:none; padding:0.75rem; margin-bottom:0.75rem; background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.15); border-radius:8px">
             <div style="display:grid; gap:0.5rem; margin-bottom:0.5rem">
               <input type="text" id="edit-name-${eName}" class="form-control" value="${s.name}" placeholder="Tên" style="font-size:0.8rem; padding:0.4rem 0.6rem">
-              <select id="edit-role-${eName}" class="form-control" style="font-size:0.8rem; padding:0.4rem 0.6rem">
-                ${(window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `<option ${s.role === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+              <select id="edit-role-${eName}" class="form-control" multiple style="font-size:0.8rem; padding:0.4rem 0.6rem; height: 100px;">
+                ${(window.state?.settings?.serviceRoles || ['Photo Lead', 'Cinema Lead', 'Photographer / Asst', 'Cinema', 'CTV']).map(opt => `<option ${Array.isArray(s.role) ? (s.role.includes(opt) ? 'selected' : '') : (s.role === opt ? 'selected' : '')}>${opt}</option>`).join('')}
               </select>
               <input type="text" id="edit-phone-${eName}" class="form-control" value="${s.phone || ''}" placeholder="SĐT" style="font-size:0.8rem; padding:0.4rem 0.6rem">
               <input type="text" id="edit-bankno-${eName}" class="form-control" value="${s.bank?.no || ''}" placeholder="Số TK" style="font-size:0.8rem; padding:0.4rem 0.6rem">
@@ -3692,29 +3692,63 @@ function renderPA3ReportModal(state) {
 // Helper: render staff payment chips on job card (v7: collapsed with +N more)
 function renderStaffChips(job) {
   const services = (job.services || []);
-  const MAX_VISIBLE = 3;
-  const visibleChips = services.slice(0, MAX_VISIBLE).map(function (s, idx) {
-    var paid = s.paid;
-    var label = _staffStr(s.staff).split(' ')[0] + ' - ' + (s.service || '');
-    var bg = paid ? 'rgba(21,128,61,0.10)' : 'rgba(0,0,0,0.035)';
-    var clr = paid ? '#15803d' : '#3d6b40';
-    var bdr = paid ? 'rgba(21,128,61,0.22)' : 'rgba(20,83,45,0.10)';
-    var icon = paid ? '✓ ' : '';
-    var title = paid ? 'Đã thanh toán — click để bỏ' : 'Chưa thanh toán — click để đánh dấu';
-    return '<span onclick="event.stopPropagation();window.toggleServicePaid(\'' + job.id + '\',' + idx + ',' + (!paid) + ',this)"'
-      + ' style="display:inline-flex;align-items:center;gap:0.2rem;cursor:pointer;'
-      + 'padding:0.2rem 0.55rem;border-radius:20px;font-size:0.78rem;font-weight:700;'
-      + 'background:' + bg + ';color:' + clr + ';border:1px solid ' + bdr + ';transition:all 0.15s"'
-      + ' title="' + title + '">'
-      + icon + label
-      + '</span>';
-  }).join(' ');
+  const eventDays = (job.eventDays || []);
 
-  const remaining = services.length - MAX_VISIBLE;
-  const moreChip = remaining > 0
-    ? ' <span style="display:inline-flex;align-items:center;padding:0.2rem 0.55rem;border-radius:20px;font-size:0.72rem;font-weight:800;background:var(--accent-soft);color:var(--primary);border:1px solid var(--border-bright);cursor:default" title="' + services.slice(MAX_VISIBLE).map(s => _staffStr(s.staff).split(' ')[0] + ' - ' + (s.service || '')).join(', ') + '">+' + remaining + ' nữa</span>'
-    : '';
-  return visibleChips + moreChip;
+  if (services.length === 0) return '';
+
+  const renderChipsForServices = (svcs, hideMore = false) => {
+    const MAX_VISIBLE = 3;
+    const visibleChips = svcs.slice(0, hideMore ? svcs.length : MAX_VISIBLE).map(function (s, idx) {
+      // Find original index for toggleServicePaid
+      const origIdx = services.indexOf(s);
+      var paid = s.paid;
+      var label = _staffStr(s.staff).split(' ')[0] + ' - ' + (Array.isArray(s.service) ? s.service.join(', ') : (s.service || ''));
+      var bg = paid ? 'rgba(21,128,61,0.10)' : 'rgba(0,0,0,0.035)';
+      var clr = paid ? '#15803d' : '#3d6b40';
+      var bdr = paid ? 'rgba(21,128,61,0.22)' : 'rgba(20,83,45,0.10)';
+      var icon = paid ? '✓ ' : '';
+      var title = paid ? 'Đã thanh toán — click để bỏ' : 'Chưa thanh toán — click để đánh dấu';
+      return '<span onclick="event.stopPropagation();window.toggleServicePaid(\'' + job.id + '\',' + origIdx + ',' + (!paid) + ',this)"'
+        + ' style="display:inline-flex;align-items:center;gap:0.2rem;cursor:pointer;'
+        + 'padding:0.2rem 0.55rem;border-radius:20px;font-size:0.78rem;font-weight:700;'
+        + 'background:' + bg + ';color:' + clr + ';border:1px solid ' + bdr + ';transition:all 0.15s"'
+        + ' title="' + title + '">'
+        + icon + label
+        + '</span>';
+    }).join(' ');
+
+    const remaining = svcs.length - MAX_VISIBLE;
+    const moreChip = (!hideMore && remaining > 0)
+      ? ' <span style="display:inline-flex;align-items:center;padding:0.2rem 0.55rem;border-radius:20px;font-size:0.72rem;font-weight:800;background:var(--accent-soft);color:var(--primary);border:1px solid var(--border-bright);cursor:default" title="' + svcs.slice(MAX_VISIBLE).map(s => _staffStr(s.staff).split(' ')[0] + ' - ' + (Array.isArray(s.service) ? s.service.join(', ') : (s.service || ''))).join(', ') + '">+' + remaining + ' nữa</span>'
+      : '';
+    return visibleChips + moreChip;
+  };
+
+  // If mono-day event, return standard flat list
+  if (eventDays.length <= 1) {
+    return renderChipsForServices(services);
+  }
+
+  // If multi-day event, group services by date
+  const groupedHtml = eventDays.map((day, dIdx) => {
+    const dayDate = day.date || job.date;
+    const dayServices = services.filter(s => s.date === dayDate || (!s.date && dIdx === 0));
+    if (dayServices.length === 0) return '';
+
+    // Group UI for a specific day
+    return `
+      <div style="margin-bottom: 0.4rem;">
+        <div style="font-size: 0.65rem; color: var(--primary); font-weight: 800; text-transform: uppercase; margin-bottom: 0.2rem;">
+          📅 Ngày ${new Date(dayDate).toLocaleDateString('vi-VN')}
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+          ${renderChipsForServices(dayServices, true)}
+        </div>
+      </div>
+    `;
+  }).filter(html => html !== '').join('');
+
+  return groupedHtml || renderChipsForServices(services);
 }
 
 // ============================================================
