@@ -744,7 +744,7 @@ setTimeout(() => {
     state.jobs.forEach(j => {
       if (j.isTrash) return;
       (j.services || []).forEach(s => {
-        if (!s.service?.toLowerCase().includes('quay')) return;
+        if (!(Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay')) return;
         if (s.editStatus === 'Hoàn thành') return;
         const dl = new Date(j.date); dl.setDate(dl.getDate() + 20);
         const daysLeft = Math.ceil((dl - today) / 864e5);

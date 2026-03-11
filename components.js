@@ -653,8 +653,8 @@ function renderJobCard(job) {
     const profit = job.package - (staffCosts + editCosts);
 
     // High-Precision Metrics
-    const photoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('chụp')).length;
-    const videoCount = validServices.filter(s => (s.service || '').toLowerCase().includes('quay')).length;
+    const photoCount = validServices.filter(s => (Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('chụp')).length;
+    const videoCount = validServices.filter(s => (Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay')).length;
 
     const isCompleted = job.status === 'Đã hoàn thành' || job.status === 'Nhận Feedback';
     return `
@@ -1094,8 +1094,8 @@ function renderJobDetailModal(state) {
         { label: 'Giao hàng', icon: '📦' }
       ];
       const cl = job.checklist || {};
-      const hasEdit = validServices.some(s => s.service?.toLowerCase().includes('quay'));
-      const editDone = validServices.every(s => !s.service?.toLowerCase().includes('quay') || s.editStatus === 'Hoàn thành');
+      const hasEdit = validServices.some(s => (Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay'));
+      const editDone = validServices.every(s => !(Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay') || s.editStatus === 'Hoàn thành');
       const jobDate = new Date(job.date);
       const isPast = jobDate < new Date();
 
@@ -2257,7 +2257,7 @@ export function renderDeadlineEdit(state) {
     if (job.isTrash) return;
     const deadlines = calculateDeadlines(job.date);
     job.services.forEach(s => {
-      const isVideo = s.service.toLowerCase().includes('quay');
+      const isVideo = (Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay');
       editTasks.push({
         job: job.client,
         id: job.id,
@@ -4059,7 +4059,7 @@ export function renderEditorPortal(state) {
     if (job.isTrash) return;
     const clips = [];
     job.services.forEach((s, sIdx) => {
-      if (!s.service.toLowerCase().includes('quay')) return;
+      if (!(Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay')) return;
       const jd = new Date(job.date); jd.setHours(0, 0, 0, 0);
       const dl = new Date(jd); dl.setDate(dl.getDate() + EDIT_DAYS);
       const daysLeft = Math.ceil((dl - today) / (864e5));
@@ -4463,7 +4463,7 @@ export function renderStaffPortal(state) {
         paid: !!s.paid, isPast, isToday, status: job.status,
         address: job.address || job.venue || '', timeline: job.timeline || {}
       });
-      if (s.service.toLowerCase().includes('quay') && (s.editStaff === staffName || s.staff === staffName)) {
+      if ((Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay') && (s.editStaff === staffName || s.staff === staffName)) {
         const dl = new Date(jobDate); dl.setDate(dl.getDate() + 20);
         const daysLeft = Math.ceil((dl - today) / 864e5);
         const editStatus = s.editStatus || 'Chưa bắt đầu';
@@ -5559,8 +5559,8 @@ export function renderClientProgressView(job) {
 
   const cl = job.checklist || {};
   const services = (job.services || []).filter(s => s && s.service);
-  const hasEdit = services.some(s => s.service?.toLowerCase().includes('quay'));
-  const editDone = services.every(s => !s.service?.toLowerCase().includes('quay') || s.editStatus === 'Hoàn thành');
+  const hasEdit = services.some(s => (Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay'));
+  const editDone = services.every(s => !(Array.isArray(s.service) ? s.service.join(' ') : (s.service || '')).toLowerCase().includes('quay') || s.editStatus === 'Hoàn thành');
   const jobDate = new Date(job.date);
   const isPast = jobDate < new Date();
 
