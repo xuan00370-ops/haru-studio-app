@@ -1345,10 +1345,14 @@ function renderJobDetailModal(state) {
             </div>
             <div id="deliverables-container-edit" style="display: flex; flex-direction: column; gap: 0.5rem">
               ${(job.deliverables && job.deliverables.length > 0 ? job.deliverables : []).map((d, dIdx) => `
-                <div class="deliverable-row" data-didx="${dIdx}" style="display: grid; grid-template-columns: 2fr 100px 100px 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
+                <div class="deliverable-row" data-didx="${dIdx}" style="display: grid; grid-template-columns: 2fr 100px 100px 100px 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px">
                    <input type="text" class="form-control del-name-input" value="${d.name}" placeholder="Tên sản phẩm (VD: Clip Truyền Thống)" style="font-size: 0.85rem; padding: 0.35rem 0.5rem; font-weight: 700">
                    <select class="form-control del-type-input" style="font-size: 0.85rem; padding: 0.35rem">
                      ${['Video', 'Photo', 'Khác'].map(opt => `<option value="${opt}" ${d.type === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                   </select>
+                   <select class="form-control del-editor-input" style="font-size: 0.85rem; padding: 0.35rem">
+                     <option value="">Chọn Editor</option>
+                     ${(window.state?.staff || []).map(s => `<option value="${s.name}" ${(d.editor || d.editStaff) === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
                    </select>
                    <input type="number" class="form-control del-qty-input" value="${d.quantity || 1}" min="1" placeholder="Số lượng" title="Số lượng" style="font-size: 0.85rem; padding: 0.35rem 0.5rem">
                    <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.deliverable-row').remove()" title="Xóa"><i class="fas fa-trash"></i></button>
@@ -1583,11 +1587,15 @@ window._addDeliverableInModal = () => {
   const newRow = document.createElement('div');
   newRow.className = 'deliverable-row';
   newRow.setAttribute('data-didx', dIdx);
-  newRow.style.cssText = `display: grid; grid-template-columns: 2fr 100px 100px 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
+  newRow.style.cssText = `display: grid; grid-template-columns: 2fr 100px 100px 100px 40px; gap: 0.5rem; align-items: center; background: #fff; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 8px; margin-top: 0.5rem; animation: slideIn 0.2s ease`;
   newRow.innerHTML = `
      <input type="text" class="form-control del-name-input" value="" placeholder="Tên sản phẩm (VD: Clip Truyền Thống)" style="font-size: 0.85rem; padding: 0.35rem 0.5rem; font-weight: 700">
      <select class="form-control del-type-input" style="font-size: 0.85rem; padding: 0.35rem">
        <option value="Video">Video</option><option value="Photo">Photo</option><option value="Khác">Khác</option>
+     </select>
+     <select class="form-control del-editor-input" style="font-size: 0.85rem; padding: 0.35rem">
+       <option value="">Chọn Editor</option>
+       ${(window.state?.staff || []).map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
      </select>
      <input type="number" class="form-control del-qty-input" value="1" min="1" placeholder="Số lượng" title="Số lượng" style="font-size: 0.85rem; padding: 0.35rem 0.5rem">
      <button type="button" class="btn block" style="padding: 0.3rem; color: var(--danger); background: none; border: none" onclick="this.closest('.deliverable-row').remove(); window.saveJobDetail(window.state.modal.data, false)" title="Xóa"><i class="fas fa-trash"></i></button>

@@ -1804,6 +1804,7 @@ window.saveJobDetail = (jobId, closeModalAfter = true) => {
   delRows.forEach((row, dIdx) => {
     const nameInp = row.querySelector('.del-name-input');
     const typeInp = row.querySelector('.del-type-input');
+    const editorInp = row.querySelector('.del-editor-input');
     const qtyInp = row.querySelector('.del-qty-input');
 
     // Giữ nguyên các thông tin hậu kỳ đã chia nếu có (cho file sau này)
@@ -1811,10 +1812,11 @@ window.saveJobDetail = (jobId, closeModalAfter = true) => {
 
     const name = nameInp ? nameInp.value.trim() : '';
     const type = typeInp ? typeInp.value.trim() : 'Khác';
+    const editor = editorInp ? editorInp.value.trim() : existing.editor || '';
     const quantity = parseInt(qtyInp?.value) || 1;
 
     if (name) {
-      deliverables.push({ ...existing, name, type, quantity });
+      deliverables.push({ ...existing, name, type, editor, quantity });
     }
   });
 
