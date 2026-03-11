@@ -4741,3 +4741,4 @@ setTimeout(() => {
     } catch (e) { console.error('Error importing fb data on load', e); }
   }
 }, 500);
+// Timestamp force trigger: Wed Mar 11 15:10:10 +07 2026
