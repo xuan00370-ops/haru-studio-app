@@ -4760,3 +4760,661 @@ setTimeout(() => {
   }
 }, 500);
 // Timestamp force trigger: Wed Mar 11 15:10:10 +07 2026
+
+// ============================================================
+// ✨ NEW FEATURES v4.0 — Haru Studio App
+// ============================================================
+
+// ─── #5 OFFLINE MODE INDICATOR ───────────────────────────────
+(function initOfflineIndicator() {
+  const bar = document.createElement('div');
+  bar.id = 'offline-indicator';
+  document.body.appendChild(bar);
+
+  function showBar(cls, text, autohide = 0) {
+    bar.className = cls + ' show';
+    bar.innerHTML = text;
+    if (autohide > 0) setTimeout(() => { bar.classList.remove('show'); }, autohide);
+  }
+
+  window.addEventListener('offline', () => {
+    showBar('offline', '🔴 Mất kết nối — Đang lưu offline, sẽ đồng bộ khi có mạng');
+  });
+  window.addEventListener('online', () => {
+    showBar('online-back', '🟢 Đã kết nối lại — Đang đồng bộ dữ liệu...', 4000);
+    if (window.syncToFirebase && window.state && window.state.jobs.length > 0) {
+      window.syncToFirebase(window.state);
+    }
+  });
+  if (!navigator.onLine) {
+    showBar('offline', '🔴 Đang ở chế độ Offline');
+  }
+  window.showNetworkConflict = () => showBar('conflict', '⚠️ Phát hiện xung đột dữ liệu — Đang dùng phiên bản mới nhất từ máy chủ', 6000);
+})();
+
+// ─── #1 QUICK ADD JOB — FAB Button (Mobile) ──────────────────
+(function initQuickAddFAB() {
+  const fab = document.createElement('button');
+  fab.id = 'quick-add-fab';
+  fab.title = 'Thêm job nhanh';
+  fab.innerHTML = '＋';
+  document.body.appendChild(fab);
+
+  fab.onclick = () => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)';
+    const today = new Date().toISOString().split('T')[0];
+    overlay.innerHTML = `
+      <div style="background:var(--bg-card);border-radius:24px 24px 0 0;padding:1.5rem;width:100%;max-width:480px;animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1)">
+        <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.25rem;"></div>
+        <h3 style="font-size:1.1rem;font-weight:900;margin-bottom:1rem">⚡ Thêm Job Nhanh</h3>
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <input id="qj-client" class="form-control" placeholder="Tên khách hàng *" style="font-size:1rem">
+          <input id="qj-date" class="form-control" type="date" value="${today}" style="font-size:1rem">
+          <input id="qj-phone" class="form-control" placeholder="Số điện thoại" type="tel" style="font-size:1rem">
+          <input id="qj-package" class="form-control" placeholder="Giá trị gói (VD: 15000000)" type="number" style="font-size:1rem">
+          <select id="qj-template" class="form-control" style="font-size:1rem">
+            <option value="">📋 Chọn mẫu job (tuỳ chọn)</option>
+            <option value="basic">Gói Cơ Bản — 1 Quay PS + 1 Chụp PS</option>
+            <option value="standard">Gói Tiêu Chuẩn — 2 Quay + 2 Chụp</option>
+            <option value="premium">Gói Premium — 2 Quay + 2 Chụp + Flycam</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem">
+          <button id="qj-cancel" class="btn btn-secondary" style="flex:1">Hủy</button>
+          <button id="qj-save" class="btn btn-primary" style="flex:2">💾 Lưu Job</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.querySelector('#qj-client').focus(), 100);
+
+    overlay.querySelector('#qj-cancel').onclick = () => overlay.remove();
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    overlay.querySelector('#qj-save').onclick = () => {
+      const client = overlay.querySelector('#qj-client').value.trim();
+      if (!client) { overlay.querySelector('#qj-client').focus(); return; }
+      const date = overlay.querySelector('#qj-date').value || today;
+      const phone = overlay.querySelector('#qj-phone').value.trim();
+      const pkg = parseInt(overlay.querySelector('#qj-package').value) || 0;
+      const tmpl = overlay.querySelector('#qj-template').value;
+
+      const d = new Date(date);
+      const services = [];
+      if (tmpl === 'basic') {
+        services.push({ service: 'QUAY PS', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'CHỤP PS', staff: '', cost: 0, edit: 0, date });
+      } else if (tmpl === 'standard') {
+        services.push({ service: 'QUAY PS', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'QUAY TT', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'CHỤP PS', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'CHỤP TT', staff: '', cost: 0, edit: 0, date });
+      } else if (tmpl === 'premium') {
+        services.push({ service: 'QUAY PS', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'QUAY TT', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'CHỤP PS', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'CHỤP TT', staff: '', cost: 0, edit: 0, date });
+        services.push({ service: 'Quay Flycam', staff: '', cost: 0, edit: 0, date });
+      }
+
+      const maxNo = (state.jobs || []).reduce((m, j) => Math.max(m, j.jobNo || 0), 0);
+      const newJob = {
+        id: 'job_' + Date.now(),
+        jobNo: maxNo + 1,
+        client,
+        date,
+        month: d.getMonth() + 1,
+        year: d.getFullYear(),
+        phone,
+        package: pkg,
+        deposit: Math.round(pkg * 0.2),
+        status: 'Mới đặt',
+        services,
+        deliverables: [],
+        notes: '',
+        visibility: true,
+        eventType: 'Tiệc Cưới',
+        createdAt: new Date().toISOString()
+      };
+      state.jobs.unshift(newJob);
+      window.addHistory(`➕ Tạo job nhanh: ${client}`, `Ngày: ${date}`);
+      saveState();
+      updateUI();
+      overlay.remove();
+      if (window.showToast) window.showToast(`✅ Đã tạo job "${client}" thành công!`, 'var(--primary)');
+    };
+  };
+})();
+
+// ─── #4 NOTIFICATION DRAWER (nâng cấp từ dropdown) ───────────
+(function initNotifDrawer() {
+  const overlay = document.createElement('div');
+  overlay.id = 'notif-drawer-overlay';
+  overlay.onclick = () => window.closeNotifDrawer();
+
+  const drawer = document.createElement('div');
+  drawer.id = 'notif-drawer';
+  document.body.appendChild(overlay);
+  document.body.appendChild(drawer);
+
+  window.openNotifDrawer = () => {
+    const log = state.notificationLog || [];
+    log.forEach(n => { n.read = true; });
+    const badge = document.getElementById('notif-bell-badge');
+    if (badge) badge.style.display = 'none';
+
+    const urgents = log.filter(n => n.action && (n.action.includes('KHẨN') || n.action.includes('TRỄ') || n.action.includes('⚠️')));
+    const normals = log.filter(n => !urgents.includes(n));
+
+    drawer.innerHTML = `
+      <div class="notif-drawer-header">
+        <div>
+          <div style="font-size:1rem;font-weight:900">🔔 Thông Báo</div>
+          <div style="font-size:0.72rem;color:var(--text-dim)">${log.length} hoạt động gần đây</div>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button onclick="state.notificationLog=[];window.closeNotifDrawer();updateUI&&updateUI()" style="font-size:0.7rem;padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;color:var(--text-dim)">Xóa hết</button>
+          <button onclick="window.closeNotifDrawer()" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:none;cursor:pointer;font-size:1.1rem">×</button>
+        </div>
+      </div>
+      <div class="notif-drawer-tabs">
+        <div class="notif-tab active" onclick="window.switchNotifTab('all',this)">Tất cả (${log.length})</div>
+        <div class="notif-tab" onclick="window.switchNotifTab('urgent',this)">🔴 Khẩn (${urgents.length})</div>
+        <div class="notif-tab" onclick="window.switchNotifTab('normal',this)">💬 Thường (${normals.length})</div>
+      </div>
+      <div class="notif-drawer-body" id="notif-body">
+        ${log.length === 0 ? '<div style="padding:2rem;text-align:center;color:var(--text-dim)">Chưa có thông báo</div>' :
+        log.slice(0, 50).map(n => {
+          const icon = n.action?.includes('TRỄ') || n.action?.includes('KHẨN') ? '🔴' :
+                       n.action?.includes('⚠️') || n.action?.includes('sắp') ? '🟡' :
+                       n.action?.includes('✅') || n.action?.includes('Hoàn thành') ? '🟢' : '💬';
+          const bg = icon === '🔴' ? '#fee2e2' : icon === '🟡' ? '#fef3c7' : '#f0fdf4';
+          return `<div class="notif-drawer-item ${n.read ? '' : 'unread'}">
+            <div class="notif-icon" style="background:${bg}">${icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.78rem;font-weight:700;color:var(--text-main);line-height:1.35">${n.action}</div>
+              <div style="font-size:0.62rem;color:var(--text-dim);margin-top:0.2rem">${new Date(n.time).toLocaleString('vi-VN')} · ${n.user}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+    overlay.classList.add('open');
+    drawer.classList.add('open');
+  };
+
+  window.closeNotifDrawer = () => {
+    overlay.classList.remove('open');
+    drawer.classList.remove('open');
+  };
+
+  window.switchNotifTab = (type, el) => {
+    document.querySelectorAll('.notif-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const body = document.getElementById('notif-body');
+    if (!body) return;
+    const log = state.notificationLog || [];
+    const items = type === 'urgent' ? log.filter(n => n.action?.includes('⚠️') || n.action?.includes('TRỄ') || n.action?.includes('KHẨN'))
+                : type === 'normal' ? log.filter(n => !n.action?.includes('TRỄ') && !n.action?.includes('KHẨN'))
+                : log;
+    body.innerHTML = items.length === 0 ? '<div style="padding:2rem;text-align:center;color:var(--text-dim)">Không có mục nào</div>' :
+      items.map(n => {
+        const icon = n.action?.includes('TRỄ') || n.action?.includes('KHẨN') ? '🔴' : n.action?.includes('⚠️') ? '🟡' : '💬';
+        return `<div class="notif-drawer-item"><div class="notif-icon" style="background:#f0fdf4">${icon}</div><div style="flex:1"><div style="font-size:0.78rem;font-weight:700">${n.action}</div><div style="font-size:0.62rem;color:var(--text-dim)">${new Date(n.time).toLocaleString('vi-VN')}</div></div></div>`;
+      }).join('');
+  };
+
+  // Override toggleNotifPanel để dùng drawer mới
+  window.toggleNotifPanel = () => window.openNotifDrawer();
+})();
+
+// ─── DARK MODE TOGGLE ─────────────────────────────────────────
+window.toggleDarkMode = () => {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('haru_theme', newTheme);
+  if (window.showToast) window.showToast(isDark ? '☀️ Chuyển sang Light Mode' : '🌙 Chuyển sang Dark Mode', 'var(--primary)');
+};
+// Restore dark mode preference on load
+(function restoreTheme() {
+  const saved = localStorage.getItem('haru_theme');
+  if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+})();
+
+// ─── #9 TEAM CHAT DRAWER ─────────────────────────────────────
+(function initTeamChat() {
+  const chatEl = document.createElement('div');
+  chatEl.id = 'team-chat-drawer';
+  chatEl.innerHTML = `
+    <div class="chat-drawer-header" onclick="window.toggleTeamChat()">
+      <div style="display:flex;align-items:center;gap:0.5rem">💬 <span>Team Chat</span> <span id="chat-unread-badge" style="display:none;background:#ef4444;color:#fff;width:16px;height:16px;border-radius:50%;font-size:0.6rem;display:flex;align-items:center;justify-content:center"></span></div>
+      <span id="chat-toggle-icon">▲</span>
+    </div>
+    <div class="chat-messages" id="chat-msg-list"></div>
+    <div class="chat-input-row">
+      <input id="chat-input" placeholder="Nhắn gì đó..." onkeydown="if(event.key==='Enter')window.sendTeamChat()">
+      <button class="chat-send-btn" onclick="window.sendTeamChat()">➤</button>
+    </div>`;
+  document.body.appendChild(chatEl);
+
+  window.toggleTeamChat = () => {
+    chatEl.classList.toggle('open');
+    document.getElementById('chat-toggle-icon').textContent = chatEl.classList.contains('open') ? '▼' : '▲';
+    if (chatEl.classList.contains('open')) window.renderChatMessages();
+  };
+
+  window.renderChatMessages = () => {
+    const list = document.getElementById('chat-msg-list');
+    if (!list) return;
+    const msgs = state.chatMessages || [];
+    const me = state.currentUser?.displayName || state.currentUser?.username || 'Admin';
+    list.innerHTML = msgs.length === 0 ? '<div style="color:var(--text-dim);font-size:0.75rem;text-align:center;padding:1rem">Chưa có tin nhắn. Bắt đầu chat nào!</div>' :
+      msgs.slice(-30).map(m => {
+        const isMine = m.user === me;
+        return `<div class="chat-msg ${isMine ? 'mine' : 'other'}">
+          ${!isMine ? `<div class="msg-sender">${m.user}</div>` : ''}
+          <div>${m.text}</div>
+        </div>`;
+      }).join('');
+    list.scrollTop = list.scrollHeight;
+  };
+
+  window.sendTeamChat = () => {
+    const input = document.getElementById('chat-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    const user = state.currentUser?.displayName || state.currentUser?.username || 'Admin';
+    const msg = { id: Date.now(), text, user, time: new Date().toISOString() };
+    if (!state.chatMessages) state.chatMessages = [];
+    state.chatMessages.push(msg);
+    if (state.chatMessages.length > 100) state.chatMessages = state.chatMessages.slice(-100);
+    if (window.sendChatMessage) window.sendChatMessage(msg).catch(() => {});
+    input.value = '';
+    window.renderChatMessages();
+  };
+
+  // Watch chat từ Firebase
+  if (window.watchChat) {
+    try {
+      window.watchChat((msgs) => {
+        state.chatMessages = msgs || [];
+        if (chatEl.classList.contains('open')) window.renderChatMessages();
+        else {
+          const badge = document.getElementById('chat-unread-badge');
+          if (badge) { badge.style.display = 'flex'; badge.textContent = '!'; }
+        }
+      });
+    } catch(e) {}
+  }
+})();
+
+// ─── #12 INVOICE PDF GENERATOR ───────────────────────────────
+window.generateInvoice = (jobId) => {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  const remaining = (job.package || 0) - (job.deposit || 0);
+  const tax = Math.round((job.package || 0) * 0.1);
+  const date = new Date().toLocaleDateString('vi-VN');
+  const studioName = 'HARU WEDDING FILM';
+  const studioContact = 'haruweddingfilm.com';
+
+  const html = `
+    <div class="invoice-preview" id="invoice-to-print">
+      <div class="invoice-header-band">
+        <div style="font-size:1.4rem;font-weight:900;margin-bottom:0.25rem">${studioName}</div>
+        <div style="font-size:0.8rem;opacity:0.85">${studioContact} · Ngày lập: ${date}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;font-size:0.82rem">
+        <div><div style="font-weight:900;margin-bottom:0.35rem;color:var(--text-dim);text-transform:uppercase;font-size:0.68rem">Khách hàng</div>
+          <div style="font-weight:800;font-size:1rem">${job.client}</div>
+          ${job.phone ? `<div style="color:var(--text-dim)">📞 ${job.phone}</div>` : ''}
+        </div>
+        <div><div style="font-weight:900;margin-bottom:0.35rem;color:var(--text-dim);text-transform:uppercase;font-size:0.68rem">Sự kiện</div>
+          <div style="font-weight:800">${job.eventType || 'Tiệc Cưới'}</div>
+          <div style="color:var(--text-dim)">📅 ${new Date(job.date).toLocaleDateString('vi-VN')}</div>
+          ${job.venue ? `<div style="color:var(--text-dim)">📍 ${job.venue}</div>` : ''}
+        </div>
+      </div>
+      <div style="font-weight:900;font-size:0.72rem;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.5rem">Chi tiết dịch vụ</div>
+      ${(job.deliverables || []).map(d => `<div class="invoice-row"><span>${d.name}</span><span style="font-weight:700">x${d.quantity||1}</span></div>`).join('') || '<div class="invoice-row"><span>Gói dịch vụ trọn gói</span><span>x1</span></div>'}
+      <div style="height:1rem"></div>
+      <div class="invoice-row"><span>Giá trị gói</span><span style="font-weight:700">${(job.package||0).toLocaleString('vi-VN')}đ</span></div>
+      <div class="invoice-row"><span>Tiền cọc đã đặt</span><span style="color:var(--success);font-weight:700">-${(job.deposit||0).toLocaleString('vi-VN')}đ</span></div>
+      <div class="invoice-row"><span>Thuế VAT (10%)</span><span>${tax.toLocaleString('vi-VN')}đ</span></div>
+      <div class="invoice-total-row"><span>💰 Còn lại thanh toán</span><span>${remaining.toLocaleString('vi-VN')}đ</span></div>
+      <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text-dim);text-align:center">
+        Cảm ơn quý khách đã tin tưởng ${studioName} 🙏<br>Mọi thắc mắc xin liên hệ: ${studioContact}
+      </div>
+    </div>`;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:1rem';
+  overlay.innerHTML = `<div style="background:var(--bg-main);border-radius:20px;width:min(640px,97vw);max-height:90vh;overflow-y:auto;padding:1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h3 style="font-weight:900">🧾 Hoá Đơn / Invoice</h3>
+      <div style="display:flex;gap:0.5rem">
+        <button onclick="window.printInvoice()" class="btn btn-primary btn-sm">🖨️ In PDF</button>
+        <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary btn-sm">✕ Đóng</button>
+      </div>
+    </div>
+    ${html}
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+  window.printInvoice = () => {
+    if (window.html2pdf) {
+      const el = document.getElementById('invoice-to-print');
+      window.html2pdf().set({ margin: 10, filename: `invoice_${job.client}_${job.date}.pdf`, html2canvas: { scale: 2 }, jsPDF: { format: 'a4' } }).from(el).save();
+    } else {
+      window.print();
+    }
+  };
+};
+
+// ─── #6 AI PRICE SUGGESTION ──────────────────────────────────
+window.getAIPriceSuggestion = (eventType, servicesCount) => {
+  const history = (state.jobs || []).filter(j => !j.isTrash && j.package > 0);
+  if (history.length < 3) return null;
+  const similar = history.filter(j => !eventType || (j.eventType || '').includes(eventType));
+  const pool = similar.length >= 3 ? similar : history;
+  const sorted = [...pool].sort((a, b) => b.package - a.package);
+  const prices = sorted.slice(0, Math.min(10, sorted.length)).map(j => j.package);
+  const avg = Math.round(prices.reduce((s, p) => s + p, 0) / prices.length);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  return { avg, min, max, count: prices.length };
+};
+
+window.showAIPriceSuggestion = (inputId) => {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const suggestion = window.getAIPriceSuggestion('', 2);
+  if (!suggestion) { window.showToast && window.showToast('Cần thêm dữ liệu để đưa ra gợi ý giá', 'var(--warning)'); return; }
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
+  overlay.innerHTML = `<div style="background:var(--bg-card);border-radius:20px;padding:1.5rem;width:min(360px,95vw);text-align:center">
+    <div style="font-size:1.5rem;margin-bottom:0.5rem">🤖</div>
+    <h3 style="font-weight:900;margin-bottom:0.5rem">AI Gợi Ý Giá</h3>
+    <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem">Dựa trên ${suggestion.count} job gần đây</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:1.25rem">
+      <div style="background:rgba(22,163,74,0.08);border-radius:10px;padding:0.75rem;cursor:pointer" onclick="document.getElementById('${inputId}').value=${suggestion.min};this.closest('div[style*=fixed]').remove()">
+        <div style="font-size:1rem;font-weight:900;color:var(--primary)">${(suggestion.min/1e6).toFixed(1)}M</div>
+        <div style="font-size:0.62rem;color:var(--text-dim)">Thấp nhất</div>
+      </div>
+      <div style="background:rgba(22,163,74,0.15);border-radius:10px;padding:0.75rem;cursor:pointer;border:2px solid var(--primary)" onclick="document.getElementById('${inputId}').value=${suggestion.avg};this.closest('div[style*=fixed]').remove()">
+        <div style="font-size:1.1rem;font-weight:900;color:var(--primary)">${(suggestion.avg/1e6).toFixed(1)}M</div>
+        <div style="font-size:0.62rem;color:var(--primary);font-weight:700">⭐ Trung bình</div>
+      </div>
+      <div style="background:rgba(22,163,74,0.08);border-radius:10px;padding:0.75rem;cursor:pointer" onclick="document.getElementById('${inputId}').value=${suggestion.max};this.closest('div[style*=fixed]').remove()">
+        <div style="font-size:1rem;font-weight:900;color:var(--primary)">${(suggestion.max/1e6).toFixed(1)}M</div>
+        <div style="font-size:0.62rem;color:var(--text-dim)">Cao nhất</div>
+      </div>
+    </div>
+    <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary" style="width:100%">Đóng</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+};
+
+// ─── #10 LEAD PIPELINE ───────────────────────────────────────
+window.renderLeadPipeline = () => {
+  const leads = state.leads || [];
+  const stages = [
+    { id: 'contact', label: '📞 Liên hệ', color: '#94a3b8' },
+    { id: 'consulted', label: '💬 Đã tư vấn', color: '#3b82f6' },
+    { id: 'quoted', label: '💰 Đã báo giá', color: '#f59e0b' },
+    { id: 'deposited', label: '🤝 Đặt cọc', color: '#16a34a' },
+    { id: 'signed', label: '✅ Đã ký HĐ', color: '#22c55e' }
+  ];
+  return `<div class="lead-pipeline">
+    ${stages.map(st => {
+      const stageLeads = leads.filter(l => l.stage === st.id);
+      return `<div class="lead-column">
+        <div class="lead-column-title" style="color:${st.color}">
+          ${st.label} <span style="background:${st.color}20;color:${st.color};padding:0.1rem 0.4rem;border-radius:10px;font-size:0.65rem">${stageLeads.length}</span>
+        </div>
+        ${stageLeads.map(l => `
+          <div class="lead-card" onclick="window.openLeadDetail('${l.id}')">
+            <div style="font-weight:800;margin-bottom:0.2rem">${l.name}</div>
+            <div style="color:var(--text-dim);font-size:0.72rem">${l.phone || ''}</div>
+            ${l.estimatedValue ? `<div style="color:var(--primary);font-weight:700;font-size:0.75rem;margin-top:0.25rem">${(l.estimatedValue/1e6).toFixed(1)}M</div>` : ''}
+          </div>`).join('')}
+        <button onclick="window.addLead('${st.id}')" style="width:100%;padding:0.4rem;border:1px dashed var(--border);border-radius:8px;background:none;cursor:pointer;color:var(--text-dim);font-size:0.75rem;margin-top:0.25rem">+ Thêm</button>
+      </div>`;
+    }).join('')}
+  </div>`;
+};
+
+window.addLead = (stage) => {
+  const name = prompt('Tên khách hàng tiềm năng:');
+  if (!name) return;
+  const phone = prompt('Số điện thoại (bỏ qua nếu chưa có):') || '';
+  const val = parseInt(prompt('Giá trị ước tính (VD: 15000000, bỏ qua nếu chưa biết):')) || 0;
+  if (!state.leads) state.leads = [];
+  state.leads.unshift({ id: 'lead_' + Date.now(), name, phone, estimatedValue: val, stage, createdAt: new Date().toISOString() });
+  window.addHistory(`📊 Thêm lead: ${name} (${stage})`);
+  saveState();
+  updateUI();
+};
+
+window.openLeadDetail = (leadId) => {
+  const lead = (state.leads || []).find(l => l.id === leadId);
+  if (!lead) return;
+  const stages = ['contact','consulted','quoted','deposited','signed'];
+  const labels = { contact:'Liên hệ', consulted:'Đã tư vấn', quoted:'Đã báo giá', deposited:'Đặt cọc', signed:'Đã ký HĐ' };
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
+  overlay.innerHTML = `<div style="background:var(--bg-card);border-radius:20px;padding:1.5rem;width:min(400px,95vw)">
+    <h3 style="font-weight:900;margin-bottom:1rem">📊 ${lead.name}</h3>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:0.72rem;font-weight:700;color:var(--text-dim);display:block;margin-bottom:0.35rem">GIAI ĐOẠN</label>
+      <select id="lead-stage-sel" class="form-control" style="font-size:0.9rem">
+        ${stages.map(s => `<option value="${s}" ${lead.stage===s?'selected':''}>${labels[s]}</option>`).join('')}
+      </select>
+    </div>
+    ${lead.phone ? `<div style="margin-bottom:1rem;font-size:0.85rem"><span style="color:var(--text-dim)">📞</span> ${lead.phone}</div>` : ''}
+    ${lead.estimatedValue ? `<div style="margin-bottom:1rem;font-size:0.85rem"><span style="color:var(--text-dim)">💰 Ước tính:</span> <strong>${(lead.estimatedValue/1e6).toFixed(1)}M</strong></div>` : ''}
+    <div style="display:flex;gap:0.5rem;margin-top:1rem">
+      <button onclick="(() => { const s=document.getElementById('lead-stage-sel').value; const l=state.leads.find(x=>x.id==='${lead.id}'); if(l){l.stage=s;saveState();updateUI&&updateUI();} this.closest('div[style*=fixed]').remove(); })()" class="btn btn-primary" style="flex:1">💾 Lưu</button>
+      <button onclick="window.convertLeadToJob('${lead.id}')" class="btn btn-secondary" style="flex:1">🚀 Tạo Job</button>
+      <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary">✕</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+};
+
+window.convertLeadToJob = (leadId) => {
+  const lead = (state.leads || []).find(l => l.id === leadId);
+  if (!lead) return;
+  if (!confirm(`Chuyển lead "${lead.name}" thành Job thực tế?`)) return;
+  const today = new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const maxNo = (state.jobs || []).reduce((m, j) => Math.max(m, j.jobNo || 0), 0);
+  const newJob = { id: 'job_' + Date.now(), jobNo: maxNo + 1, client: lead.name, date: today, month: d.getMonth()+1, year: d.getFullYear(), phone: lead.phone || '', package: lead.estimatedValue || 0, deposit: 0, status: 'Mới đặt', services: [], deliverables: [], notes: 'Chuyển từ Lead', visibility: true, eventType: 'Tiệc Cưới', createdAt: new Date().toISOString() };
+  state.jobs.unshift(newJob);
+  state.leads = (state.leads || []).filter(l => l.id !== leadId);
+  window.addHistory(`🚀 Chuyển lead "${lead.name}" thành Job #${newJob.jobNo}`);
+  saveState();
+  updateUI();
+  document.querySelectorAll('div[style*="position:fixed"]').forEach(el => { if (el.querySelector(`[onclick*="${leadId}"]`)) el.remove(); });
+  window.showToast && window.showToast(`✅ Đã tạo Job cho "${lead.name}"!`, 'var(--primary)');
+};
+
+// ─── #11 KPI STAFF DASHBOARD ─────────────────────────────────
+window.renderStaffKPI = (month, year) => {
+  const m = month || state.currentMonth;
+  const y = year || state.currentYear;
+  const staffMap = {};
+  (state.jobs || []).filter(j => !j.isTrash).forEach(job => {
+    const jd = new Date(job.date);
+    if (jd.getMonth()+1 !== m || jd.getFullYear() !== y) return;
+    (job.services || []).forEach(svc => {
+      if (!svc.staff) return;
+      const name = svc.staff;
+      if (!staffMap[name]) staffMap[name] = { jobs: 0, revenue: 0, cost: 0, completed: 0 };
+      staffMap[name].jobs++;
+      staffMap[name].cost += svc.cost || 0;
+      staffMap[name].revenue += job.package || 0;
+      if (job.status === 'Đã hoàn thành') staffMap[name].completed++;
+    });
+    (job.deliverables || []).forEach(d => {
+      if (!d.editor) return;
+      if (!staffMap[d.editor]) staffMap[d.editor] = { jobs: 0, revenue: 0, cost: 0, completed: 0 };
+      if (d.editStatus === 'Hoàn thành') staffMap[d.editor].completed++;
+    });
+  });
+  const ranked = Object.entries(staffMap).sort((a, b) => b[1].cost - a[1].cost);
+  return `<div>
+    <h3 style="font-size:1rem;font-weight:900;margin-bottom:1rem">🏆 KPI Nhân Sự — T${m}/${y}</h3>
+    <div class="kpi-grid">
+      ${ranked.map(([name, kpi], i) => `
+        <div class="kpi-card">
+          <div style="font-size:1.5rem;margin-bottom:0.5rem">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'👤'}</div>
+          <div style="font-weight:900;font-size:0.9rem;margin-bottom:0.5rem">${name}</div>
+          <div class="kpi-number kpi-rank-${i+1}" style="font-size:1.2rem">${kpi.jobs}</div>
+          <div class="kpi-label">Job</div>
+          <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--primary);font-weight:700">${(kpi.cost/1e6).toFixed(1)}M</div>
+          <div class="kpi-label">Thu nhập</div>
+          <div style="margin-top:0.3rem;font-size:0.7rem;color:var(--success)">${kpi.completed} hoàn thành</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+};
+
+// ─── #8 STAFF SCHEDULING ─────────────────────────────────────
+window.renderStaffSchedule = (weekOffset = 0) => {
+  const today = new Date();
+  const monday = new Date(today);
+  const day = today.getDay() === 0 ? 6 : today.getDay() - 1;
+  monday.setDate(today.getDate() - day + weekOffset * 7);
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+
+  const staffNames = [...new Set((state.staff || []).map(s => s.name).filter(Boolean))];
+
+  const weekJobs = (state.jobs || []).filter(j => {
+    if (j.isTrash) return false;
+    const jd = new Date(j.date);
+    return jd >= days[0] && jd <= days[6];
+  });
+
+  const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+  return `<div>
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+      <button onclick="window.renderStaffScheduleInto(window._scheduleEl, ${weekOffset-1})" class="btn btn-secondary btn-sm">← Tuần trước</button>
+      <span style="font-weight:800;font-size:0.9rem">${days[0].toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'})} – ${days[6].toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}</span>
+      <button onclick="window.renderStaffScheduleInto(window._scheduleEl, ${weekOffset+1})" class="btn btn-secondary btn-sm">Tuần sau →</button>
+    </div>
+    <div class="schedule-grid">
+      <table class="schedule-table">
+        <thead><tr>
+          <th style="min-width:100px">Nhân sự</th>
+          ${days.map((d, i) => {
+            const isToday = d.toDateString() === today.toDateString();
+            return `<th style="${isToday?'background:rgba(22,163,74,0.18);color:var(--primary)':''}">${dayLabels[i]}<br><span style="font-weight:500;font-size:0.68rem">${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'})}</span></th>`;
+          }).join('')}
+        </tr></thead>
+        <tbody>
+          ${staffNames.slice(0, 15).map(name => `<tr>
+            <td style="font-weight:700;font-size:0.78rem">${name}</td>
+            ${days.map(d => {
+              const dateStr = d.toISOString().split('T')[0];
+              const assigned = weekJobs.filter(j => {
+                const jd = new Date(j.date);
+                return jd.toISOString().split('T')[0] === dateStr && (j.services||[]).some(s => (s.staff||'').includes(name));
+              });
+              const conflict = assigned.length > 1;
+              return `<td>${assigned.map(j => `<div class="sched-job ${conflict?'sched-conflict':''}" onclick="window.openQuickPreview&&window.openQuickPreview('${j.id}')" title="${j.client}">${j.client.slice(0,12)}${j.client.length>12?'…':''}</div>`).join('')}</td>`;
+            }).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+};
+window.renderStaffScheduleInto = (el, offset) => {
+  if (el) { el.innerHTML = window.renderStaffSchedule(offset); window._scheduleEl = el; }
+};
+
+// ─── SIDEBAR: Thêm nút Dark Mode & Team Chat & Invoice ────────
+window._patchSidebarFeatures = () => {
+  // Thêm nút Dark Mode vào sidebar
+  const sidebar = document.querySelector('.sidebar-nav');
+  if (sidebar && !document.getElementById('dark-mode-nav-btn')) {
+    const dmBtn = document.createElement('div');
+    dmBtn.id = 'dark-mode-nav-btn';
+    dmBtn.className = 'nav-item';
+    dmBtn.onclick = window.toggleDarkMode;
+    dmBtn.style.cssText = 'margin-top:auto;cursor:pointer';
+    dmBtn.innerHTML = `<span class="icon">🌙</span> Chế độ tối`;
+    sidebar.appendChild(dmBtn);
+  }
+};
+// Gọi sau mỗi lần updateUI
+const _origUpdateUI = window.updateUI;
+if (_origUpdateUI) {
+  window.updateUI = function(...args) {
+    _origUpdateUI.apply(this, args);
+    setTimeout(() => window._patchSidebarFeatures && window._patchSidebarFeatures(), 100);
+  };
+}
+// Gọi lần đầu
+setTimeout(() => window._patchSidebarFeatures && window._patchSidebarFeatures(), 1500);
+
+// ─── Expose helpers cho components.js ────────────────────────
+window.openInvoiceModal = window.generateInvoice;
+window.openLeadPipeline = () => {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:1rem';
+  overlay.innerHTML = `<div style="background:var(--bg-main);border-radius:20px;width:min(900px,97vw);max-height:90vh;overflow-y:auto;padding:1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <h3 style="font-weight:900">🎯 Lead Pipeline</h3>
+      <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary btn-sm">✕ Đóng</button>
+    </div>
+    ${window.renderLeadPipeline()}
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+};
+
+window.openStaffScheduleModal = () => {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:1rem';
+  const content = document.createElement('div');
+  content.style.cssText = 'background:var(--bg-main);border-radius:20px;width:min(1000px,98vw);max-height:92vh;overflow-y:auto;padding:1.5rem';
+  overlay.appendChild(content);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  window._scheduleEl = content;
+  content.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <h3 style="font-weight:900">📅 Lịch Nhân Sự Theo Tuần</h3>
+    <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary btn-sm">✕ Đóng</button>
+  </div>` + window.renderStaffSchedule(0);
+};
+
+window.openKPIModal = () => {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:1rem';
+  overlay.innerHTML = `<div style="background:var(--bg-main);border-radius:20px;width:min(800px,97vw);max-height:90vh;overflow-y:auto;padding:1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <h3 style="font-weight:900">🏆 KPI Nhân Sự</h3>
+      <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary btn-sm">✕ Đóng</button>
+    </div>
+    ${window.renderStaffKPI(state.currentMonth, state.currentYear)}
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+};
+
+console.log('✅ Haru Studio v4.0 — Tất cả tính năng mới đã được kích hoạt!');
+

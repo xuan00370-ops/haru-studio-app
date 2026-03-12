@@ -106,6 +106,15 @@ export function renderSidebar(activePage, navigate) {
         <span class="icon">&#128202;</span> Analytics
       </div>
 
+      <div class="nav-item" onclick="window.openLeadPipeline&&window.openLeadPipeline()" style="background:rgba(59,130,246,0.08);border-left:3px solid #3b82f6">
+        <span class="icon">🎯</span> Lead Pipeline
+      </div>
+      <div class="nav-item" onclick="window.openKPIModal&&window.openKPIModal()" style="background:rgba(245,158,11,0.08);border-left:3px solid #f59e0b">
+        <span class="icon">🏆</span> KPI Nhân Sự
+      </div>
+      <div class="nav-item" onclick="window.openStaffScheduleModal&&window.openStaffScheduleModal()" style="background:rgba(168,85,247,0.08);border-left:3px solid #a855f7">
+        <span class="icon">📅</span> Lịch Nhân Sự
+      </div>
 
 
       <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.collapse-icon').textContent=this.nextElementSibling.style.display==='none'?'▸':'▾'" style="font-size: 0.82rem; font-weight: 800; color: var(--text-dim); margin: 1.5rem 0 0.5rem 0.75rem; text-transform: uppercase; cursor: pointer; display:flex; align-items:center; gap:0.3rem; user-select:none"><span class="collapse-icon">${['sync', 'nas', 'history', 'trash', 'settings'].includes(activePage) ? '▾' : '▸'}</span>Hệ thống</div>
@@ -772,9 +781,10 @@ function renderJobCard(job) {
             <span class="value" style="font-size: 0.85rem; font-weight: 900; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(profit)}</span>
          </div>
          `}
-         <div style="display:flex;gap:0.4rem;justify-content:flex-end;align-items:center;margin-top:0.5rem" onclick="event.stopPropagation()">
+         <div style="display:flex;gap:0.4rem;justify-content:flex-end;align-items:center;margin-top:0.5rem;flex-wrap:wrap" onclick="event.stopPropagation()">
             ${job.linkNAS ? `<a href="${job.linkNAS}" target="_blank" class="btn btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:#2563eb15;color:#2563eb;border:1px solid #2563eb30;border-radius:6px;text-decoration:none">📁 NAS</a>` : ''}
             ${job.linkDrive ? `<a href="${job.linkDrive}" target="_blank" class="btn btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:#16a34a15;color:#15803d;border:1px solid #16a34a30;border-radius:6px;text-decoration:none">🔗 Drive</a>` : ''}
+            ${window.state?.currentUser?.role === 'admin' ? `<button onclick="window.generateInvoice&&window.generateInvoice('${job.id}')" class="btn btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem;background:#7c3aed15;color:#7c3aed;border:1px solid #7c3aed30;border-radius:6px">🧾 Invoice</button>` : ''}
          </div>
          <div class="view-detail-link" style="font-size: 0.82rem; text-align: center; margin-top: 0.35rem; opacity: 0.7">Xem chi tiết &rarr;</div>
          <div onclick="event.stopPropagation()" style="margin-top:0.5rem"><button onclick="window.toggleJobComplete&&window.toggleJobComplete('${job.id}')" style="width:100%;padding:0.35rem;border-radius:6px;font-size:0.72rem;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s;${isCompleted ? 'background:#22c55e;color:#fff' : 'background:#22c55e15;color:#22c55e;border:1px solid #22c55e30'}">${isCompleted ? '✅ Đã hoàn thành' : '⭕ Đánh dấu hoàn thành'}</button></div>
